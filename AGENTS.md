@@ -174,7 +174,9 @@
 本节规范来源于 coding-skill 的 `std/testing.md`，以本文已内联内容为准：
 
 - 单元测试覆盖所有 Service 核心业务方法，分支覆盖率目标 80% 以上。
-- 测试方法命名：`should_期望结果_when_条件`。
+- 测试方法命名应清晰表达“期望结果 + 条件”，具体格式遵循项目语言约定：
+  - Java/camelCase：`shouldExpectResultWhenCondition`
+  - Python/下划线风格：`should_expect_result_when_condition`
 - 每个测试只验证一个行为，使用 Arrange-Act-Assert 结构。
 - Mock 外部依赖，不依赖真实数据库或网络。
 - 本地提交前必须跑通单元测试。
