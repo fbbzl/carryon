@@ -2,11 +2,11 @@
 
 > 本文件用于约束 AI Agent 在本工作区内的行为。所有后续会话优先遵循本文件。
 > 
-> **注意**：`AGENTS.md` 位于项目路径根目录，不纳入任何 git 仓库版本管理；修改后无需随项目代码 commit，也无需 push。
+> **注意**：`AGENTS.md` 通常位于项目路径根目录，作为 AI Agent 的本地工作区规则。是否纳入 git 版本管理由项目决定；本仓库已纳入。
 >
 > 本仓库标准优先级：项目规则 / 用户指令 / AGENTS.md > 本文件已内联的项目规范 > 通用工程常识。
 >
-> 编码规范来源：本文件中的部分规范整理自 https://gitee.com/fbbzl/coding-skill。除非用户明确要求同步或查看远端规范，否则 Agent 不应主动联网读取该仓库。
+> 编码规范来源：本文件中的部分规范整理自示例仓库 https://gitee.com/fbbzl/coding-skill。用户在获取该项目规范后，应将其缓存到应用根目录（如 `std/` 目录）下；除非用户明确要求同步或查看远端规范，否则 Agent 以本地缓存为准，不应主动联网读取。
 
 ---
 
@@ -56,7 +56,7 @@
 ## 1. Git 约定
 
 - 操作 git 前先看 `git status`，确认当前分支和未提交改动。
-- 不允许直接操作 `master`、`main`、`release` 等主分支，除非用户明确要求。
+- 不允许直接操作 `master`、`main` 等主分支，除非用户明确要求。
 - 默认在当前仓库已有业务分支工作；如需切换分支，先确认目标分支和未提交改动。
 - commit 必须用户显式要求，禁止擅自 push。
 - 删除分支前确认已合并且无未提交改动。
@@ -81,7 +81,7 @@
   - `target` 写目标分支；无目标分支时写 `local`。
   - `purpose` 用一句话说明目的，禁止使用 `tmp`、`wip`、`backup` 等含糊描述。
   - `files=N` 必须与实际纳入 stash 的文件数量一致。
-  - 示例：`fix(order): task=订单导出 | source=feature/feat_a | target=feature/feat_a_order | files=5 | purpose=同步订单导出和模板参数校验`。
+  - 示例：`fix(order): task=订单导出 | source=<源分支> | target=<目标分支> | files=5 | purpose=同步订单导出和模板参数校验`。
 - stash 同步标准流程：
   1. `git status`
   2. `git stash push -m "规范 message" -- <精确文件列表>`
@@ -104,6 +104,7 @@
 & "$env:MAVEN_HOME\bin\mvn.cmd" -s "<maven配置文件>" [goal]
 ```
 
+- 运行 Maven 前先确认 `MAVEN_HOME` 环境变量是否存在；若不存在或找不到 `<maven配置文件>`，必须询问用户具体路径，禁止猜测。
 - 常用命令示例：
   - 编译：`compile`
   - 测试：`test`
@@ -278,7 +279,7 @@
 
 ## 11. AI Skill 协作
 
-coding-skill 的 `skills/` 目录曾作为以下 AI 子代理协作剧本来源；除非用户明确要求同步或查看远端剧本，否则以本文列出的名称和用途为准：
+项目根目录下 `skills/` 目录中的 `SKILL.md` 文件是 AI 子代理协作剧本。Agent 默认使用本地 `skills/` 目录中的剧本，无需联网获取；只有用户明确要求同步或查看远端剧本时，才访问外部仓库。子代理与剧本对应关系如下：
 
 - `skills/dev/SKILL.md` — 全栈开发负责人剧本
 - `skills/cr/SKILL.md` — 代码审查专家剧本
