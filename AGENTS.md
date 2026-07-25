@@ -93,26 +93,7 @@
 
 ---
 
-## 2. Maven 与构建
-
-- 所有项目使用 Maven 配置文件，不能直接运行 `mvn`。
-- 标准 Maven 命令格式：
-
-```powershell
-& "$env:MAVEN_HOME\bin\mvn.cmd" -s "<maven配置文件>" [goal]
-```
-
-- 运行 Maven 前先确认 `MAVEN_HOME` 环境变量是否存在；若不存在或找不到 `<maven配置文件>`，必须询问用户具体路径，禁止猜测。
-- 常用命令示例：
-  - 编译：`compile`
-  - 测试：`test`
-  - 指定测试类：`test -Dtest=SomeServiceTest`
-  - 打包：`package -DskipTests`
-- 修改代码后优先运行相关测试；完成后运行 lint/typecheck（如有）。
-
----
-
-## 3. 通用编码原则
+## 2. 通用编码原则
 
 本节规范来源于 coding-skill 的 `std/general.md`，以本文已内联内容为准：
 
@@ -133,52 +114,7 @@
 
 ---
 
-## 4. Java / Spring Boot 编码规范
-
-本节规范来源于 coding-skill 的 `std/java.md` 和 `std/spring.md`，以本文已内联内容为准：
-
-### 命名与风格
-
-- 类名 PascalCase，方法名和变量名 camelCase，常量 UPPER_SNAKE_CASE。
-- 禁止使用 `var`。
-- 布尔方法以 `is/has/can/should` 开头。
-- 集合变量名使用复数形式或带 `List/Map/Set` 后缀。
-- 代码尽量体现表格观感，条件分支、赋值等同类操作通过对齐提升可读性。
-
-### 工具链
-
-- 使用 Lombok，参考其他模块的用法。
-- 优先使用项目已有工具类、Hutool、JDK 标准库和成熟三方库；不要为了套工具而牺牲可读性。
-- 属性映射尽量使用 MapStruct。
-- 校验用 JSR 303，`message.properties` 不要忘记加上对应异常信息。
-
-### 分层与职责
-
-- 基础校验放在 Controller，业务校验和数据库校验放在 Service。
-- Service 的 public 业务方法优先加简短精准注释；简单 getter、委托、显而易见的 private 方法不强制注释。
-- Service 组件不直接获取其他 Service 的持久层。
-- 禁止注入配置类，业务 `XxxProperties` 通过静态引用 `REF` 暴露（或项目内等价的静态暴露方式）。
-- 优先使用构造函数注入，避免字段注入。
-
-### 异常与日志
-
-- 业务异常使用 Throws 工具类和 BizException（或项目内等价的统一异常抛出工具与业务异常基类）。
-- 所有可能返回 null 的方法用 `@Nullable` 标记。
-- 使用 SLF4J 占位符风格 `log.info("msg: {}", val)`。
-- 敏感信息脱敏后再打印。
-
-### Java 最佳实践
-
-- Stream API 用于集合转换，避免嵌套循环。
-- Optional 用于可能为空的方法链，禁止 `Optional.get()` 裸用。
-- `CompletableFuture` / virtual threads（JDK 21+）处理并发。
-- `record` 用于 DTO。
-- switch expression 替代多分支 if-else。
-- 业务代码中避免出现大量无意义的 getter/setter 机械赋值；同类属性批量操作（如累加、复制）优先使用 Hutool 的 `BeanUtil` / `ReflectUtil` 统一处理。
-
----
-
-## 5. 前端开发规范
+## 3. 前端开发规范
 
 本节规范来源于 coding-skill 的 `std/frontend.md`，以本文已内联内容为准：
 
@@ -193,7 +129,7 @@
 
 ---
 
-## 6. API 设计规范
+## 4. API 设计规范
 
 本节规范来源于 coding-skill 的 `std/api-design.md`，以本文已内联内容为准：
 
@@ -216,7 +152,7 @@
 
 ---
 
-## 7. 数据库规范
+## 5. 数据库规范
 
 本节规范来源于 coding-skill 的 `std/database.md`，以本文已内联内容为准：
 
@@ -233,7 +169,7 @@
 
 ---
 
-## 8. 测试规范
+## 6. 测试规范
 
 本节规范来源于 coding-skill 的 `std/testing.md`，以本文已内联内容为准：
 
@@ -251,7 +187,7 @@
 
 ---
 
-## 9. 安全规范
+## 7. 安全规范
 
 本节规范来源于 coding-skill 的 `std/security.md`，以本文已内联内容为准：
 
@@ -265,7 +201,7 @@
 
 ---
 
-## 10. 代码审查
+## 8. 代码审查
 
 本节规范来源于 coding-skill 的 `std/code-review.md`，以本文已内联内容为准：
 
@@ -275,7 +211,7 @@
 
 ---
 
-## 11. AI Skill 协作
+## 9. AI Skill 协作
 
 项目根目录下 `skills/` 目录中的 `SKILL.md` 文件是 AI 子代理协作剧本。Agent 默认使用本地 `skills/` 目录中的剧本，无需联网获取；只有用户明确要求同步或查看远端剧本时，才访问外部仓库。子代理与剧本对应关系如下：
 
@@ -289,7 +225,7 @@
 
 ---
 
-## 12. 沟通与确认
+## 10. 沟通与确认
 
 ### 语言与风格
 
