@@ -1,6 +1,6 @@
 ---
 name: cr
-version: 1.3.1
+version: 1.3.2
 type: agent-skill
 scope: software-engineering
 description: "代码审查、设计审查、数据库审查和 API 联调专家剧本"
@@ -68,6 +68,6 @@ AI 只用于快速识别候选问题、影响文件或测试缺口；`cr` 必须
 
 代码/设计/数据库/API 审查报告、直接与受影响文件、影响链、联调阻断清单、修复复审记录、提测文件和剩余风险。
 
-交给 `qa`：审查结论、联调证据、测试重点、已知非阻断风险、环境说明和验收标准；交接遵循 `survey-corps` 最小模板，至少提供 `observed_at`、`verified_scope`、`unverified_scope`、`allowed_actions`、`forbidden_actions`、`residual_risks`。
+交给 `qa`：审查结论、联调证据、测试重点和已知非阻断风险；交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `review_decision`、`blocking_items`、`integration_evidence`、`test_focus`、`non_blocking_risks`。
 
 P0/P1 或高风险审查还要关联 `event_id`、`health_effect`、风险接受记录和发布限制。

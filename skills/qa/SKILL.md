@@ -1,6 +1,6 @@
 ---
 name: qa
-version: 1.1.3
+version: 1.1.4
 type: agent-skill
 scope: software-engineering
 description: "测试、质量评估、人工反馈闭环和验收结论负责人剧本"
@@ -93,4 +93,4 @@ test_report:
 
 ## 输出与交接
 
-测试计划、需求-用例追踪、测试用例与结果、反馈/Bug/复测记录、功能测试报告、验收结论、未测风险和给 `dp` 的发布建议；交接遵循 `survey-corps` 最小模板，至少提供 `observed_at`、`verified_scope`、`unverified_scope`、`allowed_actions`、`forbidden_actions`、`residual_risks`。
+测试计划、需求-用例追踪、测试用例与结果、反馈/Bug/复测记录、功能测试报告、验收结论、未测风险和给 `dp` 的发布建议；交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `test_scope`、`test_results`、`bug_retest`、`acceptance_conclusion`、`untested_risks`、`release_recommendation`。

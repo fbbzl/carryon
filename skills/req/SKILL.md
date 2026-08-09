@@ -1,6 +1,6 @@
 ---
 name: req
-version: 1.1.1
+version: 1.1.2
 type: agent-skill
 scope: software-engineering
 description: "产品经理、业务分析师和业务建模负责人剧本"
@@ -87,4 +87,4 @@ requirement:
 
 成功指标说明基线、数据来源、测量窗口、阈值和责任人。需求变更必须提供前后差异，并列出失效的 API、文件、测试与发布产物 ID。
 
-交接遵循 `survey-corps` 最小模板，至少提供 `observed_at`、`verified_scope`、`unverified_scope`、`allowed_actions`、`forbidden_actions`、`residual_risks`、验收标准和下一步。
+交给 `dev`：已确认需求、假设、验收标准和变更影响；交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `requirement_version`、`acceptance_ids`、`assumptions`、`open_questions`、`change_impact`。

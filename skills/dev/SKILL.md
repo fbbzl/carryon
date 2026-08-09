@@ -1,6 +1,6 @@
 ---
 name: dev
-version: 1.1.1
+version: 1.1.2
 type: agent-skill
 scope: software-engineering
 description: "全栈开发负责人剧本，统一承担前后端职责"
@@ -80,6 +80,6 @@ delivery_evidence:
 
 ## 交接与修复边界
 
-交给 `cr`：契约、变更和受影响文件、迁移/恢复说明、自测证据和运行环境；交接遵循 `survey-corps` 最小模板，至少提供 `observed_at`、`verified_scope`、`unverified_scope`、`allowed_actions`、`forbidden_actions`、`residual_risks`。
+交给 `cr`：契约、变更和受影响文件、迁移/恢复说明、自测证据和运行环境；交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `changed_files`、`affected_files`、`contract_summary`、`self_test`、`migration_or_recovery`。
 
 收到 `qa` bug 时只修复明确的实现问题；安全、数据一致性、未完成回归或生产风险不能由 `dev` 自行接受，需升级裁决。

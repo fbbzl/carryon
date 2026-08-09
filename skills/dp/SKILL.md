@@ -1,6 +1,6 @@
 ---
 name: dp
-version: 1.1.2
+version: 1.1.3
 type: agent-skill
 scope: software-engineering
 description: "delivery/platform 负责人剧本，负责发布检查、恢复建议和交付报告"
@@ -44,7 +44,7 @@ author: coding-skill
 - 消费 `qa_conditional` 时，核对当前版本/环境、`degraded` 健康快照、风险接受证据、补偿控制和有效期；任一缺失或过期即 No-Go，且不得改写为 `qa_passed`。
 - 交付报告至少包含版本、环境、目标、操作者、构建产物、变更模块、迁移/配置、验证步骤、健康结果、已知风险、回滚计划和下一步。
 - CI/CD 配置、Docker、Kubernetes 等仅在用户明确要求时处理。
-- 交接遵循 `survey-corps` 最小模板，至少提供 `observed_at`、`verified_scope`、`unverified_scope`、`allowed_actions`、`forbidden_actions`、`residual_risks`。
+- 交付给用户或授权方：预检结论、健康观察、授权状态、停止/回滚路径和交付结论；交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `preflight`、`health_observation`、`authorization`、`deployment_or_rollback`、`delivery_conclusion`。
 
 交付记录至少保留版本、环境、目标、操作者、构建产物、变更模块、迁移/配置、验证步骤、健康结果、已知风险、回滚计划和下一步；部署失败必须记录失败点、影响和恢复状态。
 
