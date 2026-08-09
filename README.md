@@ -23,7 +23,8 @@
 
 - 写 Java 项目：先看 `std/general.md`，再看 `std/java.md`，如果是 Spring Boot 项目加看 `std/spring.md`
 - 写 API：参考 `std/api-design.md` + 语言标准
-- 做代码审查：参考 `std/code-review.md` + `skills/cr/SKILL.md`
+- 做代码审查：参考 `skills/cr/SKILL.md`
+- 做测试与验收：参考 `skills/qa/SKILL.md`
 - 需求分析：参考 `skills/req/SKILL.md`，完整流程见 `skills/survey-corps/SKILL.md`
 - 全流程协作：参考 `skills/survey-corps/SKILL.md`
 
@@ -35,9 +36,7 @@
 - `std/api-design.md` — API 设计规范
 - `std/database.md` — 数据库设计规范
 - `std/security.md` — 安全规范
-- `std/testing.md` — 测试规范
 - `std/git.md` — Git 使用规范
-- `std/code-review.md` — 代码审查清单
 - `std/frontend.md` — 前端开发规范
 - `std/devops.md` — DevOps 规范
 - `std/logging.md` — 日志与可观测性规范
