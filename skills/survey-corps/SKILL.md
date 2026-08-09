@@ -1,6 +1,6 @@
 ---
 name: survey-corps
-version: 1.2.2
+version: 1.2.3
 type: agent-skill
 scope: software-engineering
 description: "固定的跨项目软件工程子代理团队（调查兵团）协作流程"
@@ -77,21 +77,24 @@ author: coding-skill
 | `cr_blocked` | 修复完成并重新提审 | `ready_for_cr` | 修复证据、复审输入 | 直接跳到 QA |
 | `ready_for_qa` | 验证通过 / 有阻断 | `qa_passed` / `qa_failed` | 测试范围与结果 | 以局部绿灯代替回归 |
 | `qa_failed` | 修复完成并重新提测 | `ready_for_qa` | 修复证据、回归范围、复测计划 | 直接标记通过 |
-| `qa_passed` | 发布共识与预检完整 | `ready` | 需求版本、`cr` 阻断结论、QA 范围/风险、`dp` 预检、授权证据 | 以局部测试代替共识 |
+| `qa_passed` | 发布共识与预检完整 | `ready` | 当前工作单元、共识 ID/更新时间/有效期、需求与代码版本、目标环境、`cr` 阻断结论、QA 范围/风险、`dp` 预检、授权证据 | 以局部测试或跨环境旧共识代替当前共识 |
 | `ready` | 用户授权发布 | `deploying` | 构建、配置、迁移、回滚 | 未授权操作 |
 | `deploying` | 部署命令完成 | `deployed` | 版本、目标、操作者、部署记录 | 宣布交付成功 |
 | `deploying` | 部署失败或健康门禁未满足 | `blocked` | 失败记录、健康快照、恢复动作 | 宣布部署成功 |
 | `deployed` | 观察通过 / 健康异常 | `verified` / `rolled_back` | 健康快照 / 回滚记录 | 省略观察 / 继续扩散 |
 | `verified` | 追溯发现 P0/P1 或数据/安全异常 | `blocked` / `rolled_back` | 事件、影响范围、恢复/隔离证据 | 继续扩散 |
-| `rolled_back` | 根因修复并重新规划 | `planned` | 回滚报告、修复证据、新方案、OpenSpec（如需） | 直接重新放量 |
-| 任意状态 | P0/P1、授权缺失或关键证据阻断 | `blocked` | 事件、健康快照、责任人、退出条件 | 继续受影响交接/放量 |
-| `blocked` | 阻断关闭并重新规划或授权 | `planned` / `ready` | 关闭/修复证据、健康快照、授权、上游证据有效性 | 隐式解除阻断 |
-| `needs_revalidation` | 需求、代码、配置、依赖、迁移、契约或权限变化后重新基线 | `planned` | 新版本、失效影响、影响链、OpenSpec（如需）、`resume_state=planned` | 跳过 dev、cr 或 qa |
-| `needs_revalidation` | 仅 CR 证据失效且实现版本未变 | `ready_for_cr` | 版本不变证据、失效影响、复审输入、`resume_state=ready_for_cr` | 直接提测或发布 |
-| `needs_revalidation` | 仅 QA 环境、数据或测试证据失效且上游证据未变 | `ready_for_qa` | 版本不变证据、环境/数据基线、复测计划、`resume_state=ready_for_qa` | 直接标记通过或发布 |
-| 任意状态 | 版本、证据或环境变化 | `needs_revalidation` | 失效原因、影响范围 | 继续使用旧结论 |
+| `rolled_back` | 根因修复并重新规划 | `planned` | 回滚报告、修复证据、当前需求版本、新方案、OpenSpec ID/版本/`status=confirmed`（如需） | 直接重新放量 |
+| 任意状态 | P0/P1、授权缺失或关键证据阻断 | `blocked` | `blocked_from`、事件、健康快照、责任人、退出条件 | 继续受影响交接/放量 |
+| `blocked` | 阻断关闭，但需求、实现、契约、数据、安全或测试证据曾变化或失效 | `needs_revalidation` | `event.status=closed`、`blocked_from`、`invalidated_by`、影响范围、失效证据、健康快照 | 直接回到 `planned`、`ready` 或复用旧证据 |
+| `blocked` | 非发布阶段仅外部依赖或授权中断已恢复，且没有证据失效 | `resume_state`（必须等于记录的 `blocked_from`） | `event.status=closed`、同一 `work_unit_id`/`reference_version`/`environment`、未过期证据、`resume_state=blocked_from` | 把动态目标当作新状态、改写恢复目标或跳过原状态门禁 |
+| `blocked` | `blocked_from` 为 `ready` 或 `deploying`，仅授权缺失、部署命令失败或运行中断已恢复，且交付物未变 | `ready` | `event.status=closed`、同一工作单元和需求/代码/配置/迁移版本、`cr`/`qa` 仍适用、更新后的 `dp` 预检、发布共识、授权与健康快照、`resume_state=ready` | 省略预检、共识、授权或直接部署 |
+| `needs_revalidation` | 需求、实现、配置、依赖、迁移、契约、权限、安全或数据不变量变化后重新基线 | `planned` | 新版本、失效影响、影响链、OpenSpec（如需）、`resume_state=planned` | 跳过 dev、cr 或 qa |
+| `needs_revalidation` | 实现基线未变，但 CR 证据失效或其适用性无法证明 | `ready_for_cr` | 工作单元和实现基线不变、失效影响、复审输入、`resume_state=ready_for_cr` | 直接提测或发布 |
+| `needs_revalidation` | 仅测试执行环境、测试夹具或 QA 证据失效，且上游基线未变 | `ready_for_qa` | 工作单元、产物/配置/依赖基线不变，CR 明确确认仍适用，环境/数据基线、复测计划、`resume_state=ready_for_qa` | 把配置、权限、安全、契约或数据不变量变化归为 QA-only |
+| `needs_revalidation` | `revalidation_from` 为 `qa_passed` 或 `ready`，仅 DP 预检、授权或健康证据失效且上游证据未变 | `ready` | 同一 `work_unit_id`/`reference_version`/`environment`、需求/代码/配置/迁移版本不变、`cr`/`qa` 仍适用、更新后的预检、发布共识、授权与健康快照、`resume_state=ready` | 直接部署或复用失效证据 |
+| 任意状态 | 版本、证据或环境变化 | `needs_revalidation` | `revalidation_from`、失效原因、影响范围 | 继续使用旧结论 |
 
-`blocked` 仅在阻断只涉及授权或运行恢复、且当前版本的 `cr`、`qa`、`dp` 证据仍有效时可转 `ready`；涉及代码、契约、数据、安全或测试证据变化时必须转 `planned`，重新走受影响链路。
+恢复目标由 `source_state`、`blocked_from`、`revalidation_from`、`invalidated_by` 与影响链决定，不得由执行者任意选择；这些字段必须与同一 `work_unit_id`、`reference_version`、`environment` 和失效前证据绑定。`blocked_from` 与 `revalidation_from` 是前态记录，不是可跳转的新状态；`resume_state` 必须等于经过规则计算的恢复目标。`invalidated_by` 只能使用 `requirement`、`implementation`、`config`、`dependency`、`migration`、`contract`、`permission`、`security`、`data`、`cr`、`qa_environment`、`qa_fixture`、`qa_evidence`、`dp_preflight`、`authorization`、`health` 等类别；进入和离开 `needs_revalidation` 使用同一分类。入口与出口均按最上游受影响门禁处理：`planned > ready_for_cr > ready_for_qa > ready`。P0/P1、`security` 或 `data` 失效至少进入 `planned`；`blocked` 仅在发布阶段只涉及授权或运行恢复、交付物未变且更新后的 `dp` 证据成立时可转 `ready`，其他情况恢复原状态或先进入 `needs_revalidation`。
 
 最小交接：
 
@@ -101,11 +104,15 @@ handoff:
   source_role:
   target_role:
   status:
+  source_state:
   observed_at:
   updated_at:
   reference_version:
   environment:
+  blocked_from:
+  revalidation_from:
   resume_state:
+  invalidated_by: []
   verified_scope: []
   unverified_scope: []
   evidence: []
@@ -139,6 +146,11 @@ health_snapshot:
 
 ```yaml
 release_consensus:
+  work_unit_id:
+  consensus_id:
+  updated_at:
+  environment:
+  target:
   decision_owner:
   approval_evidence:
   req_version:
@@ -157,9 +169,14 @@ release_consensus:
 ```yaml
 event:
   event_id:
+  work_unit_id:
+  reference_version:
+  environment:
   priority: P0 | P1 | P2 | P3
   status: active | mitigating | recovering | closed
   source:
+  blocked_from:
+  revalidation_from:
   observed_at:
   affected_scope: []
   health_effect:
