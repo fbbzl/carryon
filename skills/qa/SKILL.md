@@ -1,6 +1,6 @@
 ---
 name: qa
-version: 1.1.0
+version: 1.1.1
 type: agent-skill
 scope: software-engineering
 description: "测试、质量评估、人工反馈闭环和验收结论负责人剧本"
@@ -50,10 +50,12 @@ AI 生成的用例必须标注来源并由 `qa` 补齐前置条件、步骤、�
 
 ```yaml
 test_report:
+  work_unit_id:
   requirement_version:
   code_version:
   status:
   observed_at:
+  updated_at:
   valid_until:
   environment:
   dataset:

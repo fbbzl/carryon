@@ -1,6 +1,6 @@
 ---
 name: dev
-version: 1.1.0
+version: 1.1.1
 type: agent-skill
 scope: software-engineering
 description: "全栈开发负责人剧本，统一承担前后端职责"
@@ -59,6 +59,8 @@ API 交付清单至少写明用途、请求/响应、错误码、权限、幂等
 
 ```yaml
 delivery_evidence:
+  work_unit_id:
+  updated_at:
   source_requirement_ids: []
   source_commit:
   dependency_lock:

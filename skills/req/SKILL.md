@@ -1,6 +1,6 @@
 ---
 name: req
-version: 1.1.0
+version: 1.1.1
 type: agent-skill
 scope: software-engineering
 description: "产品经理、业务分析师和业务建模负责人剧本"
@@ -60,7 +60,9 @@ AI 生成的需求、图表和验收标准必须标注为初稿，并保留“�
 ```yaml
 requirement:
   id:
+  work_unit_id:
   version:
+  updated_at:
   source_evidence: []
   goal:
   users: []

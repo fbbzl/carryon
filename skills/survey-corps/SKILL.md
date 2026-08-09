@@ -1,6 +1,6 @@
 ---
 name: survey-corps
-version: 1.2.1
+version: 1.2.2
 type: agent-skill
 scope: software-engineering
 description: "固定的跨项目软件工程子代理团队（调查兵团）协作流程"
@@ -97,10 +97,12 @@ author: coding-skill
 
 ```yaml
 handoff:
+  work_unit_id:
   source_role:
   target_role:
   status:
   observed_at:
+  updated_at:
   reference_version:
   environment:
   resume_state:
@@ -114,6 +116,8 @@ handoff:
   next_action:
   exit_conditions: []
 ```
+
+`work_unit_id` 关联同一工作单元；`observed_at` 记录证据观察时间，`updated_at` 记录产物最后更新时间。
 
 高风险健康快照：
 

@@ -1,6 +1,6 @@
 ---
 name: dp
-version: 1.1.0
+version: 1.1.1
 type: agent-skill
 scope: software-engineering
 description: "delivery/platform 负责人剧本，负责发布检查、恢复建议和交付报告"
@@ -51,8 +51,10 @@ author: coding-skill
 
 ```yaml
 delivery_report:
+  work_unit_id:
   version:
   observed_at:
+  updated_at:
   valid_until:
   environment:
   target:
