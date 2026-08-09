@@ -1,6 +1,6 @@
 ---
 name: survey-corps
-version: 1.2.3
+version: 1.2.4
 type: agent-skill
 scope: software-engineering
 description: "固定的跨项目软件工程子代理团队（调查兵团）协作流程"
@@ -59,6 +59,17 @@ author: coding-skill
 | `unstable` | 生产、安全、数据或关键契约存在阻断风险 | `dp` 协调恢复，专业角色判定风险 | 影响已隔离且恢复证据成立 |
 | `recovering` | 风险已控制但尚未恢复常规流转 | 恢复工作单元负责人 | 复审、复测和观察窗口通过 |
 
+工作流状态与健康状态是两个独立维度；前者控制交接，后者控制系统动作。健康状态只允许以下转换：
+
+| 当前健康状态 | 触发 | 可转为 | 必要证据 |
+| --- | --- | --- | --- |
+| `healthy` | 出现已知非阻断缺口 | `degraded` | 影响范围、责任人、补偿控制、有效期 |
+| `degraded` | 缺口关闭并复验 | `healthy` | 关闭证据、受影响范围复验 |
+| `healthy` / `degraded` | 出现阻断风险 | `unstable` | 事件、影响范围、冻结动作 |
+| `unstable` | 影响已隔离 | `recovering` | 隔离证据、恢复计划、观察指标 |
+| `recovering` | 复审、复测和观察通过 | `healthy` / `degraded` | 恢复证据、残余风险、健康快照 |
+| `recovering` | 异常扩大或恢复证据失效 | `unstable` | 更新后的事件与影响范围 |
+
 ## 状态与交接
 
 状态是行动许可。版本、需求、代码、配置、数据或环境变化时，依赖旧证据的结论进入 `needs_revalidation`，不得直接沿用。
@@ -75,8 +86,11 @@ author: coding-skill
 | `dev_done` | 交付输入完整 | `ready_for_cr` | 契约、影响、验证 | 跳过 `cr` |
 | `ready_for_cr` | 有阻断 / 无阻断且联调完成 | `cr_blocked` / `ready_for_qa` | 审查证据 / 联调与提测文件 | 提测或最终验收 |
 | `cr_blocked` | 修复完成并重新提审 | `ready_for_cr` | 修复证据、复审输入 | 直接跳到 QA |
-| `ready_for_qa` | 验证通过 / 有阻断 | `qa_passed` / `qa_failed` | 测试范围与结果 | 以局部绿灯代替回归 |
+| `ready_for_qa` | 验证通过 / 条件通过 / 有阻断 | `qa_passed` / `qa_conditional` / `qa_failed` | 测试范围、结果、结论与健康影响 | 以局部绿灯代替回归 |
 | `qa_failed` | 修复完成并重新提测 | `ready_for_qa` | 修复证据、回归范围、复测计划 | 直接标记通过 |
+| `qa_conditional` | 缺口修复并准备复测 | `ready_for_qa` | 修复证据、受影响范围、复测计划 | 直接标记 `qa_passed` |
+| `qa_conditional` | 风险被用户或授权方限时接受，且发布预检完整 | `ready` | 当前版本/环境、`health_snapshot.state=degraded`、风险接受证据、补偿控制及有效期、发布共识、`dp` 预检、授权 | 声称 `qa_passed`/`healthy` 或省略补偿控制 |
+| `qa_conditional` | 补偿控制缺失/过期、适用范围变化或风险升级 | `needs_revalidation` | `revalidation_from=qa_conditional`、`invalidated_by`、受影响范围、失效证据 | 沿用条件结论或继续发布 |
 | `qa_passed` | 发布共识与预检完整 | `ready` | 当前工作单元、共识 ID/更新时间/有效期、需求与代码版本、目标环境、`cr` 阻断结论、QA 范围/风险、`dp` 预检、授权证据 | 以局部测试或跨环境旧共识代替当前共识 |
 | `ready` | 用户授权发布 | `deploying` | 构建、配置、迁移、回滚 | 未授权操作 |
 | `deploying` | 部署命令完成 | `deployed` | 版本、目标、操作者、部署记录 | 宣布交付成功 |
@@ -90,6 +104,7 @@ author: coding-skill
 | `blocked` | `blocked_from` 为 `ready` 或 `deploying`，仅授权缺失、部署命令失败或运行中断已恢复，且交付物未变 | `ready` | `event.status=closed`、同一工作单元和需求/代码/配置/迁移版本、`cr`/`qa` 仍适用、更新后的 `dp` 预检、发布共识、授权与健康快照、`resume_state=ready` | 省略预检、共识、授权或直接部署 |
 | `needs_revalidation` | 需求、实现、配置、依赖、迁移、契约、权限、安全或数据不变量变化后重新基线 | `planned` | 新版本、失效影响、影响链、OpenSpec（如需）、`resume_state=planned` | 跳过 dev、cr 或 qa |
 | `needs_revalidation` | 实现基线未变，但 CR 证据失效或其适用性无法证明 | `ready_for_cr` | 工作单元和实现基线不变、失效影响、复审输入、`resume_state=ready_for_cr` | 直接提测或发布 |
+| `needs_revalidation` | `revalidation_from=qa_conditional`，仅条件结论或补偿控制失效且上游基线未变 | `ready_for_qa` | 当前工作单元/版本/环境、失效影响、新测试与风险评估计划、`resume_state=ready_for_qa` | 直接恢复 `qa_conditional` 或 `ready` |
 | `needs_revalidation` | 仅测试执行环境、测试夹具或 QA 证据失效，且上游基线未变 | `ready_for_qa` | 工作单元、产物/配置/依赖基线不变，CR 明确确认仍适用，环境/数据基线、复测计划、`resume_state=ready_for_qa` | 把配置、权限、安全、契约或数据不变量变化归为 QA-only |
 | `needs_revalidation` | `revalidation_from` 为 `qa_passed` 或 `ready`，仅 DP 预检、授权或健康证据失效且上游证据未变 | `ready` | 同一 `work_unit_id`/`reference_version`/`environment`、需求/代码/配置/迁移版本不变、`cr`/`qa` 仍适用、更新后的预检、发布共识、授权与健康快照、`resume_state=ready` | 直接部署或复用失效证据 |
 | 任意状态 | 版本、证据或环境变化 | `needs_revalidation` | `revalidation_from`、失效原因、影响范围 | 继续使用旧结论 |
@@ -189,11 +204,9 @@ event:
 
 健康快照至少包含：`state`、`owner`、`observed_at`、`verified_scope`、`evidence` 和 `next_action`。事件关闭前必须验证恢复效果，并把遗漏回写到相关角色的检查项、测试或运行手册。
 
-健康状态转换：`healthy|degraded -> unstable -> recovering -> healthy|degraded`；恢复证据未齐全时不得离开 `recovering`，异常扩大时回到 `unstable`。
-
 需求、验收标准、代码、配置、依赖、迁移、环境或数据变化时，沿影响链使依赖旧版本的审查、测试和发布结论进入 `needs_revalidation`（不另设 `stale` 状态）。冲突无法即时解决时，冻结争议范围，保留无争议范围，并指定裁决者和复核时限。
 
-`qa` 的 `conditional` 只能对应 `degraded`，不得直接生成 `qa_passed`；补偿控制缺失或有效期届满时回到 `needs_revalidation`。
+`qa_conditional` 不等于 `qa_passed`：它只在 `degraded` 且限时风险接受成立时允许受控推进，不能被改写成无条件通过。
 
 授权方必须有可核验的身份、授权范围、审批证据和有效期；缺少记录时仅用户本人可作最终决定。活动 P0/P1 或 `unstable` 默认 No-Go，紧急例外只能授权受控恢复动作，不能豁免恢复验证。
 

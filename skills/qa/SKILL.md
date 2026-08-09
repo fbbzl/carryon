@@ -1,6 +1,6 @@
 ---
 name: qa
-version: 1.1.1
+version: 1.1.2
 type: agent-skill
 scope: software-engineering
 description: "测试、质量评估、人工反馈闭环和验收结论负责人剧本"
@@ -59,6 +59,7 @@ test_report:
   valid_until:
   environment:
   dataset:
+  health_state: healthy | degraded | unstable | recovering
   related_events: []
   tested_scope: []
   untested_scope: []
@@ -68,12 +69,23 @@ test_report:
   allowed_actions: []
   forbidden_actions: []
   risk_acceptance_owner:
+  risk_acceptance_evidence:
   exception_id:
+  compensating_controls: []
+  review_conditions: []
   residual_risks: []
   conclusion: pass | conditional | blocked
 ```
 
-“通过”必须写明适用版本、环境和观察窗口；条件通过必须列出风险接受人、补偿措施和复查期限。
+结论与交接状态必须一一对应；健康状态仍由全局证据决定：
+
+| 测试结论 | 工作流状态 | 健康状态 | 最低条件 |
+| --- | --- | --- | --- |
+| `pass` | `qa_passed` | 不单独改变；无条件发布要求 `healthy` | 当前版本与环境的测试退出标准全部满足 |
+| `conditional` | `qa_conditional` | `degraded` | 已知非阻断风险、接受人及证据、补偿控制、有效期和复查条件完整 |
+| `blocked` | `qa_failed`；P0/P1 同时进入 `blocked` | 按影响为 `degraded` / `unstable` | 明确阻断范围、禁止动作和退出条件 |
+
+“通过”必须写明适用版本、环境和观察窗口，不能由局部测试推出系统整体 `healthy`。`qa` 只记录条件风险，不能代替用户或授权方接受风险；条件结论过期、控制失效或范围变化时进入 `needs_revalidation`，不得沿用。
 
 发现生产、安全、数据损坏或关键发布阻断信号时，`qa` 必须创建或关联 P0/P1 事件，并在报告中写明健康影响和发布限制。
 

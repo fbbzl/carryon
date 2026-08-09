@@ -1,6 +1,6 @@
 ---
 name: dp
-version: 1.1.1
+version: 1.1.2
 type: agent-skill
 scope: software-engineering
 description: "delivery/platform 负责人剧本，负责发布检查、恢复建议和交付报告"
@@ -41,6 +41,7 @@ author: coding-skill
 
 - 发布方案必须说明构建输入、环境变量、迁移处理、可观测性、风险、回滚路径和触发条件。
 - 缺少授权、健康门禁、恢复路径或关键证据时，阻断受影响发布。
+- 消费 `qa_conditional` 时，核对当前版本/环境、`degraded` 健康快照、风险接受证据、补偿控制和有效期；任一缺失或过期即 No-Go，且不得改写为 `qa_passed`。
 - 交付报告至少包含版本、环境、目标、操作者、构建产物、变更模块、迁移/配置、验证步骤、健康结果、已知风险、回滚计划和下一步。
 - CI/CD 配置、Docker、Kubernetes 等仅在用户明确要求时处理。
 - 交接遵循 `survey-corps` 最小模板，至少提供 `observed_at`、`verified_scope`、`unverified_scope`、`allowed_actions`、`forbidden_actions`、`residual_risks`。
