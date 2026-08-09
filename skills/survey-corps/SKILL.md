@@ -1,6 +1,6 @@
 ---
 name: survey-corps
-version: 1.2.4
+version: 1.2.5
 type: agent-skill
 scope: software-engineering
 description: "固定的跨项目软件工程子代理团队（调查兵团）协作流程"
@@ -145,10 +145,15 @@ handoff:
 
 ```yaml
 health_snapshot:
+  work_unit_id:
   state: healthy | degraded | unstable | recovering
   owner:
   observed_at:
+  updated_at:
   valid_until:
+  reference_version:
+  environment:
+  target:
   verified_scope: []
   unverified_scope: []
   evidence: []
@@ -202,7 +207,7 @@ event:
   recovery_exit_conditions: []
 ```
 
-健康快照至少包含：`state`、`owner`、`observed_at`、`verified_scope`、`evidence` 和 `next_action`。事件关闭前必须验证恢复效果，并把遗漏回写到相关角色的检查项、测试或运行手册。
+高风险健康快照和事件模板中的字段均为最小必填；无法取得值时必须显式标为未知，并禁止据此扩大结论或放量。事件关闭前必须验证恢复效果，并把遗漏回写到相关角色的检查项、测试或运行手册。
 
 需求、验收标准、代码、配置、依赖、迁移、环境或数据变化时，沿影响链使依赖旧版本的审查、测试和发布结论进入 `needs_revalidation`（不另设 `stale` 状态）。冲突无法即时解决时，冻结争议范围，保留无争议范围，并指定裁决者和复核时限。
 

@@ -124,9 +124,11 @@
 
 项目根目录下 `skills/` 目录中的 `SKILL.md` 文件是 AI 子代理协作剧本。Agent 默认使用本地 `skills/` 目录中的剧本，无需联网获取；只有用户明确要求同步或查看远端剧本时，才访问外部仓库。子代理与剧本对应关系如下：
 
+- `skills/survey-corps/SKILL.md` — 跨角色总调度与状态协议剧本
 - `skills/dev/SKILL.md` — 全栈开发负责人剧本
 - `skills/cr/SKILL.md` — 代码审查专家剧本
 - `skills/qa/SKILL.md` — 测试与质量评估剧本
+- `skills/dp/SKILL.md` — 发布预检、恢复与交付报告剧本
 - `skills/req/SKILL.md` — 需求分析剧本
 - `skills/openspec/SKILL.md` — 重大变更前方案对齐协议
 - `skills/grill-with-docs/SKILL.md` — 基于文档的高风险问题澄清
