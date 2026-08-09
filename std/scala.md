@@ -1,89 +1,44 @@
 # Scala 编码标准
 
-技术实现核心三要素: 简单、合适、可扩展
+本文件只补充 Scala 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.md](general.md)、[security.md](security.md)、[database.md](database.md) 和 [logging.md](logging.md)。
 
-优先级: 可读性 > 正确性 > 扩展性 > 性能
+## 适用基线
 
-## 通用原则
+0. Scala 版本、JVM 目标和编译选项以 `build.sbt`、Mill、Scala CLI 或项目构建配置为准。
+1. Scala 2 与 Scala 3 的语法、库和二进制兼容边界分别处理，不默认要求迁移或使用全部新特性。
+2. Cats、ZIO、Akka/Pekko、Circe 等生态库只在项目已经采用或收益明确时使用。
 
-0. 使用 Scala 3.x 新特性：enum、union types、given/using、opaque type、extension methods 等
-1. 不允许在循环中进行任何 TCP 通信
-2. 造轮子是一件非常谨慎的事情，在造轮子之前请一定要确认 Maven Central 中无该实现
-3. 开发环境对安全的要求比较低，不要提前对安全性进行优化
-4. 所有代码能对齐的尽量对齐（scalafmt），对齐可以极大提升可读性
-5. 单个方法体不允许超过 40 行
-6. 在不破坏语义的情况下，尽量使用 import 通配或给定别名
+## 类型与建模
 
-## 命名与风格
+0. `Option` 表达缺失，`Either`、`Try` 或效果类型表达失败；Java 互操作边界尽早处理 `null`。
+1. case class、enum / sealed hierarchy 和模式匹配用于封闭领域状态，并检查分支完整性。
+2. 默认使用不可变集合和值；需要可变状态时限制作用域并明确并发模型。
+3. given/implicit、扩展方法和类型类应让依赖更清晰，禁止隐藏昂贵 I/O 或业务副作用。
+4. 高阶抽象服务于重复问题；单次业务流程不为追求纯度强制引入 tagless final 或效果系统。
 
-0. 类名 / trait 名 PascalCase，方法名和变量名 camelCase，常量 PascalCase
-1. 禁止使用 null；优先使用 Option / Either / Try 处理可空或可失败场景
-2. 使用 case class / enum 减少样板代码
-3. 所有可能返回空/错误的方法必须通过 Option / Either 或 Try 表达
-4. 函数名尽量体现其纯函数性质
-5. 隐式转换仅用于 type class 实例，不用于业务逻辑
+## 错误与资源
 
-## 工具链
+0. 同一边界选择一致错误通道，不混合异常、`Either` 和效果错误而无转换规则。
+1. 非致命异常转换时保留 cause；线程中断、取消和致命错误不应被通用捕获吞掉。
+2. 文件、连接和订阅使用 `Using`、bracket/resource 或项目等效机制覆盖释放路径。
+3. Future 和效果任务的失败必须被组合、返回或观察，不能静默启动。
 
-0. 工具函数优先使用标准库和 cats / zio / circe 等生态包，非必要不引入重型框架
-1. 序列化使用 circe / upickle / play-json，优先自动 derive
-2. 校验使用 cats-validate / refined 类型或自定义 smart constructor
-3. 格式化使用 scalafmt，Lint 使用 scalafix + wartremover
-4. 构建使用 sbt 或 Mill
+## 并发与执行
 
-## 分层与职责
+0. `ExecutionContext`、调度器和阻塞线程池显式来源明确，不默认使用全局执行上下文承载阻塞 I/O。
+1. Future、IO/ZIO 和 actor 模型之间的边界明确取消、超时和上下文传播。
+2. 共享可变状态优先改为消息、不可变值或受控引用；锁和原子变量仅保护清晰不变量。
 
-0. 基础校验放在 Controller / Route 层，业务校验放在 Service 层
-1. Service 方法需加简短精准的注释
-2. Service 层尽量不要跨其他 Service 直接操作其持久层
-3. 禁止硬编码配置类，业务配置通过 object / given 实例引用暴露
-4. 使用 tagless final 或 ZIO Layer 管理依赖
+## 工具与测试
 
-## 异常处理
-
-0. 业务错误使用 ADT + sealed trait / enum，配合错误码
-1. 使用 Either[Error, T] 或 IO/ZIO 的 typed error 通道
-2. 不要抛异常控制流程，异常仅用于不可恢复场景
-3. 使用 MonadError / ApplicativeError 组合错误处理
-4. 异常信息必须包含足够上下文
-
-## 数据库
-
-0. 表字段设计要符合三范式
-1. 字符集使用 utf8mb4（MySQL）或等效主流设置
-2. 每张表除主键外尽量建索引，能创建联合唯一索引更好，需加唯一约束的加，包括联合唯一约束
-3. 对数据库实体的更改要及时同步到 Entity、DTO、文档和 DDL
-4. 如果只需要获取 id，只查询 id 字段，不查全部记录再取 id
-5. 注意数据库事务的使用（Slick 的 transaction / doobie 的 transactor）
-6. 禁止在循环中执行 SQL
-7. 使用 batch insert 或 updateMany 进行批量操作
-
-## 测试
-
-0. 使用 ScalaTest 或 MUnit 作为测试框架
-1. 测试用例名使用 `"should 期望 when 条件"` 格式
-2. 使用 property-based testing（ScalaCheck）覆盖边界
-3. Mock 外部依赖，使用 trait + 手工实现或 scalamock
-
-## 日志
-
-0. 使用 SLF4J + scala-logging `logger.info(s"msg: $val")`
-1. 入口方法记录入参，异常路径记录完整上下文
-2. 禁止在循环中打印日志
-3. 敏感信息脱敏后再打印
-
-## Scala 特色最佳实践
-
-0. 使用 for-comprehension 组合 Option/Either/Future
-1. 优先使用不可变集合
-2. 使用 case class + pattern matching 建模领域状态
-3. 类型类（type class）替代 ad-hoc 多态
-4. 用 ZIO/Cats Effect 管理副作用
+0. 格式化、lint 和构建沿用项目配置，可使用 scalafmt、scalafix、sbt 或 Mill。
+1. 测试沿用 ScalaTest、MUnit、Specs2 或项目既有框架；属性测试用于适合生成验证的不变量。
+2. 跨 Scala/JVM 版本发布的库要验证二进制兼容与消费者矩阵。
 
 ## 常见陷阱
 
-0. 在 Future 中隐式使用全局 ExecutionContext
-1. 用 null 绕过类型系统
-2. 隐式转换滥用导致代码难以理解
-3. 在并发集合上使用可变状态
-4. 尾递归未加 @tailrec 导致栈溢出
+0. 隐式使用全局 `ExecutionContext` 执行阻塞工作。
+1. `null`、Java 集合或 platform API 绕过 Scala 类型不变量。
+2. 隐式转换、given 搜索或复杂类型推导使调用行为不可见。
+3. Future / 效果任务未返回，异常无人观察或取消失效。
+4. 非尾递归处理无界输入导致栈溢出。

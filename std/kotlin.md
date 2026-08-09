@@ -1,89 +1,44 @@
 # Kotlin 编码标准
 
-技术实现核心三要素: 简单、合适、可扩展
+本文件只补充 Kotlin 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.md](general.md)、[security.md](security.md)、[database.md](database.md) 和 [logging.md](logging.md)。Spring 项目再读取 [spring.md](spring.md)。
 
-优先级: 可读性 > 正确性 > 扩展性 > 性能
+## 适用基线
 
-## 通用原则
+0. Kotlin、JVM 与 API 版本以构建配置、Gradle toolchain 和部署目标为准。
+1. 协程、序列化、格式化和 lint 工具沿用项目现有选择，不默认要求某个生态库。
 
-0. 使用 Kotlin 2.x + JVM 21 新特性
-1. 不允许在循环中进行任何 TCP 通信
-2. 造轮子是一件非常谨慎的事情，在造轮子之前请一定要确认 Maven Central 中无该实现
-3. 开发环境对安全的要求比较低，不要提前对安全性进行优化
-4. 所有代码能对齐的尽量对齐（ktlint），对齐可以极大提升可读性
-5. 单个函数体不允许超过 40 行
-6. 在不破坏语义的情况下，尽量使用 import 别名或静态导入
+## 类型与建模
 
-## 命名与风格
+0. 使用可空类型表达缺失，限制 `!!` 和 `lateinit`；无法避免时说明初始化或非空不变量。
+1. 优先 `val`；需要可变状态时控制作用域并说明并发访问方式。
+2. `data class`、`value class` 和 sealed hierarchy 只在对应值语义、包装或封闭状态集合成立时使用。
+3. 扩展函数用于与接收者紧密相关的行为，不隐藏依赖、I/O 或昂贵操作。
+4. Scope functions 以提高局部表达为目标，避免多层嵌套导致接收者含义不清。
 
-0. 类名 PascalCase，函数和变量名 camelCase，常量 UPPER_SNAKE_CASE
-1. 禁止滥用 !! 非空断言；优先使用 ?.let / ?: Elvis 表达式安全访问
-2. 使用 data class / value class 减少样板代码
-3. 所有可能返回 null 的方法必须注明 `T?` 返回类型
-4. 优先使用 val 而非 var
-5. 扩展函数只用于真正的工具行为，不要用来逃避依赖注入
+## 错误与 Java 互操作
 
-## 工具链
+0. 异常、显式结果类型和 sealed 错误模型按边界统一选择，不用 `runCatching` 隐藏取消或严重错误。
+1. 包装异常时保留 cause；在应用边界记录和转换一次。
+2. Java platform type 进入 Kotlin 边界时尽早确认可空性、集合可变性和注解语义。
+3. 面向 Java 的 API 检查默认参数、协变、checked exception 和生成签名的可用性。
 
-0. 校验使用 kotlinx.validation / JSR 303 + Bean Validation，错误信息统一配置
-1. 工具函数优先使用 kotlinx 系列库和标准库扩展函数，非必要不引入重型框架
-2. 属性映射使用 mapstruct-kotlin 或手动扩展函数
-3. 格式化使用 ktlint，Lint 使用 detekt
-4. 协程使用 kotlinx.coroutines
+## 协程与资源
 
-## 分层与职责
+0. 使用结构化并发，协程必须属于明确 Scope；禁止无所有者的长期 `GlobalScope` 任务。
+1. `CancellationException` 必须继续传播；清理逻辑放在 `finally` 或适合取消语义的上下文。
+2. 阻塞 I/O 使用合适 Dispatcher 或同步边界，不占用受限协程线程。
+3. Flow 的冷/热语义、背压、共享启动与收集生命周期必须清楚。
 
-0. 基础校验放在 Controller 层，业务校验放在 Service 层
-1. Service 方法需加简短精准的注释
-2. Service 层尽量不要跨其他 Service 直接操作其持久层
-3. 禁止硬编码配置类，业务配置通过静态引用（object / companion object）暴露
-4. @Bean / @Service 方法名尽量反映其职责
+## 工具与测试
 
-## 异常处理
-
-0. 业务异常使用自定义 Exception 或 Result 类 + sealed class 错误码
-1. 使用 runCatching / Result 处理可预期错误
-2. 不要吞掉异常，至少记录日志
-3. 协程中注意 CancellationException 的传播
-4. 异常信息必须包含足够上下文
-
-## 数据库
-
-0. 表字段设计要符合三范式
-1. 字符集使用 utf8mb4（MySQL）或等效主流设置
-2. 每张表除主键外尽量建索引，能创建联合唯一索引更好，需加唯一约束的加，包括联合唯一约束
-3. 对数据库实体的更改要及时同步到 Entity、DTO、文档和 DDL
-4. 如果只需要获取 id，只查询 id 字段，不查全部记录再取 id
-5. 注意数据库事务的使用（Spring @Transactional 或 Exposed transaction）
-6. 禁止在循环中执行 SQL
-7. 使用 saveAll / batchInsert 进行批量操作
-
-## 测试
-
-0. 使用 JUnit 5 + kotest 或 strikt 断言
-1. 测试函数名使用反引号 `should 期望 when 条件` 格式
-2. 使用 @ParameterizedTest 参数化测试
-3. Mock 外部依赖，使用 MockK
-
-## 日志
-
-0. 使用 SLF4J + KotlinLogging `logger.info { "msg: $val" }`
-1. 入口方法记录入参，异常路径记录完整上下文
-2. 禁止在循环中打印日志
-3. 敏感信息脱敏后再打印
-
-## Kotlin 特色最佳实践
-
-0. 使用协程处理异步和并发，不用回调地狱
-1. Flow 用于响应式数据流
-2. 使用 sealed class 表示受限类型层次
-3. data class 用于不可变 DTO
-4. 使用 apply/with/let/run 提高可读性，但避免嵌套过深
+0. 格式化和 lint 沿用项目配置，可使用 ktlint、detekt 或 IDE formatter。
+1. 测试沿用 JUnit、Kotest 或项目既有框架；协程测试使用可控调度器和虚拟时间。
+2. Java/Kotlin 混合模块要验证公开 API 在双方调用端的真实签名。
 
 ## 常见陷阱
 
-0. !! 断言空指针导致 NPE
-1. 在协程中捕获 CancellationException 会阻止正常取消
-2. lateinit 变量未初始化就访问
-3. 在 data class 中使用 var 破坏不可变性
-4. 默认参数在 Java 调用方不可见
+0. `!!`、未初始化 `lateinit` 和 platform type 引发运行时空指针。
+1. 捕获 `CancellationException`、错误 Scope 或阻塞调用造成协程无法取消。
+2. `data class` 中可变属性或数组破坏预期值语义。
+3. 默认参数若未生成重载，Java 调用方需传全参数；reified inline 和 suspend API 需要专门的 Java 入口或适配层。
+4. `equals`、集合元素可变性和委托属性产生隐藏副作用。

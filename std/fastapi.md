@@ -1,81 +1,42 @@
 # FastAPI 标准
 
-## 项目结构
+本文件只补充 FastAPI 特有规则，并继承 [python.md](python.md)、[api-design.md](api-design.md)、[database.md](database.md) 与 [security.md](security.md)。
 
-0. 按模块组织：`api/`、`services/`、`models/`、`schemas/`、`core/`、`db/`
-1. 入口 `main.py` 只负责组装路由和中间件
-2. 配置放在 `core/config.py`
-3. 依赖注入使用 FastAPI 的 Depends
+## 适用基线
 
-## 路由
+0. FastAPI、Starlette、Pydantic、ASGI Server 和 Python 版本以项目依赖与部署目标为准。
+1. 路由、Service、Schema 和持久层目录沿用项目现状，不固定 SQLAlchemy 或统一分层模板。
 
-0. 使用 APIRouter 按模块拆分
-1. 路由前缀反映资源版本：`/api/v1/users`
-2. 路径参数类型注解完整
-3. 查询参数使用 Pydantic 模型或 Query 依赖
+## 路由与 Schema
 
-## 依赖注入
+0. `APIRouter`、路径和依赖按领域或能力组织，路由顺序避免动态路径遮蔽具体路径。
+1. 请求与响应模型准确表达可空、默认、别名和序列化语义；外部模型与持久化实体不必共用。
+2. `response_model`、状态码和错误处理与实际响应一致，确保生成的 OpenAPI 可作为当前契约。
+3. 上传、流式响应和大请求设置大小、超时、临时资源与断开处理。
 
-0. 数据库会话使用 Depends(get_db)
-1. 当前用户依赖 get_current_user
-2. 权限依赖 get_current_active_user
-3. 依赖函数职责单一
+## 依赖与生命周期
 
-## Schema
+0. `Depends` 表达请求范围依赖和横切能力，不把复杂业务流程拆成难追踪的依赖图。
+1. Generator / async generator 依赖必须在 `yield` 后正确释放 Session、连接和锁。
+2. 应用级资源使用 lifespan 管理启动和关闭；启动失败不得留下半初始化全局状态。
+3. 依赖 override 仅用于测试边界，测试结束后恢复，避免跨用例污染。
 
-0. 使用 Pydantic BaseModel 定义请求/响应
-1. 输入模型和输出模型分离
-2. 字段必填/可选明确标注
-3. 使用 Field 添加描述和校验
-4. 枚举类型使用 Python Enum
+## 同步与异步
 
-## Service 层
+0. `def` 路由适合阻塞同步库，`async def` 适合真正异步调用链；不要求所有路由和外部调用统一 async。
+1. async 路径不得直接执行长时间阻塞 I/O 或 CPU 工作；需要时使用线程池、任务队列或进程边界。
+2. 取消、客户端断开和超时必须传播到下游资源，避免连接或任务泄漏。
+3. `BackgroundTasks` 只适合进程内短任务，不作为需要持久化、重试或强交付保证的队列。
 
-0. 业务逻辑集中在 Service 函数中
-1. 一个 Service 不直接操作其他模块的 Model
-2. 数据库事务显式处理
-3. 函数加简短精准注释
+## 错误、安全与测试
 
-## 数据库
-
-0. 使用 SQLAlchemy 2.0 风格
-1. 模型声明使用 DeclarativeBase
-2. 复杂查询使用 select() + join()
-3. 异步使用 AsyncSession
-4. 连接池参数按环境配置
-
-## 异常
-
-0. 定义 HTTPException 子类或自定义异常
-1. 全局异常处理器统一返回错误格式
-2. 错误码统一定义
-3. 异常信息包含上下文
-
-## 测试
-
-0. 使用 pytest + TestClient
-1. 数据库使用 SQLite 内存或测试库
-2. 依赖项可以被 override
-3. Mock 外部服务
-
-## 异步
-
-0. 路由函数默认 async
-1. 数据库操作使用异步驱动
-2. 外部 HTTP 调用使用 httpx.AsyncClient
-3. 注意并发安全和连接泄漏
-
-## 文档
-
-0. 自动生成的 OpenAPI 文档保持准确
-2. 复杂接口补充 description
-3. 响应示例使用 response_model
+0. 异常处理器在 HTTP 边界转换领域错误和验证错误，不泄露堆栈或敏感上下文。
+1. 认证依赖之后仍需对象级授权；OpenAPI 中的安全声明必须与运行时检查一致。
+2. 测试沿用 TestClient、HTTPX 或项目工具；异步资源、lifespan、依赖 override 和生产数据库差异需要显式验证。
 
 ## 常见陷阱
 
-0. 同步 IO 阻塞事件循环，所有外部调用应 async
-1. 依赖注入的 Session 未正确关闭导致连接泄漏
-2. 未处理 Pydantic ValidationError 返回格式不一致
-3. 在后台任务中捕获异常丢失上下文
-4. 路由顺序影响匹配，通配路由放在后面
-5. 上传大文件未限制大小导致内存溢出
+0. 在 `async def` 中调用同步数据库或网络库阻塞事件循环。
+1. Generator 依赖没有执行清理，导致 Session 或连接泄漏。
+2. 后台任务异常无人观察，进程重启后任务静默丢失。
+3. Pydantic 输入、输出或 ORM 转换配置不一致，生成文档与真实响应漂移。

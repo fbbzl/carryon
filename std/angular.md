@@ -1,80 +1,37 @@
 # Angular 标准
 
-## 项目结构
+本文件只补充 Angular 特有规则，并继承 [frontend.md](frontend.md)、[typescript.md](typescript.md) 与 [security.md](security.md)。
 
-0. 按模块组织：`src/app/features/`、`src/app/shared/`、`src/app/core/`
-1. CoreModule 只导入一次，提供单例服务
-2. SharedModule 包含公共组件、指令、管道
-3. FeatureModule 按需懒加载
+## 适用基线
 
-## 组件
+0. Angular、TypeScript、构建器和浏览器范围以项目配置与锁文件为准。
+1. Standalone API 与 NgModule 都可作为既有架构；新增代码沿用项目方向，不机械迁移。
+2. Signals、RxJS、Zone.js 或 zoneless 模式按当前版本和项目状态模型选择。
 
-0. 组件名 PascalCase，选择器使用 kebab-case
-1. 模板与样式就近放置
-2. 输入属性使用 @Input()，输出使用 @Output()
-3. OnPush 变更检测策略优先
-4. 组件职责单一
+## 组件与模板
 
-## 服务
+0. 组件输入、输出和查询使用当前版本支持且项目一致的 API；不要直接修改父级传入状态。
+1. 模板表达式保持轻量、无副作用；昂贵转换使用计算值、Pipe 或预处理。
+2. 列表使用稳定追踪标识，变更检测策略与可变/不可变数据模型一致。
+3. 组件创建的订阅、Effect、定时器和 DOM 资源必须绑定销毁生命周期。
 
-0. 业务逻辑放在 Injectable 服务中
-1. HTTP 调用集中在 Service 层
-2. 服务按领域拆分
-3. 使用 BehaviorSubject 管理共享状态
+## 依赖注入与状态
 
-## 模块
+0. Provider 作用域按实际生命周期选择，避免把请求、页面或组件状态意外提升为全局单例。
+1. 非类依赖使用类型安全 Token；运行配置与服务依赖不通过隐藏全局变量读取。
+2. 局部状态优先 Signal 或组件状态；跨边界状态再选择服务、RxJS 或项目既有 store。
+3. RxJS 流明确冷/热、共享、错误和完成语义，不用 `BehaviorSubject` 作为所有状态的默认容器。
 
-0. 每个 Feature 一个 Module
-1. 公共组件/指令/管道放入 SharedModule
-2. 核心服务放入 CoreModule
-3. 避免 Module 间循环依赖
+## 路由、表单与 HTTP
 
-## 路由
+0. 路由懒加载、Guard、Resolver 和预加载只在用户流程与性能需要时采用。
+1. Guard 改善导航体验但不能替代服务端授权；路由参数在消费前校验。
+2. 响应式或模板表单按复杂度选择；校验、异步提交和服务端错误要映射到可见状态。
+3. Interceptor 处理真正跨请求的关注点，不把业务规则、全局 Loading 或重试策略全部塞入拦截器。
 
-0. 路由配置使用 Route 数组
-1. 懒加载 Feature Module
-2. 路由守卫处理认证和权限
-3. 路由参数和查询参数类型安全
+## 测试与陷阱
 
-## 表单
-
-0. 响应式表单优先于模板驱动表单
-1. 校验器使用 Validators 或自定义校验器
-2. 表单状态（pristine/touched/invalid）用于 UI 反馈
-3. 表单提交状态处理完整
-
-## 依赖注入
-
-0. 使用构造函数注入
-1. 提供服务范围按需：root / module / component
-2. 使用 InjectionToken 管理非类依赖
-
-## HTTP
-
-0. 使用 HttpClient 并封装拦截器
-1. 统一错误处理拦截器
-2. Token 注入拦截器
-3. Loading 状态通过拦截器或 Service 管理
-
-## 测试
-
-0. 使用 Jasmine + Karma 或 Jest
-1. 组件测试使用 TestBed
-2. Service 测试 mock 依赖
-3. E2E 使用 Playwright 或 Cypress
-
-## 变更检测
-
-0. OnPush 减少重渲染
-1. 使用 async pipe 订阅 Observable
-2. 避免在模板中调用函数
-3. 不可变数据更新
-
-## 常见陷阱
-
-0. 在模板中订阅 Observable 未取消导致内存泄漏
-1. 在 ngOnInit 中直接修改 @Input 数据
-2. 服务未正确提供导致注入失败
-3. 表单控件 valueChanges 未 takeUntil 销毁
-4. 路由参数订阅未取消
-5. Zone.js 外部修改未触发变更检测
+0. 使用项目现有 TestBed、组件测试或端到端工具；重点验证输入输出、路由、DI 作用域和异步状态。
+1. 避免未销毁的订阅、重复 Effect、错误 Provider 作用域和循环依赖。
+2. Signal 与 Observable 互转时检查调度、初始值和销毁行为。
+3. OnPush 或 zoneless 模式下，外部回调和可变对象可能不会触发预期更新。

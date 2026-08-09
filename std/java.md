@@ -1,85 +1,45 @@
 # Java 编码标准
 
-技术实现核心三要素: 简单、合适、可扩展
+本文件只补充 Java 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.md](general.md)、[security.md](security.md)、[database.md](database.md) 和 [logging.md](logging.md)。Spring 项目再读取 [spring.md](spring.md)。
 
-优先级: 可读性 > 正确性 > 扩展性 > 性能
+## 适用基线
 
-## 通用原则
+0. JDK 版本、语言级别和运行时以 Maven/Gradle toolchain、构建配置与部署目标为准。
+1. 只使用兼容目标支持的语法和 API；`record`、sealed class、模式匹配和虚拟线程不是统一要求。
+2. 格式化、静态分析、注解处理和依赖选择沿用项目现有配置。
 
-0. 使用 JDK 8 到 JDK 21 的所有新特性，包括 record、sealed class、pattern matching、text block、switch expression 等
-1. 不允许在循环中进行任何 TCP 通信
-2. 造轮子是一件非常谨慎的事情，在造轮子之前请一定要确认三方工具中没有该实现
-3. 开发环境对安全的要求比较低，不要提前对安全性进行优化
-4. 所有代码能对齐的尽量对齐，对齐可以极大提升可读性
-5. 单个方法体不允许超过 40 行
-6. 在不破坏语义的情况下，尽量使用静态导入
+## 类型与 API
 
-## 命名与风格
+0. 命名遵循 Java 与项目惯例；公共 API 明确可空性、集合可变性和异常契约。
+1. 局部变量是否使用 `var` 以可读性为准，不做全局禁止或强制。
+2. `Optional` 适合表达返回值缺失，不裸用 `get()`，也不默认用于字段、参数或序列化模型。
+3. `record` 只用于值语义和不变量稳定的数据，不替代需要身份或生命周期的实体。
+4. `equals`、`hashCode` 和排序规则保持一致；普通对象的值语义使用 `equals` / `Objects.equals`，enum 常量和显式身份比较可使用 `==`。
 
-0. 类名 PascalCase，方法名和变量名 camelCase，常量 UPPER_SNAKE_CASE
-1. 禁止使用 var 来声明变量
-2. @Bean 注解尽量使用方法名作为 bean 的名称
-3. 布尔方法以 is/has/can/should 开头
-4. 集合变量名使用复数形式或带 List/Map/Set 后缀
+## 错误与资源
 
-## 工具链
+0. 受检异常、运行时异常或显式结果类型按项目边界统一选择；不要逐层记录后原样抛出。
+1. 包装异常时保留 cause 和必要上下文，对外边界转换为稳定错误契约。
+2. 文件、流、连接和锁使用 try-with-resources 或明确的 finally 清理。
+3. 空值注解使用项目统一体系，不把 Spring、Jakarta 或其他注解强加给非对应项目。
 
-0. 使用 Lombok，参考其他模块的用法
-1. 尽量只使用 Hutool 工具类，如果 Hutool 中没有合适的工具，请立即汇报。通用工具最好不用 Spring 自带工具类
-2. 属性映射尽量使用 MapStruct
-3. 校验用 JSR 303，message.properties 不要忘记加上对应的异常信息
+## 并发与生命周期
 
-## 分层与职责
+0. 使用受管理的 Executor、`CompletableFuture`、结构化并发或虚拟线程时，以实际 JDK 和运行模型为准。
+1. 保留线程中断状态，超时和取消沿调用链传播；后台任务必须有关闭与错误处理路径。
+2. 不在数据库事务中等待不可控的外部服务；需要跨系统一致性时使用项目既有模式。
+3. 静态可变状态、非线程安全格式化器和共享集合必须有清晰同步策略。
 
-0. 基础校验放在 Controller 中，业务校验和数据库校验放在 Service 中
-1. Service 中所有方法都要加上简短和精准易懂的注释
-2. Service 组件尽量不要跨其他 Service 组件直接获取其他 Service 的持久层
-3. 禁止注入配置类，所有的业务 XxxProperties 都是通过静态引用的 REF 来暴露
+## 工具与测试
 
-## 异常处理
-
-0. 业务异常使用 Throws 工具类和 BizException
-1. 所有可能返回 null 的方法，请用 Spring 的 @Nullable 注解来打上标记
-2. 异常信息必须包含足够上下文，便于定位问题
-3. 不要吞掉异常，至少记录日志
-
-## 数据库
-
-0. 表字段设计要符合三范式
-1. 字符集使用最主流的（utf8mb4）
-2. 每张表除了 id，尽量都要建索引，能创建联合唯一索引那就更好，要加唯一约束的也要加，包括联合唯一约束
-3. 对所有数据库实体的更改要及时同步到 DTO、BO、EO、文档、message.properties、DDL
-4. 如果只需要获取 id，那就只查询 id，不要把所有记录查询出来然后只读 id
-5. 注意数据库事务的使用
-6. 禁止在循环中执行 SQL
-7. 大批量操作使用批处理而非逐条处理
-
-## 测试
-
-0. 单元测试覆盖所有 Service 的核心业务方法
-1. 测试方法名使用 should_期望结果_when_条件 格式
-2. 每个测试方法只验证一个行为
-3. Mock 外部依赖，不依赖真实数据库或网络
-
-## 日志
-
-0. 使用 SLF4J 占位符风格 `log.info("msg: {}", val)`，不使用字符串拼接
-1. 入口方法记录入参，异常路径记录完整上下文
-2. 禁止在循环中打印日志
-3. 敏感信息脱敏后再打印
-
-## Java 特色最佳实践
-
-0. Stream API 用于集合转换，避免嵌套循环
-1. Optional 用于可能为空的方法链，禁止 `Optional.get()` 裸用
-2. CompletableFuture / virtual threads（JDK 21+）处理并发，不裸用 Thread
-3. record 用于 DTO，减少样板代码
-4. switch expression 替代多分支 if-else
+0. 构建沿用 Maven 或 Gradle；格式化、Checkstyle、SpotBugs、Error Prone 等只使用项目已配置工具。
+1. 测试沿用 JUnit、TestNG 或项目既有框架；并发、事务和序列化边界需要相称的集成验证。
+2. Lombok、MapStruct、Hutool 等依赖按项目收益与成本选择，不作为 Java 默认组成。
 
 ## 常见陷阱
 
-0. 在 @Transactional 中调用外部 HTTP 服务会拉长事务
-1. 在 Bean 的 @PostConstruct 中做重 IO 会拖慢启动
-2. 字段注入难以测试，优先构造函数注入
-3. `==` 比较对象引用，值比较用 equals
-4. SimpleDateFormat 非线程安全，使用 DateTimeFormatter
+0. 自动拆箱可空包装类型，或进行未经检查的数值窄化转换，引发异常或溢出。
+1. `@PostConstruct`、静态初始化块或类加载期间执行重 I/O。
+2. `CompletableFuture` 使用公共线程池、异常未观察或上下文丢失。
+3. 可变对象作为 Map key，或 `equals` / `hashCode` 实现不一致。
+4. 使用 `SimpleDateFormat` 等非线程安全实例共享状态。

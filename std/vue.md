@@ -1,81 +1,37 @@
 # Vue 标准
 
-## 项目结构
+本文件只补充 Vue 特有规则，并继承 [frontend.md](frontend.md)、[typescript.md](typescript.md) 与 [security.md](security.md)。
 
-0. 按功能域组织：`components/`、`views/`、`composables/`、`stores/`、`services/`、`utils/`
-1. 公共组件放在 `components/common/`
-2. 页面放在 `views/` 或 `pages/`
-3. 路由使用 Vue Router
+## 适用基线
 
-## 组件
+0. Vue、编译器、路由、SSR 框架和浏览器范围以项目依赖与配置为准。
+1. Composition API、Options API 与 `<script setup>` 沿用项目方向，不为形式统一机械迁移。
+2. Pinia、Vue Router、请求和表单库只在项目已采用或需求明确时使用。
 
-0. 使用 Composition API（<script setup>）
-1. 组件名 PascalCase，文件与组件名一致
-2. Props 使用 defineProps 并声明类型
-3. Emits 使用 defineEmits
-4. 列表渲染使用稳定 key
+## 组件与响应式
 
-## Composables
+0. Props 只读，更新通过 emit、model 契约或共享状态完成；不得直接修改传入对象掩盖单向数据流。
+1. `ref`、`reactive`、`computed` 和 `watch` 按数据语义选择，派生值优先 `computed`。
+2. 解构响应式对象时保持响应性；需要时使用 `toRef` / `toRefs` 或项目等效写法。
+3. 列表 key 表达稳定身份，模板表达式保持轻量且无副作用。
 
-0. 以 use 开头命名
-1. 一个 composable 职责单一
-2. 返回对象或数组，保持调用处清晰
-3. 避免副作用污染全局状态
+## Composable 与状态
 
-## 状态管理
+0. Composable 管理一组相关响应式能力，并明确创建的订阅、监听和资源如何释放。
+1. Composable 不隐藏意外全局单例；共享状态的作用域必须与应用、请求或组件生命周期一致。
+2. Store 只保存共享源状态，避免复制可计算数据和形成 Store 间循环依赖。
+3. SSR 中不得把用户级可变状态放进跨请求共享单例。
 
-0. 本地状态使用 ref / reactive
-1. 跨组件状态使用 Pinia
-2. 服务端状态使用 Vue Query / 自定义 fetch 封装
-3. Store 按模块拆分
+## 生命周期与路由
 
-## 性能
+0. 定时器、DOM 事件、Observer、订阅和请求在卸载或作用域结束时清理。
+1. `watch` 明确数据源、flush 时机和竞态处理，不用深度监听替代数据建模。
+2. 路由 Guard 只控制前端导航，服务端仍需授权；异步 Guard 必须完成或明确取消。
+3. KeepAlive、Teleport 和 Suspense 改变生命周期时，验证激活、停用和错误路径。
 
-0. 使用 v-once/v-memo 减少重渲染（必要时）
-1. 大列表使用虚拟滚动
-2. 组件异步加载
-3. 图片懒加载
-4. 避免深层响应式对象
+## 测试与陷阱
 
-## 样式
-
-0. 使用 scoped 样式或 CSS Modules
-1. 使用 Tailwind / UnoCSS 或统一的设计系统
-2. 主题变量使用 CSS 变量
-3. 响应式移动优先
-
-## 表单
-
-0. 使用 VeeValidate 或自定义表单校验
-2. 提交状态处理完整
-3. 受控组件优先
-
-## 路由
-
-0. 路由配置集中管理
-1. 路由守卫处理权限
-2. 路由懒加载
-3. 路由 meta 信息补充权限/标题
-
-## 测试
-
-0. 使用 Vitest + Vue Test Utils
-1. 测试组件交互而非实现细节
-2. Mock Pinia 和 API 调用
-3. E2E 使用 Playwright
-
-## 类型
-
-0. 使用 TypeScript + Vue 类型支持
-1. Props/Emits 类型完整
-2. Store 类型定义清晰
-3. API 响应类型统一
-
-## 常见陷阱
-
-0. 在 v-for 中使用不稳定 key 导致状态错乱
-1. 直接修改 props 违反单向数据流
-2. watch 依赖的响应式对象未正确解构
-3. 在 onMounted 中未清理的定时器/事件监听
-4. Pinia store 循环引用
-5. 路由守卫中异步逻辑未完成就 next()
+0. 测试工具沿用项目配置，重点验证 Props/Emits、响应式更新、路由和资源清理。
+1. 避免不稳定 key、直接修改 Props、丢失响应性和未清理监听。
+2. `watchEffect` 隐式依赖过多会使触发原因不可判断。
+3. SSR hydration 依赖时间、随机数或客户端专有 API 时可能产生不一致。

@@ -1,89 +1,44 @@
 # Python 编码标准
 
-技术实现核心三要素: 简单、合适、可扩展
+本文件只补充 Python 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.md](general.md)、[security.md](security.md)、[database.md](database.md) 和 [logging.md](logging.md)。Django 或 FastAPI 项目再读取对应框架规范。
 
-优先级: 可读性 > 正确性 > 扩展性 > 性能
+## 适用基线
 
-## 通用原则
+0. Python 版本以 `pyproject.toml`、锁文件、运行环境和兼容目标为准。
+1. 只使用最低兼容版本支持的标准库与语法；类型和 lint 严格度沿用项目配置。
 
-0. 使用 Python 3.10+ 新特性：match/case、类型联合 `X | Y`、ParamSpec、TypeAlias、StrEnum 等
-1. 不允许在循环中进行任何 TCP 通信
-2. 造轮子是一件非常谨慎的事情，在造轮子之前请一定要确认生态中无该实现
-3. 开发环境对安全的要求比较低，不要提前对安全性进行优化
-4. 所有代码能对齐的尽量对齐，对齐可以极大提升可读性
-5. 单个函数体不允许超过 40 行
-6. 在不破坏语义的情况下，尽量使用 `from x import y` 精确导入
+## 类型与模块
 
-## 命名与风格
+0. 命名遵循 PEP 8 和项目惯例；公共边界、复杂数据和易混淆返回值优先提供类型注解。
+1. 类型注解不等于运行时校验，外部 JSON、配置和用户输入仍需显式验证。
+2. 可空返回使用项目兼容语法表达；不要用 `None` 同时表示未找到、失败和未初始化。
+3. 模块导入保持明确，避免通配导入和导入期 I/O；循环导入通常表示边界需要调整。
+4. `dataclass`、Pydantic 或普通类根据验证、序列化和生命周期需求选择。
 
-0. 类名 PascalCase，函数和变量名 snake_case，常量 UPPER_SNAKE_CASE
-1. 禁止用单一字母或无意义命名
-2. 类型注解必须齐全，所有公开函数签名都要有完整类型标注
-3. 所有可能返回 None 的方法，签名中必须注明 `-> T | None`
-4. 布尔变量/函数以 is_/has_/can_/should_ 开头
-5. 模块级私有函数以单下划线 `_` 开头
+## 错误与资源
 
-## 工具链
+0. 捕获最窄的可处理异常；禁止空 `except`，也不要把所有错误统一转成无上下文字符串。
+1. 转换异常时使用 `raise ... from ...` 保留原因；只在责任边界记录一次。
+2. 文件、连接、锁和临时资源使用 context manager，生成器和异步生成器也要覆盖提前退出。
+3. `contextlib.suppress` 只用于明确可忽略的异常，不能代替错误处理。
 
-0. 使用 dataclasses 或 Pydantic 减少样板代码，参考已有模块风格
-1. 工具函数优先使用标准库，其次 httpx / aiofiles 等生态包，非必要不引入重型框架
-2. 校验使用 Pydantic / marshmallow，错误信息统一配置或内联
-3. 属性映射 / 序列化使用 Pydantic model_dump / dataclasses-json
-4. 格式化使用 Ruff，类型检查使用 mypy 或 pyright
+## 异步与并发
 
-## 分层与职责
+0. async 调用链中避免同步阻塞 I/O；必须调用时使用明确线程边界并控制并发。
+1. `CancelledError` 和超时语义继续传播，后台 Task 必须被保存、等待或统一回收。
+2. 线程、进程和协程依据 CPU/I/O 特征选择，不默认用 asyncio 替代所有同步代码。
+3. 全局可变对象、缓存和单例在并发访问时必须说明隔离与同步方式。
 
-0. 基础校验放在视图层（route/handler），业务校验放在 Service 层
-1. Service 方法需加简短精准的 docstring
-2. Service 层尽量不要跨其他 Service 直接操作其持久层
-3. 禁止硬编码配置类，业务配置通过模块级常量或 Settings 模型暴露
-4. handler 函数名尽量反映其路由含义
+## 工具与测试
 
-## 异常处理
-
-0. 业务异常使用自定义 Exception 子类，配合 ErrorCode 枚举
-1. 不要裸 `except:`，至少 `except Exception:`
-2. 异常信息必须包含足够上下文
-3. 使用 contextlib.suppress 替代空 try/except 块
-4. 异步代码注意 asyncio.CancelledError 的传播
-
-## 数据库
-
-0. 表字段设计要符合三范式
-1. 字符集使用 utf8mb4（MySQL）或等效主流设置
-2. 每张表除主键外尽量建索引，能创建联合唯一索引更好，需加唯一约束的加，包括联合唯一约束
-3. 对数据库实体的更改要及时同步到 schema、dto/response_model、文档和 DDL
-4. 如果只需要获取 id，只查询 id 字段，不查全部记录再取 id
-5. 注意数据库事务的使用（SQLAlchemy session.commit/rollback 或 Django transaction.atomic）
-6. 禁止在循环中执行 SQL
-7. 使用 ORM 的 bulk_create/bulk_update 进行批量操作
-
-## 测试
-
-0. 使用 pytest 作为测试框架
-1. 测试函数名使用 test_should_期望_when_条件 格式
-2. 使用 fixture 管理测试状态，避免 setUp/tearDown
-3. Mock 外部依赖，使用 pytest-mock 或 unittest.mock
-
-## 日志
-
-0. 使用 logging 模块，通过 `logger = logging.getLogger(__name__)` 获取
-1. 使用延迟格式化 `logger.info("msg: %s", val)`，不使用 f-string
-2. 禁止在循环中打印日志
-3. 敏感信息脱敏后再打印
-
-## Python 特色最佳实践
-
-0. 使用 pathlib 替代 os.path 处理路径
-1. 使用 context managers（`with`）管理资源
-2. 用 dataclasses / pydantic 替代手写 __init__
-3. 优先使用 list/dict comprehensions，但不超过两层
-4. 异步代码统一使用 asyncio，不混用同步阻塞库
+0. 包管理、格式化、lint 和类型检查沿用项目配置，可使用 Ruff、Black、mypy 或 pyright。
+1. 测试沿用 pytest、unittest 或项目既有框架；fixture 生命周期与真实资源边界一致。
+2. 针对支持的最低 Python 版本运行兼容验证，避免本机新版本掩盖问题。
 
 ## 常见陷阱
 
-0. 可变默认参数：`def f(x=[])` 会共享同一个列表
-1. 在循环中修改正在遍历的 dict/list
-2. 用 `==` 比较浮点数，金额用 Decimal
-3. 全局 import * 污染命名空间
-4. 忽略 `asyncio.gather` 中异常的传播
+0. 可变默认参数、闭包晚绑定和模块级可变状态。
+1. 迭代时修改集合、生成器被消费多次或惰性查询在资源关闭后执行。
+2. 浮点数直接表示金额或使用 `==` 判断近似计算结果。
+3. `asyncio.gather`、TaskGroup 或后台 Task 的异常和取消未被观察。
+4. 本地 naive datetime 与带时区 datetime 混用。

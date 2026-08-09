@@ -1,90 +1,44 @@
 # TypeScript 编码标准
 
-技术实现核心三要素: 简单、合适、可扩展
+本文件只补充 TypeScript 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.md](general.md)、[security.md](security.md)、[database.md](database.md) 和 [logging.md](logging.md)。前端或 NestJS 项目再读取对应规范。
 
-优先级: 可读性 > 正确性 > 扩展性 > 性能
+## 适用基线
 
-## 通用原则
+0. TypeScript、ECMAScript、Node.js 或浏览器目标以 `tsconfig`、`package.json`、锁文件和部署环境为准。
+1. 包管理器、模块格式、formatter 和 lint 工具沿用仓库现有配置，不统一强制 pnpm、ESM 或特定库。
 
-0. 使用 TypeScript 5.x + Node.js 22+ 新特性
-1. 不允许在循环中进行任何 TCP 通信
-2. 造轮子是一件非常谨慎的事情，在造轮子之前请一定要确认 npm 生态中无该实现
-3. 开发环境对安全的要求比较低，不要提前对安全性进行优化
-4. 所有代码能对齐的尽量对齐（prettier），对齐可以极大提升可读性
-5. 单个函数体不允许超过 40 行
-6. 在不破坏语义的情况下，尽量使用 named import
+## 类型与边界
 
-## 命名与风格
+0. 对项目代码启用与现状相称的 strict 选项；新增代码不得依赖隐式 `any` 掩盖未知结构。
+1. 不可信数据进入系统时以 `unknown` 接收并做运行时校验；类型断言不能替代验证。
+2. `any` 仅作为局部兼容逃生口，必须限制范围并说明原因；公共契约不能泄漏 `any`。
+3. 使用 discriminated union、`never` 和完整分支检查表达封闭状态，避免互相冲突的可选字段。
+4. `null` 与 `undefined` 的语义在项目内保持一致，并在序列化边界明确。
 
-0. 类名 / 接口名 / 类型名 PascalCase，函数和变量名 camelCase，常量 UPPER_SNAKE_CASE
-1. 禁止使用 any；类型注解必须齐全（strict 模式）
-2. 变量声明优先 const，其次 let，禁止 var
-3. 所有可能返回 null / undefined 的方法签名中必须注明 `T | null` / `T | undefined`
-4. 布尔变量/函数以 is/has/can/should 开头
-5. 接口不加 I 前缀，类型别名用于联合 / 交叉类型
+## 异步与资源
 
-## 工具链
+0. Promise 必须被 `await`、返回或显式交给受管理后台流程；禁止无人观察的 rejection。
+1. 超时和取消使用 `AbortSignal` 或项目等效机制沿调用链传播。
+2. 事件监听、流、定时器和订阅在生命周期结束时清理。
+3. Node.js 与浏览器 API 的资源、权限和全局对象不同，不能依赖错误运行目标的隐式能力。
 
-0. 校验使用 class-validator / zod，错误信息统一配置
-1. 工具函数优先使用 lodash-es / native Node 模块，非必要不引入重型框架
-2. 对象映射使用 class-transformer 或手动 mapper 函数
-3. 格式化使用 Prettier，Lint 使用 ESLint + typescript-eslint
-4. 包管理统一使用 pnpm
+## 错误与模块
 
-## 分层与职责
+0. 抛出的值应规范化为 `Error` 或项目错误类型；捕获变量按未知值处理。
+1. 可预期业务结果可使用显式结果类型，未捕获异常在应用边界统一转换并记录一次。
+2. 避免循环依赖和仅为副作用的隐式导入；type-only import 用于减少不必要运行时耦合。
+3. Date、BigInt、Map、Set 和 class 实例跨 JSON 边界时明确转换规则。
 
-0. 基础校验放在 controller/route 层，业务校验放在 service 层
-1. Service 方法需加简短精准的 JSDoc 注释
-2. Service 层尽量不要跨其他 service 直接操作其持久层
-3. 禁止硬编码配置类，业务配置通过 ConfigService 或静态引用暴露
-4. @Controller / @Injectable 等装饰器类名尽量反映其职责
+## 工具与测试
 
-## 异常处理
-
-0. 业务异常使用自定义 Error 子类，配合错误码常量
-1. 异步代码必须 try/catch 或使用 .catch()，不允许 unhandled rejection
-2. 异常信息必须包含足够上下文
-3. 使用 neverthrow 或类似库处理可预期错误（可选）
-4. 全局异常过滤器统一处理未捕获异常
-
-## 数据库
-
-0. 表字段设计要符合三范式
-1. 字符集使用 utf8mb4（MySQL）或等效主流设置
-2. 每张表除主键外尽量建索引，能创建联合唯一索引更好，需加唯一约束的加，包括联合唯一约束
-3. 对数据库实体的更改要及时同步到 schema、dto、文档和 migration
-4. 如果只需要获取 id，只查询 id 字段，不查全部记录再取 id
-5. 注意数据库事务的使用（Prisma $transaction / TypeORM transaction / Sequelize transaction）
-6. 禁止在循环中执行 SQL
-7. 使用 ORM 的 createMany / bulkCreate 进行批量操作
-
-## 测试
-
-0. 使用 Vitest 或 Jest 作为测试框架
-1. 测试函数名使用 should 期望 when 条件 格式
-2. 使用 describe/it 组织测试用例
-3. Mock 外部依赖，使用 vi.mock / jest.mock
-
-## 日志
-
-0. 使用 pino 或 winston 结构化日志
-1. 入口方法记录入参，异常路径记录完整上下文
-2. 禁止在循环中打印日志
-3. 敏感信息脱敏后再打印
-4. 禁止使用 console.log 作为正式日志（仅限调试）
-
-## TypeScript 特色最佳实践
-
-0. 使用 discriminated union 替代可选字段堆砌
-1. 优先使用 async/await 而非 Promise 链式调用
-2. 用 Zod 做运行时校验，而不仅是编译时类型
-3. 避免 class 滥用，优先使用函数 + 接口
-4. 使用 never 和 exhaustive switch 处理所有分支
+0. 使用项目锁文件和指定包管理器保证依赖可重复；新增依赖检查浏览器/Node 目标与打包影响。
+1. 测试沿用 Vitest、Jest、Node test runner 或项目既有框架；运行时验证边界必须包含无效输入。
+2. 构建、类型检查与测试分别验证不同风险，不能用编译通过替代运行时验证。
 
 ## 常见陷阱
 
-0. `typeof x === 'object'` 会包含 null
-1. JSON.parse 后没有类型校验
-2. 在 async 函数中未 await 就返回
-3. Date 对象可变性导致意外修改
-4. `any` 绕过类型检查引入运行时错误
+0. `typeof null === "object"`、数组与普通对象判断混淆。
+1. `JSON.parse`、环境变量和网络响应未经运行时校验就断言类型。
+2. async 函数漏写 `await`、浮动 Promise 或取消后继续更新状态。
+3. `Date` 的可变性、时区和字符串解析依赖运行环境。
+4. `any`、双重断言或宽泛索引签名绕过类型系统。

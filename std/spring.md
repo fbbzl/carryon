@@ -1,84 +1,42 @@
 # Spring Boot 标准
 
-## 项目结构
+本文件只补充 Spring 特有规则；Java 项目配合 [java.md](java.md)，Kotlin 项目配合 [kotlin.md](kotlin.md)，并继承 [api-design.md](api-design.md)、[database.md](database.md) 与 [security.md](security.md)。
 
-0. 按领域分包：`controller/`、`service/`、`repository/`、`domain/`、`config/`、`dto/`、`exception/`
-1. 启动类放在根包，便于组件扫描
-2. 配置类集中放在 `config/`
-3. 公共常量放在 `constant/`
-4. 工具类放在 `util/`，必须是纯函数，不依赖 Spring 容器
+## 适用基线
 
-## Controller
+0. Spring Boot、Spring Framework、JVM 语言、运行时和依赖版本以构建文件与部署目标为准。
+1. 包结构、持久层、Web 技术和序列化方案沿用项目现状，不固定 JPA、MyBatis 或统一响应外壳。
 
-0. 只负责接收请求、调用 Service、返回结果
-1. 基础校验使用 @Valid / @Validated
-2. 全局异常处理使用 @ControllerAdvice
-3. 接口版本通过 @RequestMapping("/v1") 控制
-4. 返回统一响应体 ResponseResult
+## 容器与配置
 
-## Service
+0. 优先构造函数注入；Bean 作用域和生命周期必须与依赖匹配。
+1. 循环依赖通常表示边界问题，先重构职责，不用 `@Lazy` 或静态访问器长期掩盖。
+2. 类型化配置可用 `@ConfigurationProperties` 注入，禁止再通过全局静态 `REF` 形成第二份状态。
+3. Profile 只表达少量环境差异，不能让核心业务规则随环境静默变化。
+4. 启动和销毁回调保持有界；重 I/O、迁移和远程调用使用明确的启动流程与失败策略。
 
-0. 业务逻辑放在 Service 层
-1. 事务注解 @Transactional 加在 Service 方法上
-2. Service 方法必须加简短精准注释
-3. 一个 Service 不直接调用其他 Service 的 Mapper/Repository
-4. 禁止在 Service 中写原生 SQL（除非性能要求且经过评审）
+## Web 与契约
 
-## Repository
+0. Controller 负责协议适配、输入校验和调用编排，业务不变量保留在领域或应用边界。
+1. `@Valid`、Converter、Jackson 等只覆盖各自层次，服务端授权和业务校验仍需独立执行。
+2. `@ControllerAdvice` 在应用边界转换异常，不吞掉原因，也不泄露内部实现。
+3. API 版本和响应结构遵循项目契约，不强制 URL 版本或 `ResponseResult`。
 
-0. 使用 MyBatis Plus 或 JPA，优先使用 ORM 能力
-1. 复杂查询写在 XML 或 @Select 中
-2. 分页使用 PageHelper 或 JPA Pageable
-3. 批量操作使用 insertBatch 或 saveAll
+## 事务、代理与异步
 
-## 配置
+0. `@Transactional` 放在符合业务原子性的入口，并理解传播、隔离、回滚规则和只读语义。
+1. 同类内部调用、非代理对象和方法可见性可能绕过 `@Transactional`、`@Async`、缓存或安全注解。
+2. 不在事务中等待不可控远程调用；跨系统一致性使用项目既有幂等和补偿机制。
+3. `@Async` 任务必须有受管理 Executor、错误处理、上下文传播和关闭路径。
 
-0. 使用 @ConfigurationProperties 绑定配置
-1. 业务配置通过静态引用 REF 暴露，禁止直接注入配置类
-2. 不同环境配置使用 application-{profile}.yml
-3. 敏感配置使用环境变量或密钥管理
+## 数据、缓存与观测
 
-## 异常
+0. Repository 技术按项目选择；批量、分页、锁和查询行为以实际执行计划与事务语义验证。
+1. 缓存一致性不能简单假设与数据库原子更新；明确失效、并发、穿透和恢复策略。
+2. Actuator、Micrometer 和健康端点只在运行需要时启用，并限制敏感端点暴露。
 
-0. 业务异常继承 BizException
-1. 错误码统一定义在枚举中
-2. 全局异常处理器返回统一错误格式
-3. 异常信息必须包含上下文
+## 测试与陷阱
 
-## 依赖注入
-
-0. 使用构造函数注入
-1. @Bean 方法名作为 bean 名称
-2. 避免字段注入
-3. 循环依赖必须重构解决
-
-## 缓存
-
-0. 缓存 key 设计清晰，包含业务标识
-1. 缓存更新与数据库更新保持原子性
-2. 缓存失效策略明确
-3. 热点数据预热
-
-## 测试
-
-0. 使用 JUnit 5 + Mockito
-1. @SpringBootTest 用于集成测试
-2. @WebMvcTest 用于 Controller 测试
-3. @DataJpaTest 用于 Repository 测试
-4. 测试数据库使用 H2 或 Testcontainers
-
-## 监控
-
-0. 接入 Actuator / Micrometer
-1. 自定义业务指标
-2. 健康检查端点暴露
-3. 日志链路加入 trace_id
-
-## 常见陷阱
-
-0. 在 @Transactional 方法中调用外部 HTTP 服务会拉长事务
-1. 在 @PostConstruct 中做重 IO 会拖慢启动
-2. 字段注入难以测试，优先构造函数注入
-3. @Async 方法同类内调用不会走代理，异步不生效
-4. Spring 循环依赖应重构，不建议用 @Lazy 逃避
-5. 默认的 Jackson 序列化可能不符合预期，显式配置
+0. 测试切片、完整上下文和容器化依赖按风险选择；H2 不能默认代表生产数据库行为。
+1. 验证代理生效、事务边界、配置绑定、序列化和安全过滤链，而不只测试方法内部逻辑。
+2. 常见失效包括自调用绕过代理、字段注入、启动期重 I/O、线程上下文丢失和 Jackson 默认行为漂移。

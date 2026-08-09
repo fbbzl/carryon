@@ -1,82 +1,43 @@
 # React 标准
 
-## 项目结构
+本文件只补充 React 特有规则，并继承 [frontend.md](frontend.md)、[typescript.md](typescript.md) 与 [security.md](security.md)。
 
-0. 按功能域组织：`features/`、`components/`、`hooks/`、`services/`、`stores/`、`utils/`
-1. 公共 UI 组件放在 `components/ui/`
-2. 页面组件放在 `pages/` 或 `app/`
-3. 路由使用 React Router 或 Next.js App Router
+## 适用基线
 
-## 组件
+0. React、渲染框架、路由和构建工具以项目依赖与运行目标为准。
+1. Client/Server Component、并发能力和编译优化只在所用框架与版本支持时采用。
+2. 状态、数据请求、表单和样式库沿用项目现有选择，不在通用规范中指定。
 
-0. 函数组件优先，类组件仅在必要时使用
-1. 组件名 PascalCase，单文件组件
-2. Props 使用 TypeScript 接口定义
-3. 默认 props 通过解构赋值
-4. 列表渲染使用稳定 key
+## 渲染与组件
 
-## Hooks
+0. Render 保持纯函数语义，不在渲染阶段执行 I/O、订阅或修改外部状态。
+1. Props、state 和 context 的所有权清晰，不直接修改已有对象以触发更新。
+2. 列表 key 表达稳定身份，不能用会随排序或过滤变化的索引代替实体身份。
+3. Server 与 Client 边界只传可序列化、必要的数据，不把服务端秘密带入客户端；框架支持的 Server Function 引用视为可调用服务端边界，必须重新校验输入、认证和对象级授权。
 
-0. 自定义 Hook 以 use 开头
-1. 一个 Hook 职责单一
-2. 依赖数组必须完整
-3. useEffect 返回清理函数（需要时）
-4. 避免在循环/条件中调用 Hook
+## Hooks 与副作用
 
-## 状态管理
+0. Hooks 只在组件或自定义 Hook 顶层调用，并遵守项目启用的 lint 规则。
+1. Effect 用于与外部系统同步，不用于可在 render 中计算的派生状态。
+2. Effect 的依赖、清理和竞态必须正确；异步请求处理取消或过期结果。
+3. 自定义 Hook 暴露稳定、可理解的契约，不用 Hook 隐藏全局副作用。
 
-0. 本地状态优先 useState/useReducer
-1. 跨组件状态使用 Context 或 Zustand/Redux
-2. 服务端状态使用 TanStack Query / SWR
-3. 状态不可变更新
+## 状态与性能
 
-## 性能
+0. 状态保存在最小必要层级；Context 适合低频共享依赖，不默认替代所有状态方案。
+1. 基于旧 state 更新时使用函数式更新，确保批处理和并发渲染下语义正确。
+2. `memo`、`useMemo`、`useCallback` 和虚拟列表以测量结果为依据，不能把缓存当默认样板。
+3. 外部 Store 与并发渲染协作时使用框架支持的订阅接口，避免 tearing 和陈旧快照。
 
-0. 使用 React.memo 避免不必要重渲染（有证据时）
-1. useMemo/useCallback 按需使用，不滥用
-2. 大列表使用虚拟滚动
-3. 图片懒加载
-4. 代码分割和路由懒加载
+## 错误与测试
 
-## 样式
-
-0. 使用 CSS Modules / Styled-components / Tailwind
-1. 避免全局样式冲突
-2. 主题变量统一管理
-3. 响应式使用 Tailwind 断点或 CSS media query
-
-## 表单
-
-0. 使用 React Hook Form 或 Formik
-1. 校验使用 Zod / Yup
-2. 提交状态loading、error、success处理完整
-3. 受控组件与非受控组件选择合理
-
-## 测试
-
-0. 使用 Vitest + React Testing Library
-1. 测试组件行为，而不是实现细节
-2. 用户事件使用 @testing-library/user-event
-3. Mock API 调用
-
-## 错误边界
-
-0. 顶层配置 Error Boundary
-1. 局部 Error Boundary 隔离关键模块
-2. 错误信息友好，引导用户恢复
-
-## 类型
-
-0. TypeScript strict 模式
-1. Props 类型完整
-2. API 响应类型统一定义
-3. 避免 any，用 unknown 兜底
+0. Error Boundary 只能处理其覆盖的渲染错误；事件、异步和服务端错误另行处理。
+1. 测试以用户可观察行为为主，并覆盖 Effect 清理、异步竞态和错误恢复。
+2. 测试工具沿用项目已有选择，不固定 Vitest、Jest 或 Testing Library 组合。
 
 ## 常见陷阱
 
-0. useEffect 依赖数组不完整导致 stale closure
-1. 在 render 中创建新函数/对象导致子组件重渲染
-2. state 异步更新，基于旧 state 计算需用函数式更新
-3. 事件处理中直接修改 state 对象
-4. useMemo/useCallback 滥用反而增加开销
-5. 路由参数未做类型校验和安全处理
+0. Effect 依赖不完整、闭包陈旧或 Strict Mode 下重复执行暴露非幂等副作用。
+1. 在 render 中无条件更新 state，或把 props 派生值重复存入 state。
+2. 不稳定 key 导致组件状态错配，过度 memo 反而增加比较和维护成本。
+3. 请求较晚返回覆盖新状态，或组件卸载后仍更新外部资源。

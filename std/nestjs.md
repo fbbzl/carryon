@@ -1,81 +1,41 @@
 # NestJS 标准
 
-## 项目结构
+本文件只补充 NestJS 特有规则，并继承 [typescript.md](typescript.md)、[api-design.md](api-design.md)、[database.md](database.md) 与 [security.md](security.md)。
 
-0. 按模块组织：`src/modules/`、`src/common/`、`src/config/`、`src/database/`
-1. 每个模块包含 module、controller、service、dto、entities
-2. 全局模块注册核心依赖
-3. 配置使用 @nestjs/config
+## 适用基线
 
-## Module
+0. NestJS、TypeScript、运行平台和适配器版本以项目依赖与部署目标为准。
+1. 目录、ORM、验证、文档和微服务传输方案沿用项目现状，不固定 TypeORM、Prisma 或 Jest。
 
-0. 每个业务域一个 Module
-1. Module 只导出必要的 Provider
-2. 避免 Module 间循环依赖
-3. 使用 forwardRef 解决必要循环依赖
+## Module 与依赖注入
 
-## Controller
+0. Module 按稳定业务能力组织，只导出下游实际需要的 Provider。
+1. Provider 的 singleton、request 和 transient 作用域必须匹配依赖生命周期，避免请求对象污染全局服务。
+2. 循环依赖优先通过边界重构、事件或抽取接口消除；`forwardRef` 只作为明确记录的过渡方案。
+3. Dynamic Module 和全局 Module 控制导出范围，不把配置与基础设施隐式注入全部模块。
+4. DI Token 与反射 DTO 必须保留运行时值；接口使用显式 `@Inject` Token，依赖 metatype 的 DTO 不得仅作 type-only 导入。
 
-0. 使用 @Controller('resource') 声明路由前缀
-1. HTTP 方法装饰器表达动作
-2. 参数校验使用 DTO + ValidationPipe
-3. 响应使用统一格式
+## 请求管线
 
-## Service
+0. Middleware、Guard、Interceptor、Pipe、Filter 各自承担明确职责，避免同一逻辑在多个阶段重复执行。
+1. DTO 与 Pipe 负责协议输入验证和转换；写入模型前显式映射允许字段，或按契约配置 `whitelist` / `forbidNonWhitelisted`；转换不能替代领域规则、数据库约束或对象级授权。
+2. Guard 不执行无界重 I/O；权限检查需要异步依赖时明确缓存、超时和失败策略。
+3. Exception Filter 在应用边界生成稳定错误契约，并保留内部 cause 供受控日志使用。
 
-0. 业务逻辑在 Service 中实现
-1. 数据库操作通过 Repository 或 TypeORM
-2. 事务使用 @Transactional() 或 QueryRunner
-3. 方法加简短精准注释
+## 生命周期与数据
 
-## DTO
+0. 实现 `OnModuleInit`、`OnApplicationShutdown` 等 Hook 时，启动和清理必须有界且可重复；进程终止时通过 `enableShutdownHooks()`、显式信号处理或平台等效路径触发清理。
+1. 数据访问技术服从项目选择，事务和迁移按 `database.md`；序列化前注意懒加载和 N+1。
+2. Config 与秘密使用类型化边界注入，不通过任意 `process.env` 读取散落到业务代码。
 
-0. 使用 class-validator 校验
-1. 请求 DTO 和响应 DTO 分离
-2. 使用 PartialType、OmitType、PickType 减少样板
-3. Swagger 装饰器补充文档
+## 消息与异步
 
-## 数据库
+0. 仅在使用 `@nestjs/microservices` 时定义请求/响应、事件、序列化和版本契约。
+1. 消息处理明确幂等、确认、重试、死信和顺序语义，不能把一次 handler 返回当作端到端成功。
+2. 后台任务和事件监听器必须有错误观察、关闭和测试路径。
 
-0. 使用 TypeORM 或 Prisma
-1. Entity 与数据库表一一对应
-2. 复杂查询使用 QueryBuilder
-3. 索引在 Entity 中声明
-4. 迁移使用 TypeORM Migration 或 Prisma Migrate
+## 测试与陷阱
 
-## 异常
-
-0. 使用 HttpException 子类
-1. 全局异常过滤器统一处理
-2. 错误码统一定义
-3. 异常响应格式一致
-
-## 测试
-
-0. 使用 Jest
-1. Controller 测试 mock Service
-2. Service 测试 mock Repository
-3. E2E 测试使用 supertest + 测试数据库
-
-## 微服务
-
-0. 使用 @nestjs/microservices 时协议明确
-1. 消息模式与事件模式区分清晰
-2. 消息 DTO 统一
-3. 失败重试和死信队列策略明确
-
-## 部署
-
-0. Docker 多阶段构建
-1. 环境变量注入配置
-2. 健康检查端点
-3. PM2 或容器编排运行
-
-## 常见陷阱
-
-0. 全局异常过滤器顺序导致拦截不到某些异常
-1. 在 @Injectable 服务中直接使用 Request 对象造成作用域污染
-2. TypeORM 懒加载在序列化时触发 N+1
-3. 循环依赖未解决导致启动失败
-4. 未处理微服务消息反序列化异常
-5. 在 Guard 中做重 IO 阻塞请求
+0. 测试沿用项目工具，覆盖 Module 装配、Provider 作用域、请求管线顺序和真实持久化边界。
+1. 常见失效包括循环依赖、请求级 Provider 扩散、Filter/Interceptor 顺序错误和 Guard 中阻塞工作。
+2. ORM 懒加载、Class Transformer 与 DTO 映射可能在响应序列化时触发额外查询或泄露字段。

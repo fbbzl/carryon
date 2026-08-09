@@ -1,89 +1,43 @@
 # C# (.NET) 编码标准
 
-技术实现核心三要素: 简单、合适、可扩展
+本文件只补充 C# / .NET 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.md](general.md)、[security.md](security.md)、[database.md](database.md) 和 [logging.md](logging.md)。
 
-优先级: 可读性 > 正确性 > 扩展性 > 性能
+## 适用基线
 
-## 通用原则
+0. Target Framework、语言版本和运行平台以项目文件、`global.json` 与部署目标为准。
+1. 使用项目已启用的 Nullable、分析器、格式化和依赖注入约定，不主动切换基础设施。
 
-0. 使用 .NET 8+ / C# 12+ 新特性：主构造函数、集合表达式、using alias any、raw string literal 等
-1. 不允许在循环中进行任何 TCP 通信
-2. 造轮子是一件非常谨慎的事情，在造轮子之前请一定要确认 NuGet 中无该实现
-3. 开发环境对安全的要求比较低，不要提前对安全性进行优化
-4. 所有代码能对齐的尽量对齐（dotnet format），对齐可以极大提升可读性
-5. 单个方法体不允许超过 40 行
-6. 在不破坏语义的情况下，尽量使用 using static
+## 类型与 API
 
-## 命名与风格
+0. 公共类型和成员遵循 .NET 命名惯例；异步方法通常使用 `Async` 后缀，接口命名服从项目一致性。
+1. 启用 Nullable Reference Types 时准确标注 `T?`，不使用 `null!` 长期绕过分析。
+2. `var` 在右侧类型清晰时可用；复杂泛型、数值转换或公共契约优先显式类型。
+3. `record` 只在值语义成立时使用；不可变集合和 `readonly` 根据生命周期、共享与修改需求选择，不把可变实体误建模为值对象。
 
-0. 类名 / 方法名 / 属性名 PascalCase，局部变量和参数 camelCase，常量 PascalCase
-1. 禁止使用 var 过度隐式类型（仅在右侧类型明显时使用）
-2. 字段属性访问修饰符必须显式声明
-3. 所有可能返回 null 的方法签名中必须注明 `T?` 或打上 `[MaybeNull]` 标记
-4. 接口以 I 前缀，异步方法以 Async 后缀
-5. 使用 record / primary constructor 减少样板代码
+## 异步与资源
 
-## 工具链
+0. 除事件处理器外避免 `async void`；异步调用必须被等待、返回或显式纳入后台任务生命周期。
+1. 库和长任务按调用链传递 `CancellationToken`，取消不是普通错误，不应被吞掉。
+2. 当前作用域创建并拥有的 `IDisposable` / `IAsyncDisposable` 使用 `using` / `await using` 覆盖成功和异常路径；容器托管实例由容器释放，调用方不得提前释放。
+3. 避免 `.Result`、`.Wait()` 和阻塞式同步异步代码；确需同步桥接时说明线程与死锁边界。
 
-0. 校验使用 FluentValidation 或 DataAnnotations，错误信息统一在资源文件或规则中定义
-1. 工具函数优先使用标准库和 AutoMapper / Dapper 等主流 NuGet 包，非必要不引入重型框架
-2. 对象映射使用 AutoMapper 或手动映射
-3. 格式化使用 dotnet format，Lint 使用 SonarAnalyzer / StyleCop
-4. 依赖注入使用内置 DI 容器
+## 错误与并发
 
-## 分层与职责
+0. 可预期业务结果可用显式结果类型或领域异常表达；未处理异常在应用边界统一转换。
+1. 重新抛出使用 `throw;` 保留堆栈；包装异常时保留内部异常和必要上下文。
+2. 共享状态使用明确同步原语或并发集合，避免把 scoped 服务和 `DbContext` 跨线程共享。
+3. DI 生命周期必须匹配依赖生命周期，singleton 不直接持有 scoped 依赖。
 
-0. 基础校验放在 Controller 层，业务校验放在 Service 层
-1. Service 方法需加简短精准的 XML 注释
-2. Service 层尽量不要跨其他 Service 直接操作其持久层
-3. 禁止硬编码配置类，业务配置通过 IOptions / 静态引用暴露
-4. Action / Service 方法名尽量体现其职责
+## 工具与测试
 
-## 异常处理
-
-0. 业务异常使用自定义 Exception 子类，配合错误码
-1. 不要空 catch 块，至少记录日志
-2. 使用 ExceptionFilter / Middleware 统一处理未捕获异常
-3. 异常信息必须包含足够上下文
-4. 不要用异常控制流程
-
-## 数据库
-
-0. 表字段设计要符合三范式
-1. 字符集使用 utf8mb4（MySQL）或等效主流设置
-2. 每张表除主键外尽量建索引，能创建联合唯一索引更好，需加唯一约束的加，包括联合唯一约束
-3. 对数据库实体的更改要及时同步到 Entity、DTO、文档和 Migration
-4. 如果只需要获取 id，只查询 id 字段，不查全部记录再取 id
-5. 注意数据库事务的使用（EF Core 的 DbContextTransaction / SqlTransaction）
-6. 禁止在循环中执行 SQL
-7. 使用 EF Core 的 BulkExtensions 或 Dapper 批量操作
-
-## 测试
-
-0. 使用 xUnit 或 NUnit 作为测试框架
-1. 测试方法名使用 Should_期望_When_条件 格式
-2. 使用 [Theory] + [InlineData] 或 [MemberData] 参数化测试
-3. Mock 外部依赖，使用 NSubstitute 或 Moq
-
-## 日志
-
-0. 使用 ILogger<T> + 结构化日志 `logger.LogInformation("msg: {Key}", val)`
-1. 入口方法记录入参，异常路径记录完整上下文
-2. 禁止在循环中打印日志
-3. 敏感信息脱敏后再打印
-
-## C# 特色最佳实践
-
-0. 使用 LINQ 进行集合操作，避免手写循环
-1. 使用 async/await 处理异步，不阻塞线程
-2. 使用 record 或 readonly struct 减少可变状态
-3. 使用依赖注入管理生命周期
-4. 使用 Nullable Reference Types 明确可空性
+0. 格式化和分析器沿用项目配置，可使用 `dotnet format`、内置分析器或现有规则集。
+1. 测试框架沿用 xUnit、NUnit、MSTest 或项目既有选择；异步测试返回 `Task`。
+2. 参数化测试、Fake/Mock 和真实集成测试根据边界选择，不固定具体 Mock 库。
 
 ## 常见陷阱
 
-0. async void 只用于事件处理器，其他情况用 async Task
-1. 在 using 语句中未 await 就释放 DbContext
-2. LINQ 延迟执行导致多次查询数据库
-3. 捕获异常后丢失原始堆栈（应使用 throw 或 ExceptionDispatchInfo）
-4. 值类型装箱导致性能问题
+0. LINQ 延迟执行引发重复枚举、重复查询或已释放资源访问。
+1. `async void`、未观察 Task、错误取消传播和 fire-and-forget 生命周期丢失。
+2. 捕获异常后使用 `throw ex` 丢失原始堆栈。
+3. 值类型装箱、闭包捕获和大对象分配造成隐藏开销。
+4. `DbContext`、流或响应对象在异步操作完成前被释放。
