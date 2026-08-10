@@ -37,3 +37,5 @@
 0. 验证范围与变更风险相称，至少覆盖修改路径和关键失败路径。
 1. 重构保持外部行为时，用现有测试或补充的特征测试证明行为未变。
 2. 代码、配置、契约、迁移和文档涉及同一变更时同步更新。
+3. 变更结论至少绑定 `observed_at`、`reference_version`、`environment`、`verified_scope`、`unverified_scope`、`evidence`、`result` 和 `next_action`；轻量任务可合并表达，但不得省略未验证范围。
+4. `evidence` 只引用已有 URL、仓库路径与行号、命令或日志、测试/构建/事件 ID，并注明结果；不得猜测 URL，无法取得时明确标为 `unknown` 并保留风险。
