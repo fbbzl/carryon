@@ -1,6 +1,6 @@
 ---
 name: survey-corps
-version: 1.2.11
+version: 1.2.12
 type: agent-skill
 scope: software-engineering
 description: "Use when a software-engineering task spans two or more roles, requires evidence-based handoffs or state coordination, or includes risk escalation and release readiness."
@@ -140,6 +140,8 @@ author: coding-skill
 | 任意状态 | 版本、证据或环境变化 | `needs_revalidation` | `revalidation_from`、失效原因、影响范围 | 继续使用旧结论 |
 
 具体状态行及 `invalidated_by` / `revalidation_from` 恢复规则优先于“任意状态”兜底；`unknown|expired` 只表示证据失效，只有 P0/P1 或已确认阻断才进入 `blocked`。同一事件同时包含多个 `invalidated_by` 分类时，按最上游影响链选择唯一 `resume_state`：需求/实现/配置/依赖/迁移/契约/权限/安全/数据到 `planned`，`cr` 到 `ready_for_cr`，QA 环境/夹具/证据或条件补偿控制到 `ready_for_qa`；仅发布侧 `dp_preflight`、授权证据（`ready` 前仅指责任人与路径，`ready` 后指最终授权）或健康证据失效时，按当前状态规则保持 `qa_conditional` 或恢复 `ready`，不得被通用兜底改写。
+
+同一工作单元出现并发或乱序事件时，不按到达顺序逐个推进；先按因果依赖、版本和环境合并仍有效的失效证据，顺序无法判定时按 `unknown` 冻结受影响动作，再用合并后的 `invalidated_by` 计算唯一 `resume_state`。后到事件不得覆盖仍未关闭的上游失效。
 
 `deploying` 和 `deployed` 在观察窗口结束前一律保持健康状态 `recovering`；窗口通过后用当前目标环境的新快照转为 `healthy`/`degraded`。仅观察证据缺失、`unknown` 或 `expired` 且未确认异常时，工作流保持 `deployed`、冻结扩量并重新观察，不进入 `needs_revalidation` 或重复部署；确认异常后健康状态才转 `unstable`，完成回滚后工作流才转 `rolled_back`。若失效原因包含需求、实现、配置、迁移、安全或数据等上游基线变化，仍按最上游影响链重验证。
 

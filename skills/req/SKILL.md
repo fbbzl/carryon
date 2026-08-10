@@ -1,6 +1,6 @@
 ---
 name: req
-version: 1.1.3
+version: 1.1.4
 type: agent-skill
 scope: software-engineering
 description: "Use when user intent needs requirement clarification, business modeling, acceptance criteria, boundary definition, or change-impact analysis before implementation."
@@ -38,6 +38,10 @@ author: coding-skill
 - 跨角色协作用流程/泳道图，系统交互用时序图，生命周期用状态图；每张图标明范围、来源和关键假设。
 - 明确角色、权限、主流程、异常流程、边界条件、数据定义和不可接受后果。
 - 需求优先级使用“必须做、应该做、可以延后”，范围变化时重新计算优先级和下游影响。
+
+## 最小压力示例
+
+两份当前 PRD 的权限或金额规则冲突且期限将至时，保持 `needs_user_confirm`，冻结争议范围并保留无争议范围；输出带来源、开放问题、影响链和待确认审批的需求初稿，不得按常识标记 `confirmed`。
 
 ## 输入与输出
 

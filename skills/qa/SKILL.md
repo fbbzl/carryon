@@ -1,6 +1,6 @@
 ---
 name: qa
-version: 1.1.5
+version: 1.1.6
 type: agent-skill
 scope: software-engineering
 description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
@@ -37,6 +37,10 @@ author: coding-skill
 性能敏感或并发变化必须在目标环境或有对照证据的代表性环境中，预先定义规模、并发度、重复次数或持续时间、观察指标和判定阈值，再按风险选择基准、负载、竞争与调度的相称组合；不能用覆盖率或小样本绿灯扩大结论。并发正确性或数据不变量属于变更目标或关键风险时，代表性验证缺失必须进入阻断范围，不得降为条件通过。
 
 测试数据必须可重复、可清理、可审计；环境漂移、数据污染或 flaky 使结论进入 `needs_revalidation`，不能用偶然通过替代验证。
+
+## 最小压力示例
+
+金额并发不变量只有一轮小样本绿灯且夹具 flaky 时，结论必须为 `blocked`、状态进入 `qa_failed`，不得降为 `conditional`；输出阻断/未测范围、禁止动作和复测退出条件。
 
 ## 门禁
 

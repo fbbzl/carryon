@@ -1,6 +1,6 @@
 ---
 name: grill-with-docs
-version: 1.0.2
+version: 1.0.3
 type: agent-skill
 scope: software-engineering
 description: "Use when a high-risk decision remains ambiguous after reading supplied documents and proceeding without focused clarification could cause material rework or harm."
@@ -31,7 +31,7 @@ author: coding-skill
 
 0. 读取用户提供的 PRD / 设计文档 / 方案
 1. 读取相关 `std/` 标准文件（如 api-design.md、database.md、security.md）
-2. 读取相关 `skills/` 剧本（如 req.md、dev.md、openspec.md）
+2. 读取相关 `skills/` 剧本（如 `skills/req/SKILL.md`、`skills/dev/SKILL.md`、`skills/openspec/SKILL.md`）
 3. 如涉及代码变更，快速查看相关代码片段
 
 ### 第二步：识别高风险问题
@@ -70,7 +70,7 @@ author: coding-skill
 
 0. 已确认的需求
 1. 明确的假设
-2. 仍开放的問題
+2. 仍开放的问题
 3. 下一步行动
 
 ## 与 grill me 的区别
@@ -106,16 +106,16 @@ author: coding-skill
    Q1: 订单取消后优惠券是否退回？
       来源: PRD 第 3.2 节
       风险: 影响退款金额计算和库存回滚
-      默认假设: 优惠券不退回
+      默认假设: 待确认方案：优惠券不退回
    
    Q2: 管理员能否取消他人订单？
       来源: PRD 第 4.1 节角色表
       风险: 权限设计越界
-      默认假设: 仅超级管理员可操作
+      默认假设: 待确认方案：仅超级管理员可操作
    
    Q3: 取消接口是否需要幂等？
       来源: std/api-design.md 幂等性章节
       风险: 重复请求导致多次退款
-      默认假设: 需要幂等，通过 Idempotency-Key 实现
+      默认假设: 待确认方案：需要幂等，通过 Idempotency-Key 实现
    ```
 3. 根据用户回答更新结论；未回答的低风险问题才可按默认假设推进，高风险问题保持开放并阻断相关范围。

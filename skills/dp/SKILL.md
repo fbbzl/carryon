@@ -1,6 +1,6 @@
 ---
 name: dp
-version: 1.1.4
+version: 1.1.5
 type: agent-skill
 scope: software-engineering
 description: "Use when a change needs release preflight, deployment or recovery assessment, health observation, or delivery reporting before user-authorized release."
@@ -36,6 +36,10 @@ author: coding-skill
 - 根据风险选择直接发布、滚动、灰度或蓝绿；明确停止发布、回滚、降级、Feature Flag 或数据补偿触发条件。
 - 同时观察技术指标和关键业务指标，记录观察窗口；健康门禁失败时先停止扩散，再升级给用户或授权方。
 - 事故复盘记录时间线、影响范围、根因、检测缺口、修复项、责任人和截止时间。
+
+## 最小压力示例
+
+`qa_conditional` 的风险接受已过期，或补偿控制、健康证据、最终授权任一缺失时，必须 No-Go 并输出 `blocked` 交付结论、缺失证据、恢复责任人和下一行动，不得改写为 `qa_passed`。
 
 ## 门禁与输出
 

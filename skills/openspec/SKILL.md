@@ -1,6 +1,6 @@
 ---
 name: openspec
-version: 1.0.1
+version: 1.0.2
 type: agent-skill
 scope: software-engineering
 description: "Use when planning a new module or a material API, database, permission, transaction, cache, messaging, compatibility, or cross-service change before implementation."
@@ -25,22 +25,34 @@ author: coding-skill
 
 ```yaml
 spec_id:
+work_unit_id:
 title:
 status: draft
 version:
 updated_at:
 owner: dev
+reference_version:
 source_artifacts: []
+evidence: []
+impact_chain: []
+unverified_scope: []
 open_questions: []
+next_action:
 ```
 
 正文必须包含以下 Markdown 章节；不触及的 API、数据库或非功能项明确写“不涉及”及判断依据，不能直接省略：
 
 ```markdown
+## 目标与非目标
+
 ## 变更范围
 ### 新增
 ### 修改
 ### 废弃
+
+## 方案、取舍与决策
+
+## 影响链、兼容与恢复
 
 ## API 契约
 ### 接口列表
@@ -75,6 +87,10 @@ open_questions: []
 3. 确认后状态改为 `confirmed`
 4. 开发实现必须严格按 OpenSpec 执行
 5. 如实现中需调整 OpenSpec，必须重新确认
+
+## 最小压力示例
+
+重大 API 或数据库变更仍有 `open_questions` 且用户未确认时，保持 `draft` 并禁止实现；开放问题关闭、影响链和恢复证据补齐且用户确认后，才转为 `confirmed`。
 
 ## 小型改动例外
 

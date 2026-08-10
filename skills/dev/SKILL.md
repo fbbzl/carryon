@@ -1,6 +1,6 @@
 ---
 name: dev
-version: 1.1.3
+version: 1.1.4
 type: agent-skill
 scope: software-engineering
 description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or developer tests."
@@ -31,6 +31,10 @@ author: coding-skill
 - 新模块、公共 API、数据库、权限、事务、缓存/MQ 或不兼容变化前使用 `openspec`。
 - 优先完成可运行的最小闭环，再处理非关键路径。
 - API 标记新增、兼容扩展、行为变化或破坏性变化；废弃 API 不得静默删除。
+
+## 最小压力示例
+
+公共 API 与数据库同时变化而 OpenSpec 仍为 `draft` 时，即使被要求先编码，也保持 `confirmed` 并禁止实现或迁移；先补齐消费者影响、兼容窗口、迁移/恢复证据并取得 `confirmed`。
 
 ## 契约与数据演进
 

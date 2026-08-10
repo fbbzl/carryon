@@ -1,6 +1,6 @@
 ---
 name: cr
-version: 1.3.3
+version: 1.3.4
 type: agent-skill
 scope: software-engineering
 description: "Use when code, design, database changes, API contracts, integrations, security boundaries, or compatibility need review before testing or release."
@@ -31,6 +31,10 @@ author: coding-skill
 - 性能与可维护性：按触及面检查并发安全、N+1、循环或无界 IO、代表性数据量、缓存有效性、依赖必要性，以及测试和文档同步；不得用小样本绿灯代替相称证据。
 - 逐项验证：沿影响链核对代码、配置、接口、数据库和运行证据；修复后重新 review/联调。
 - 结构化结论：按阻断、高风险、中风险、建议给出证据、影响、验证方式、修改方案和下一步。
+
+## 最小压力示例
+
+已复现权限绕过且公共 API 消费者范围未知时，即使主路径和 AI 审查为绿色，也转 `cr_blocked` 并禁止提测；输出复现证据、影响链、未覆盖范围、责任侧和复审退出条件。
 
 ### 影响链取证
 
