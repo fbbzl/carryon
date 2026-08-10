@@ -1,9 +1,9 @@
 ---
 name: dev
-version: 1.1.2
+version: 1.1.3
 type: agent-skill
 scope: software-engineering
-description: "全栈开发负责人剧本，统一承担前后端职责"
+description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or developer tests."
 tags: [dev, fullstack, agent, workflow]
 author: coding-skill
 ---

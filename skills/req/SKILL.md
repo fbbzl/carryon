@@ -1,9 +1,9 @@
 ---
 name: req
-version: 1.1.2
+version: 1.1.3
 type: agent-skill
 scope: software-engineering
-description: "产品经理、业务分析师和业务建模负责人剧本"
+description: "Use when user intent needs requirement clarification, business modeling, acceptance criteria, boundary definition, or change-impact analysis before implementation."
 tags: [req, product, agent, workflow]
 author: coding-skill
 ---

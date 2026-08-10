@@ -1,9 +1,9 @@
 ---
 name: dp
-version: 1.1.3
+version: 1.1.4
 type: agent-skill
 scope: software-engineering
-description: "delivery/platform 负责人剧本，负责发布检查、恢复建议和交付报告"
+description: "Use when a change needs release preflight, deployment or recovery assessment, health observation, or delivery reporting before user-authorized release."
 tags: [dp, devops, deployment, agent, workflow]
 author: coding-skill
 ---

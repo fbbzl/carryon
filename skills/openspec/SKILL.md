@@ -1,9 +1,9 @@
 ---
 name: openspec
-version: 1.0.0
+version: 1.0.1
 type: agent-skill
 scope: software-engineering
-description: "新增模块、API、数据库等重大变更前的方案对齐协议"
+description: "Use when planning a new module or a material API, database, permission, transaction, cache, messaging, compatibility, or cross-service change before implementation."
 tags: [dev, specification, agent, workflow]
 author: coding-skill
 ---
@@ -21,20 +21,22 @@ author: coding-skill
 
 ## 输出格式
 
-每个 OpenSpec 文档必须包含：
+每个 OpenSpec 文档先提供以下 YAML 元数据；`status` 只能是 `draft` 或 `confirmed`：
 
 ```yaml
 spec_id:
 title:
-status: draft | confirmed
+status: draft
 version:
 updated_at:
 owner: dev
-source_artifacts:
-  - PRD
-  - 业务图表
-open_questions:
+source_artifacts: []
+open_questions: []
+```
 
+正文必须包含以下 Markdown 章节；不触及的 API、数据库或非功能项明确写“不涉及”及判断依据，不能直接省略：
+
+```markdown
 ## 变更范围
 ### 新增
 ### 修改

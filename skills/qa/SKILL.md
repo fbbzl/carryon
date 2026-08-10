@@ -1,9 +1,9 @@
 ---
 name: qa
-version: 1.1.4
+version: 1.1.5
 type: agent-skill
 scope: software-engineering
-description: "测试、质量评估、人工反馈闭环和验收结论负责人剧本"
+description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
 tags: [qa, testing, agent, workflow]
 author: coding-skill
 ---

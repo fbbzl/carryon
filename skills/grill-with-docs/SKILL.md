@@ -1,9 +1,9 @@
 ---
 name: grill-with-docs
-version: 1.0.1
+version: 1.0.2
 type: agent-skill
 scope: software-engineering
-description: "基于文档的高风险问题轻量澄清方案，替代 grill me"
+description: "Use when a high-risk decision remains ambiguous after reading supplied documents and proceeding without focused clarification could cause material rework or harm."
 tags: [req, clarification, agent, workflow]
 author: coding-skill
 ---

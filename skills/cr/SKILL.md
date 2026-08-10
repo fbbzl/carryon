@@ -1,9 +1,9 @@
 ---
 name: cr
-version: 1.3.2
+version: 1.3.3
 type: agent-skill
 scope: software-engineering
-description: "代码审查、设计审查、数据库审查和 API 联调专家剧本"
+description: "Use when code, design, database changes, API contracts, integrations, security boundaries, or compatibility need review before testing or release."
 tags: [cr, code-review, agent, workflow]
 author: coding-skill
 ---

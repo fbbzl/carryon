@@ -1,9 +1,9 @@
 ---
 name: survey-corps
-version: 1.2.10
+version: 1.2.11
 type: agent-skill
 scope: software-engineering
-description: "固定的跨项目软件工程子代理团队（调查兵团）协作流程"
+description: "Use when a software-engineering task spans two or more roles, requires evidence-based handoffs or state coordination, or includes risk escalation and release readiness."
 tags: [survey-corps, req, dev, cr, qa, dp, agent, workflow]
 author: coding-skill
 ---
