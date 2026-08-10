@@ -2,7 +2,7 @@
 name: openspec
 description: "Use when planning a new module or a material API, database, permission, transaction, cache, messaging, compatibility, or cross-service change before implementation."
 metadata:
-  version: 1.0.2
+  version: 1.0.3
   type: agent-skill
   scope: software-engineering
   tags: [dev, specification, agent, workflow]
@@ -31,15 +31,19 @@ title:
 status: draft
 version:
 updated_at:
+confirmed_at:
 owner: dev
 reference_version:
 source_artifacts: []
 evidence: []
+confirmation_evidence: []
 impact_chain: []
 unverified_scope: []
 open_questions: []
 next_action:
 ```
+
+`confirmation_evidence` 只定位当前会话、项目文档或既有产物中的确认内容，不要求账号、平台或固定人员字段，也不得生成 URL。`status=confirmed` 时该字段和 `confirmed_at` 必须有值，并能核对确认范围与当前 `version`；否则保持 `draft`。
 
 正文必须包含以下 Markdown 章节；不触及的 API、数据库或非功能项明确写“不涉及”及判断依据，不能直接省略：
 
@@ -85,13 +89,13 @@ next_action:
 0. dev 识别到必须使用 OpenSpec 的变更
 1. dev 起草 OpenSpec，标注状态为 `draft`
 2. dev 与用户对齐方案，回答开放问题
-3. 确认后状态改为 `confirmed`
+3. 用户确认后记录 `confirmed_at` 与 `confirmation_evidence`，再将状态改为 `confirmed`
 4. 开发实现必须严格按 OpenSpec 执行
-5. 如实现中需调整 OpenSpec，必须重新确认
+5. 如实现中需调整 OpenSpec，先递增版本并退回 `draft`，旧确认随旧版本失效，重新确认后才能继续
 
 ## 最小压力示例
 
-重大 API 或数据库变更仍有 `open_questions` 且用户未确认时，保持 `draft` 并禁止实现；开放问题关闭、影响链和恢复证据补齐且用户确认后，才转为 `confirmed`。
+重大 API 或数据库变更仍有 `open_questions`、确认依据无法定位或用户未确认时，保持 `draft` 并禁止实现；开放问题关闭、影响链和恢复证据补齐，且当前版本的确认时间与依据可核验后，才转为 `confirmed`。
 
 ## 小型改动例外
 

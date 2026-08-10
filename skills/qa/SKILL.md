@@ -2,7 +2,7 @@
 name: qa
 description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
 metadata:
-  version: 1.1.6
+  version: 1.1.7
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, agent, workflow]
@@ -37,7 +37,7 @@ metadata:
 
 性能敏感或并发变化必须在目标环境或有对照证据的代表性环境中，预先定义规模、并发度、重复次数或持续时间、观察指标和判定阈值，再按风险选择基准、负载、竞争与调度的相称组合；不能用覆盖率或小样本绿灯扩大结论。并发正确性或数据不变量属于变更目标或关键风险时，代表性验证缺失必须进入阻断范围，不得降为条件通过。
 
-测试数据必须可重复、可清理、可审计；环境漂移、数据污染或 flaky 使结论进入 `needs_revalidation`，不能用偶然通过替代验证。
+测试数据必须可重复、可清理、可审计。当前测试执行因环境漂移、数据污染或 flaky 无法形成有效结果时，结论为 `blocked`，非 P0/P1 状态进入 `qa_failed`；已有结论后来因环境、夹具或证据失效时才进入 `needs_revalidation`，并以 `resume_state=ready_for_qa` 复测。两种情况都不能用偶然通过替代验证。
 
 ## 最小压力示例
 
@@ -45,7 +45,7 @@ metadata:
 
 ## 门禁
 
-Bug 按 `open -> assigned -> fixed -> retest -> closed` 流转，复测失败进入 `reopened`；记录来源、严重级别、复现环境/步骤、预期/实际结果、责任侧、修复证据和关闭原因。
+Bug 按 `open -> assigned -> fixed -> retest -> closed` 流转，复测失败进入 `reopened -> assigned`；记录来源、严重级别、复现环境/步骤、预期/实际结果、责任侧、修复证据和关闭原因。
 
 - 阻断或未解决 Bug、未归档反馈、关键风险无证据或退出标准未满足时，不能输出通过结论。
 - 需求解释冲突转 `req`；契约、安全或影响范围问题走 `qa -> dev -> cr -> qa`。
@@ -90,7 +90,10 @@ test_report:
 | --- | --- | --- | --- |
 | `pass` | `qa_passed` | 不单独改变；无条件发布要求 `healthy` | 当前版本与环境的测试退出标准全部满足 |
 | `conditional` | `qa_conditional` | `degraded` | 已知非阻断风险、接受人及证据、补偿控制、有效期和复查条件完整 |
-| `blocked` | `qa_failed`；P0/P1 同时进入 `blocked` | 按影响为 `degraded` / `unstable` | 明确阻断范围、禁止动作和退出条件 |
+| `blocked`（非 P0/P1） | `qa_failed` | 按影响为 `degraded` / `unstable` | 明确阻断范围、禁止动作和复测退出条件 |
+| `blocked`（P0/P1） | `blocked` | `unstable` | 关联事件、`blocked_from=ready_for_qa`、影响范围、冻结动作和恢复退出条件 |
+
+同一测试结论只选择一个工作流状态；确认 P0/P1 时由全局 `blocked` 规则优先，不再同时保留 `qa_failed`。
 
 “通过”必须写明适用版本、环境和观察窗口，不能由局部测试推出系统整体 `healthy`。`qa` 只记录条件风险，不能代替用户或授权方接受风险；条件结论过期、控制失效或范围变化时进入 `needs_revalidation`，不得沿用。
 

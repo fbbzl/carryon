@@ -21,8 +21,9 @@
 2. 循环或批处理中避免无界逐条 I/O；无法批量时明确规模、并发、超时、重试和失败影响面。
 3. 错误必须被处理、转换或传播，并在责任边界记录一次；不得静默吞掉。
 4. 资源生命周期必须明确，异常、取消和超时路径也要释放资源。
-5. 公共契约变更必须说明兼容、迁移或废弃路径。
-6. 模块职责清晰、依赖单向；发现循环依赖时先检查边界设计。
+5. 可能产生外部或不可逆副作用时，记录副作用阶段、幂等或补偿方式、恢复触发条件和验证结果；无法回滚时明确前滚路径与残余风险。
+6. 公共契约变更必须说明兼容、迁移或废弃路径。
+7. 模块职责清晰、依赖单向；发现循环依赖时先检查边界设计。
 
 ## 代码质量信号
 
@@ -34,9 +35,11 @@
 
 ## 变更与验证
 
-0. 验证范围与变更风险相称，至少覆盖修改路径和关键失败路径。
+0. 验证范围与变更风险相称，至少覆盖修改路径和关键失败路径；每项高风险规则至少映射一个可复现的验证场景和判定条件。
 1. 重构保持外部行为时，用现有测试或补充的特征测试证明行为未变。
 2. 代码、配置、契约、迁移和文档涉及同一变更时同步更新。
-3. 变更结论至少绑定 `observed_at`、`reference_version`、`environment`、`verified_scope`、`unverified_scope`、`evidence`、`result` 和 `next_action`；轻量任务可合并表达，但不得省略未验证范围。
-4. `evidence` 只引用已有 URL、仓库路径与行号、命令或日志、测试/构建/事件 ID，并注明结果；不得猜测 URL，无法取得时明确标为 `unknown` 并保留风险。
-5. 最小示例：`observed_at=...; reference_version=...; environment=local; verified_scope=[修改路径]; unverified_scope=[未覆盖环境]; evidence=[命令 -> 结果]; result=pass|fail|unknown; next_action=...`。
+3. `acceptance_criteria` 由项目按风险填写指标或不变量、比较方式、阈值及来源，不设置跨项目统一数值；`observed_values` 记录同一条件下的实测值。
+4. 变更结论至少绑定 `observed_at`、`valid_until`、`reference_version`、`environment`、`verified_scope`、`unverified_scope`、`acceptance_criteria`、`observed_values`、`evidence`、`result`、`recovery_or_compensation` 和 `next_action`；轻量任务可合并表达，但不得省略未验证范围。
+5. 只有实测值满足判定条件且证据仍有效时才能标记 `result=pass`；缺少条件、实测值或关键证据时标为 `unknown` 并保留风险。
+6. `evidence` 只引用已有 URL、仓库路径与行号、命令或日志、测试/构建/事件 ID，并注明结果；不得猜测 URL，无法取得时明确标为 `unknown` 并保留风险。
+7. 最小示例：`observed_at=...; valid_until=...; reference_version=...; environment=local; verified_scope=[修改路径]; unverified_scope=[未覆盖环境]; acceptance_criteria=[不变量/指标 + 比较方式 + 阈值 + 来源]; observed_values=[实测值]; evidence=[命令 -> 结果]; result=pass|fail|unknown; recovery_or_compensation=...; next_action=...`。

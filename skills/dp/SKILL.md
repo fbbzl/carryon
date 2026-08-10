@@ -2,7 +2,7 @@
 name: dp
 description: "Use when a change needs release preflight, deployment or recovery assessment, health observation, or delivery reporting before user-authorized release."
 metadata:
-  version: 1.1.5
+  version: 1.1.6
   type: agent-skill
   scope: software-engineering
   tags: [dp, devops, deployment, agent, workflow]
@@ -22,6 +22,8 @@ metadata:
 3. 发布失败或健康恶化时提出停止扩散、回滚、降级、Feature Flag 或数据补偿路径。
 4. 用户完成部署后记录版本、目标、验证结果、观察范围、风险和下一步交付报告。
 
+默认交付边界是 `dp` 完成预检并交给用户，由用户决定并执行部署；用户回传部署记录后，`dp` 再进行健康观察与交付判断。只有用户明确授权时，其他执行主体才可进入部署动作。
+
 ## 决策流程
 
 ```text
@@ -40,13 +42,13 @@ metadata:
 
 ## 最小压力示例
 
-`qa_conditional` 的风险接受已过期，或补偿控制、健康证据、最终授权任一缺失时，必须 No-Go 并输出 `blocked` 交付结论、缺失证据、恢复责任人和下一行动，不得改写为 `qa_passed`。
+`qa_conditional` 仅等待风险接受或健康补证时，输出 `no_go` 并保持原状态；补偿控制、QA 证据或适用范围失效时，输出 `no_go` 并进入 `needs_revalidation -> ready_for_qa`，两者都不得改写为 `qa_passed`。预检通过而用户尚未决定、且无人尝试部署时，输出 `preflight_pass` 并保持 `ready` 等待用户，不得误记为 `blocked`。
 
 ## 门禁与输出
 
 - 发布方案必须说明构建输入、环境变量、迁移处理、可观测性、风险、回滚路径和触发条件。
-- 缺少授权、健康门禁、恢复路径或关键证据时，阻断受影响发布。
-- 消费 `qa_conditional` 时，核对当前版本/环境、`degraded` 健康快照、风险接受证据、补偿控制和有效期；任一缺失或过期即 No-Go，且不得改写为 `qa_passed`。
+- 缺少健康门禁、恢复路径或关键证据时输出 `no_go` 并阻断受影响发布；最终授权尚未请求或正常等待中时保持 `ready`，只有尝试部署时授权缺失、被拒或过期才进入 `blocked`。
+- 消费 `qa_conditional` 时，核对当前版本/环境、`degraded` 健康快照、风险接受证据、补偿控制和有效期；任一缺失或过期即 No-Go。仅发布侧补证时保持 `qa_conditional`，QA 证据、补偿控制、适用范围或上游基线失效时按 `survey-corps` 回到唯一重验证入口。
 - 交付报告至少包含版本、环境、目标、操作者、构建产物、变更模块、迁移/配置、验证步骤、健康结果、已知风险、回滚计划和下一步。
 - CI/CD 配置、Docker、Kubernetes 等仅在用户明确要求时处理。
 - 交付给用户或授权方：预检结论、健康观察、授权状态、停止/回滚路径和交付结论；交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `preflight`、`health_observation`、`authorization`、`deployment_or_rollback`、`delivery_conclusion`。
@@ -74,14 +76,15 @@ delivery_report:
   rollback_triggers: []
   known_risks: []
   authorization:
+  authorization_status: not_requested | pending | granted | rejected | expired
   risk_acceptance_owner:
   exception_id:
   exception_expires_at:
   compensating_controls: []
-  conclusion: deployed | verified | rolled_back | blocked
+  conclusion: preflight_pass | no_go | deployed | verified | rolled_back | blocked
   next_action:
 ```
 
-`deployed` 只表示命令完成，`verified` 才表示观察窗口和健康门禁完成；`rolled_back` 或 `blocked` 必须附原因和恢复责任人。
+`preflight_pass` 只表示发布输入已满足，不包含最终授权或部署结果；`no_go` 表示当前门禁不允许发布，但不把正常等待用户决定写成故障。`deployed` 只表示命令完成，`verified` 才表示观察窗口和健康门禁完成；`rolled_back` 或 `blocked` 必须附原因和恢复责任人。
 
-活动 P0/P1、`unstable`、授权证据缺失或例外过期时，`dp` 必须给出 No-Go；紧急例外不得跳过恢复验证和观察窗口。
+活动 P0/P1、`unstable` 或例外过期时，`dp` 必须给出 No-Go；实际尝试部署时授权缺失、被拒或过期也必须 No-Go 并进入 `blocked`。紧急例外不得跳过恢复验证和观察窗口。
