@@ -4,12 +4,12 @@
 
 ## 目录说明
 
-> 注意：`skills/` 目录下同时包含本仓库自研 skill 和外部 skill 副本。每个 skill 占一个子目录，以 `SKILL.md` 为入口（opencode 发现规范）。外部 skill 不再使用 git submodule，直接以源码形式纳入仓库。
+> 注意：`skills/` 目录仅保留本仓库自研 skill。每个 skill 占一个子目录，以 `SKILL.md` 为入口，并使用 YAML frontmatter 描述元数据。
 
 | 目录 | 用途 |
 |---|---|
 | `std/` | 编码标准与工程规范，按语言、框架、领域分类 |
-| `skills/` | AI 子代理协作剧本与流程，含自研 skill 和外部 skill 副本 |
+| `skills/` | 本仓库自研的 AI 子代理协作剧本与流程 |
 
 ## 文件优先级
 
@@ -66,30 +66,18 @@
 
 ## skills/ 文件索引
 
-所有 skill 遵循 opencode 发现规范：每个 skill 一个目录，内含 `SKILL.md`（带 YAML frontmatter 的 `name` + `description`）。详见 [opencode skills 文档](https://opencode.ai/docs/skills/)。
+所有 skill 遵循统一发现约定：每个 skill 一个目录，内含带 YAML frontmatter 的 `SKILL.md`，至少提供 `name` 和 `description`。
 
 ### 自研 skill
 
 - `skills/survey-corps/SKILL.md` — 调查兵团完整协作流程
 - `skills/openspec/SKILL.md` — OpenSpec 使用协议
 - `skills/req/SKILL.md` — 需求代理剧本（含 AI 辅助文档能力）
-- `skills/dev/SKILL.md` — 开发代理剧本（含 opencode 开发规范）
+- `skills/dev/SKILL.md` — 开发代理剧本（含工程开发规范）
 - `skills/cr/SKILL.md` — 代码审查代理剧本（含 AI 辅助审查）
 - `skills/qa/SKILL.md` — 测试代理剧本（含 AI 辅助测试生成）
 - `skills/dp/SKILL.md` — 部署代理剧本
 - `skills/grill-with-docs/SKILL.md` — grill-me 替代方案，结合文档上下文做决策树追问
-- `skills/mcp-server-dev/SKILL.md` — MCP Server 开发规范
-- `skills/ai-memory/SKILL.md` — AI 跨会话记忆管理
-- `skills/prompt-engineering-for-coding/SKILL.md` — 编码场景 Prompt 工程
-- `skills/codebase-rag/SKILL.md` — 代码库 RAG 上下文工程
-
-### 外部 skill
-
-- `skills/work-journal/SKILL.md` — AI 编码会话转结构化工作日志
-- `skills/anyviz/SKILL.md` — AI 时代数据可视化规范与工作流库
-- `skills/sofagent/SKILL.md` — 约束 Agent 行为、拆解复杂任务、沉淀错误教训
-- `skills/humanai/SKILL.md` — 机器生成文本人类化改写
-- `skills/okf-frontmatter/SKILL.md` — Open Knowledge Format 文档 skill
 
 ## 维护原则
 

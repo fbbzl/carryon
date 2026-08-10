@@ -132,7 +132,6 @@
 - `skills/req/SKILL.md` — 需求分析剧本
 - `skills/openspec/SKILL.md` — 重大变更前方案对齐协议
 - `skills/grill-with-docs/SKILL.md` — 基于文档的高风险问题澄清
-- `skills/ai-memory/SKILL.md` — 跨会话持久记忆管理
 
 ---
 
