@@ -1,6 +1,6 @@
 # 通用编码原则
 
-本标准适用于所有语言和框架；项目规则和实际技术栈约定优先。
+本标准是 `std/*.md` 的共同基线，适用于所有语言、框架与专项规范；项目规则和实际技术栈约定优先。专项规范未列出的能力仍按本文件记录边界、失败路径和证据，不得据此推定无风险。
 
 ## 决策顺序
 
@@ -39,3 +39,4 @@
 2. 代码、配置、契约、迁移和文档涉及同一变更时同步更新。
 3. 变更结论至少绑定 `observed_at`、`reference_version`、`environment`、`verified_scope`、`unverified_scope`、`evidence`、`result` 和 `next_action`；轻量任务可合并表达，但不得省略未验证范围。
 4. `evidence` 只引用已有 URL、仓库路径与行号、命令或日志、测试/构建/事件 ID，并注明结果；不得猜测 URL，无法取得时明确标为 `unknown` 并保留风险。
+5. 最小示例：`observed_at=...; reference_version=...; environment=local; verified_scope=[修改路径]; unverified_scope=[未覆盖环境]; evidence=[命令 -> 结果]; result=pass|fail|unknown; next_action=...`。
