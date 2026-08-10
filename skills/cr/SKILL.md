@@ -1,11 +1,12 @@
 ---
 name: cr
-version: 1.3.4
-type: agent-skill
-scope: software-engineering
 description: "Use when code, design, database changes, API contracts, integrations, security boundaries, or compatibility need review before testing or release."
-tags: [cr, code-review, agent, workflow]
-author: coding-skill
+metadata:
+  version: 1.3.4
+  type: agent-skill
+  scope: software-engineering
+  tags: [cr, code-review, agent, workflow]
+  author: coding-skill
 ---
 
 # cr 子代理剧本

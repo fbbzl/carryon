@@ -1,11 +1,12 @@
 ---
 name: dp
-version: 1.1.5
-type: agent-skill
-scope: software-engineering
 description: "Use when a change needs release preflight, deployment or recovery assessment, health observation, or delivery reporting before user-authorized release."
-tags: [dp, devops, deployment, agent, workflow]
-author: coding-skill
+metadata:
+  version: 1.1.5
+  type: agent-skill
+  scope: software-engineering
+  tags: [dp, devops, deployment, agent, workflow]
+  author: coding-skill
 ---
 
 # dp 子代理剧本

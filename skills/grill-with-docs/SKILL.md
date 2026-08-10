@@ -1,11 +1,12 @@
 ---
 name: grill-with-docs
-version: 1.0.3
-type: agent-skill
-scope: software-engineering
 description: "Use when a high-risk decision remains ambiguous after reading supplied documents and proceeding without focused clarification could cause material rework or harm."
-tags: [req, clarification, agent, workflow]
-author: coding-skill
+metadata:
+  version: 1.0.3
+  type: agent-skill
+  scope: software-engineering
+  tags: [req, clarification, agent, workflow]
+  author: coding-skill
 ---
 
 # grill-with-docs

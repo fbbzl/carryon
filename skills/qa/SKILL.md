@@ -1,11 +1,12 @@
 ---
 name: qa
-version: 1.1.6
-type: agent-skill
-scope: software-engineering
 description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
-tags: [qa, testing, agent, workflow]
-author: coding-skill
+metadata:
+  version: 1.1.6
+  type: agent-skill
+  scope: software-engineering
+  tags: [qa, testing, agent, workflow]
+  author: coding-skill
 ---
 
 # qa 子代理剧本

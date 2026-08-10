@@ -1,11 +1,12 @@
 ---
 name: dev
-version: 1.1.4
-type: agent-skill
-scope: software-engineering
 description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or developer tests."
-tags: [dev, fullstack, agent, workflow]
-author: coding-skill
+metadata:
+  version: 1.1.4
+  type: agent-skill
+  scope: software-engineering
+  tags: [dev, fullstack, agent, workflow]
+  author: coding-skill
 ---
 
 # dev 子代理剧本

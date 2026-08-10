@@ -1,11 +1,12 @@
 ---
 name: req
-version: 1.1.4
-type: agent-skill
-scope: software-engineering
 description: "Use when user intent needs requirement clarification, business modeling, acceptance criteria, boundary definition, or change-impact analysis before implementation."
-tags: [req, product, agent, workflow]
-author: coding-skill
+metadata:
+  version: 1.1.4
+  type: agent-skill
+  scope: software-engineering
+  tags: [req, product, agent, workflow]
+  author: coding-skill
 ---
 
 # req 子代理剧本

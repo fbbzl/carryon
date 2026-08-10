@@ -1,11 +1,12 @@
 ---
 name: openspec
-version: 1.0.2
-type: agent-skill
-scope: software-engineering
 description: "Use when planning a new module or a material API, database, permission, transaction, cache, messaging, compatibility, or cross-service change before implementation."
-tags: [dev, specification, agent, workflow]
-author: coding-skill
+metadata:
+  version: 1.0.2
+  type: agent-skill
+  scope: software-engineering
+  tags: [dev, specification, agent, workflow]
+  author: coding-skill
 ---
 
 # OpenSpec 使用协议

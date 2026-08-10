@@ -1,11 +1,12 @@
 ---
 name: survey-corps
-version: 1.2.12
-type: agent-skill
-scope: software-engineering
 description: "Use when a software-engineering task spans two or more roles, requires evidence-based handoffs or state coordination, or includes risk escalation and release readiness."
-tags: [survey-corps, req, dev, cr, qa, dp, agent, workflow]
-author: coding-skill
+metadata:
+  version: 1.2.12
+  type: agent-skill
+  scope: software-engineering
+  tags: [survey-corps, req, dev, cr, qa, dp, agent, workflow]
+  author: coding-skill
 ---
 
 # 调查兵团
