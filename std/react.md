@@ -32,7 +32,7 @@
 ## 错误与测试
 
 0. Error Boundary 只能处理其覆盖的渲染错误；事件、异步和服务端错误另行处理。
-1. 测试以用户可观察行为为主，并覆盖 Effect 清理、异步竞态和错误恢复。
+1. 测试以用户可观察行为为主，并覆盖 Effect 重复执行/清理、迟到结果、并发渲染、Error Boundary 重置；Server Function 等服务端边界还要验证恶意输入和对象级越权。
 2. 测试工具沿用项目已有选择，不固定 Vitest、Jest 或 Testing Library 组合。
 
 ## 常见陷阱

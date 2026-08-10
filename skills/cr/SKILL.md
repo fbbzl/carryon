@@ -2,7 +2,7 @@
 name: cr
 description: "Use when code, design, database changes, API contracts, integrations, security boundaries, or compatibility need review before testing or release."
 metadata:
-  version: 1.3.4
+  version: 1.3.5
   type: agent-skill
   scope: software-engineering
   tags: [cr, code-review, agent, workflow]
@@ -35,7 +35,7 @@ metadata:
 
 ## 最小压力示例
 
-已复现权限绕过且公共 API 消费者范围未知时，即使主路径和 AI 审查为绿色，也转 `cr_blocked` 并禁止提测；输出复现证据、影响链、未覆盖范围、责任侧和复审退出条件。
+已复现权限绕过且公共 API 消费者范围未知时，即使主路径和 AI 审查为绿色也必须禁止提测；未定级为 P0/P1 时转 `cr_blocked`，确认 P0/P1 时按全局矩阵转 `blocked`，并输出事件、复现证据、影响链、未覆盖范围、责任侧和退出条件。
 
 ### 影响链取证
 

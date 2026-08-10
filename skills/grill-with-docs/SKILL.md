@@ -2,7 +2,7 @@
 name: grill-with-docs
 description: "Use when a high-risk decision remains ambiguous after reading supplied documents and proceeding without focused clarification could cause material rework or harm."
 metadata:
-  version: 1.0.3
+  version: 1.0.4
   type: agent-skill
   scope: software-engineering
   tags: [req, clarification, agent, workflow]
@@ -34,6 +34,7 @@ metadata:
 1. 读取相关 `std/` 标准文件（如 api-design.md、database.md、security.md）
 2. 读取相关 `skills/` 剧本（如 `skills/req/SKILL.md`、`skills/dev/SKILL.md`、`skills/openspec/SKILL.md`）
 3. 如涉及代码变更，快速查看相关代码片段
+4. 为引用材料记录位置、版本或 `updated_at`（无法取得时记录内容摘要）、观察时间和本轮 `reference_version`
 
 ### 第二步：识别高风险问题
 
@@ -56,7 +57,7 @@ metadata:
 2. 问题格式：
    ```
    Q1: [具体问题]
-   来源: [文档位置]
+   来源: [文档位置 + 版本/updated_at 或内容摘要 + observed_at + reference_version]
    风险: [不澄清的后果]
    默认假设: [低风险无回复可按此推进；高风险仅作待确认方案]
    ```
@@ -65,7 +66,7 @@ metadata:
 
 0. 用户回答后，更新文档或记录结论
 1. 未回答的问题保留为「假设」或「开放问题」
-2. 当剩余问题不影响主流程推进时，停止追问
+2. 只有剩余问题不影响主流程且引用材料仍匹配本轮基线时才停止追问；来源变化、过期或无法证明适用时，冻结受影响范围，重读差异并只重问受影响项
 
 ### 第五步：输出结论
 
@@ -91,6 +92,7 @@ metadata:
 2. 问题数量不超过 5 个
 3. 输出必须区分「已确认」「假设」「开放问题」
 4. 不因为低风险不确定性阻塞主流程；高风险事项未获用户或授权方确认时必须阻断相关范围。
+5. “已确认”必须绑定当前材料基线；证据失效时退回开放问题，不得沿用旧回答。
 
 ## 使用示例
 

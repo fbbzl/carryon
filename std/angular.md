@@ -31,7 +31,7 @@
 
 ## 测试与陷阱
 
-0. 使用项目现有 TestBed、组件测试或端到端工具；重点验证输入输出、路由、DI 作用域和异步状态。
+0. 使用项目现有 TestBed、组件测试或端到端工具；重点验证输入输出、路由取消/失败、DI 作用域、订阅/Effect 清理及 OnPush/zoneless 异步状态。
 1. 避免未销毁的订阅、重复 Effect、错误 Provider 作用域和循环依赖。
 2. Signal 与 Observable 互转时检查调度、初始值和销毁行为。
 3. OnPush 或 zoneless 模式下，外部回调和可变对象可能不会触发预期更新。

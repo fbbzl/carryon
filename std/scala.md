@@ -26,13 +26,13 @@
 ## 并发与执行
 
 0. `ExecutionContext`、调度器和阻塞线程池显式来源明确，不默认使用全局执行上下文承载阻塞 I/O。
-1. Future、IO/ZIO 和 actor 模型之间的边界明确取消、超时和上下文传播。
+1. Future、IO/ZIO 和 actor 模型之间的边界明确所有者、取消映射、超时和上下文传播；不可取消 Future 仍需观察终态，fiber/actor 明确 restart、隔离或升级及多失败策略。
 2. 共享可变状态优先改为消息、不可变值或受控引用；锁和原子变量仅保护清晰不变量。
 
 ## 工具与测试
 
 0. 格式化、lint 和构建沿用项目配置，可使用 scalafmt、scalafix、sbt 或 Mill。
-1. 测试沿用 ScalaTest、MUnit、Specs2 或项目既有框架；属性测试用于适合生成验证的不变量。
+1. 测试沿用 ScalaTest、MUnit、Specs2 或项目既有框架；按触及面验证 mailbox/stream/subscription 排空计数、系统与执行上下文关闭，以及重启后的状态/消息恢复。
 2. 跨 Scala/JVM 版本发布的库要验证二进制兼容与消费者矩阵。
 
 ## 常见陷阱

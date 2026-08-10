@@ -2,7 +2,7 @@
 name: dp
 description: "Use when a change needs release preflight, deployment or recovery assessment, health observation, or delivery reporting before user-authorized release."
 metadata:
-  version: 1.1.6
+  version: 1.1.8
   type: agent-skill
   scope: software-engineering
   tags: [dp, devops, deployment, agent, workflow]
@@ -42,12 +42,12 @@ metadata:
 
 ## 最小压力示例
 
-`qa_conditional` 仅等待风险接受或健康补证时，输出 `no_go` 并保持原状态；补偿控制、QA 证据或适用范围失效时，输出 `no_go` 并进入 `needs_revalidation -> ready_for_qa`，两者都不得改写为 `qa_passed`。预检通过而用户尚未决定、且无人尝试部署时，输出 `preflight_pass` 并保持 `ready` 等待用户，不得误记为 `blocked`。
+`qa_conditional` 仅等待风险接受或健康补证时，输出 `no_go` 并保持原状态；补偿控制、QA 证据或适用范围失效时，输出 `no_go` 并进入 `needs_revalidation -> ready_for_qa`，两者都不得改写为 `qa_passed`。预检通过而用户尚未决定时输出 `preflight_pass`；授权在执行前被拒或过期时输出 `no_go`。只要部署尚未实际开始，两者都保持 `ready`，不得误记为 `blocked`。
 
 ## 门禁与输出
 
 - 发布方案必须说明构建输入、环境变量、迁移处理、可观测性、风险、回滚路径和触发条件。
-- 缺少健康门禁、恢复路径或关键证据时输出 `no_go` 并阻断受影响发布；最终授权尚未请求或正常等待中时保持 `ready`，只有尝试部署时授权缺失、被拒或过期才进入 `blocked`。
+- 缺少健康门禁、恢复路径或关键证据时输出 `no_go` 并阻断受影响发布。部署尚未实际开始时，最终授权 `not_requested|pending` 保持 `ready + preflight_pass`，`granted` 也保持 `ready` 直至首个部署动作开始，`rejected|expired` 保持 `ready + no_go` 并等待新授权；实际开始部署且没有有效的 `granted` 才进入 `blocked`。
 - 消费 `qa_conditional` 时，核对当前版本/环境、`degraded` 健康快照、风险接受证据、补偿控制和有效期；任一缺失或过期即 No-Go。仅发布侧补证时保持 `qa_conditional`，QA 证据、补偿控制、适用范围或上游基线失效时按 `survey-corps` 回到唯一重验证入口。
 - 交付报告至少包含版本、环境、目标、操作者、构建产物、变更模块、迁移/配置、验证步骤、健康结果、已知风险、回滚计划和下一步。
 - CI/CD 配置、Docker、Kubernetes 等仅在用户明确要求时处理。
@@ -87,4 +87,4 @@ delivery_report:
 
 `preflight_pass` 只表示发布输入已满足，不包含最终授权或部署结果；`no_go` 表示当前门禁不允许发布，但不把正常等待用户决定写成故障。`deployed` 只表示命令完成，`verified` 才表示观察窗口和健康门禁完成；`rolled_back` 或 `blocked` 必须附原因和恢复责任人。
 
-活动 P0/P1、`unstable` 或例外过期时，`dp` 必须给出 No-Go；实际尝试部署时授权缺失、被拒或过期也必须 No-Go 并进入 `blocked`。紧急例外不得跳过恢复验证和观察窗口。
+活动 P0/P1、`unstable` 或例外过期时，`dp` 必须给出 No-Go；授权被拒或过期但部署尚未实际开始时保持 `ready + no_go`，授权有效但尚未开始也保持 `ready`，实际开始部署且没有有效的 `granted` 才进入 `blocked`。紧急例外不得跳过恢复验证和观察窗口。

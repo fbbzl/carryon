@@ -25,14 +25,14 @@
 ## 异步与并发
 
 0. async 调用链中避免同步阻塞 I/O；必须调用时使用明确线程边界并控制并发。
-1. `CancelledError` 和超时语义继续传播，后台 Task 必须被保存、等待或统一回收。
+1. `CancelledError` 和超时语义继续传播，后台 Task 必须被保存、等待或统一回收；TaskGroup/gather 等并发组合明确多错误、同级取消和部分成功副作用的处理。
 2. 线程、进程和协程依据 CPU/I/O 特征选择，不默认用 asyncio 替代所有同步代码。
 3. 全局可变对象、缓存和单例在并发访问时必须说明隔离与同步方式。
 
 ## 工具与测试
 
 0. 包管理、格式化、lint 和类型检查沿用项目配置，可使用 Ruff、Black、mypy 或 pyright。
-1. 测试沿用 pytest、unittest 或项目既有框架；fixture 生命周期与真实资源边界一致。
+1. 测试沿用 pytest、unittest 或项目既有框架；fixture 生命周期与真实资源边界一致，并验证停止接收、Queue 排空或放弃计数、异步生成器/Executor 关闭及无 pending Task。
 2. 针对支持的最低 Python 版本运行兼容验证，避免本机新版本掩盖问题。
 
 ## 常见陷阱

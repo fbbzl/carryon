@@ -31,7 +31,7 @@
 
 ## 测试与陷阱
 
-0. 测试工具沿用项目配置，重点验证 Props/Emits、响应式更新、路由和资源清理。
+0. 测试工具沿用项目配置，重点验证 Props/Emits、响应式更新、路由取消、KeepAlive/Suspense 生命周期、SSR hydration 和资源清理。
 1. 避免不稳定 key、直接修改 Props、丢失响应性和未清理监听。
 2. `watchEffect` 隐式依赖过多会使触发原因不可判断。
 3. SSR hydration 依赖时间、随机数或客户端专有 API 时可能产生不一致。

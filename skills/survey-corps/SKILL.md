@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Use when a software-engineering task spans two or more roles, requires evidence-based handoffs or state coordination, or includes risk escalation and release readiness."
 metadata:
-  version: 1.2.13
+  version: 1.2.17
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, agent, workflow]
@@ -62,6 +62,8 @@ metadata:
 
 每个门禁至少记录 `gate_id`、`status=pass|fail|unknown|expired`、`owner`、`reviewer`、`observed_at`、`valid_until`、`reference_version`、`environment`、`evidence`、`unverified_scope` 和 `next_action`。每项 `evidence` 只引用可核验的 URL、仓库路径/行号、命令或日志、测试/构建/事件 ID，并注明提供者和复核者；不得猜测 URL，无法取得时标为 `unknown`。
 
+`owner`、`reviewer`、`decision_owner` 等字段表示当前职责和证据边界，不绑定平台、账号、固定人员或强制多人流程；个人项目可由同一用户承担多个角色，但采集证据与复核结论仍分别记录。
+
 `reference_version` 是当前工作单元的复合证据基线，不替代角色产物中的需求、代码、配置、依赖或迁移版本；交接时必须在 `evidence` 中给出本次涉及版本与该基线的映射，未涉及的维度明确说明，环境仍由 `environment` 单独限定。
 
 门禁记录继承健康快照的 `work_unit_id` 与 `target`；`status=pass` 必须有主责和复核方的可核验证据，证据项沿用下文统一 `evidence` 格式。
@@ -74,7 +76,7 @@ metadata:
 
 除上述 `deployed + recovering` 观察证据例外，门禁为 `unknown` 或 `expired` 时，按对应失效证据沿最上游影响链进入 `needs_revalidation`；未证实为非阻断前不得仅以 `degraded` 继续推进。
 
-`qa_conditional` 阶段仅发布侧 `dp_preflight`、授权责任人与授权路径证据或健康证据缺失、`unknown` 或 `expired`，且 QA 条件证据、补偿控制、适用范围、版本和环境仍有效时，保持 `qa_conditional` 并 No-Go；补齐后按条件路径进入 `ready`。若 QA 测试环境、夹具、QA 证据或补偿控制失效，或适用范围、版本、环境变化/风险升级，则进入 `needs_revalidation -> ready_for_qa`，不得直接恢复发布；本条优先于通用证据失效兜底。
+`qa_conditional` 阶段仅发布侧 `dp_preflight`、授权责任人与授权路径证据或健康证据缺失、`unknown` 或 `expired`，且 QA 条件证据、补偿控制、适用范围、版本和环境仍有效时，保持 `qa_conditional` 并 No-Go；补齐后按条件路径进入 `ready`。若 QA 测试环境、夹具、QA 证据或补偿控制失效，或适用范围、版本、环境变化/非 P0/P1 风险升级，则进入 `needs_revalidation -> ready_for_qa`，不得直接恢复发布；确认 P0/P1 时立即进入 `blocked`。本条优先于通用证据失效兜底。
 
 健康状态同样是行动许可：
 
@@ -112,7 +114,8 @@ metadata:
 | `dev_in_progress` | 实现与自测完成 | `dev_done` | 变更、自测、风险 | 宣布 QA 或发布通过 |
 | `dev_done` | 交付输入完整 | `ready_for_cr` | 契约、影响、验证 | 跳过 `cr` |
 | `dev_done` | `cr` 退回资料且实现、版本基线未变 | `dev_done` | `handoff_result=needs_revision`、缺失字段、同一工作单元/版本/环境 | 禁止提测或发布；补齐后重新交接 |
-| `ready_for_cr` | 有阻断 / 无阻断且联调完成 | `cr_blocked` / `ready_for_qa` | 审查证据 / 联调与提测文件 | 提测或最终验收 |
+| `ready_for_cr` | 非 P0/P1 阻断 / 无阻断且联调完成 | `cr_blocked` / `ready_for_qa` | 审查证据 / 联调与提测文件 | 提测或最终验收 |
+| `ready_for_cr` | 确认 P0/P1 | `blocked` | `blocked_from=ready_for_cr`、事件、健康快照、影响范围、退出条件 | 仅记为 `cr_blocked` 或继续交接 |
 | `ready_for_cr` | `cr` 发现资料缺失且实现、版本基线未变 | `dev_done` | `handoff_result=needs_revision`、缺失字段、同一工作单元/版本/环境 | 禁止提测或发布；补齐后重新交接 |
 | `cr_blocked` | 修复完成并重新提审 | `ready_for_cr` | 修复证据、复审输入 | 直接跳到 QA |
 | `ready_for_qa` | 验证通过 / 条件通过 / 非 P0/P1 阻断 | `qa_passed` / `qa_conditional` / `qa_failed` | 测试范围、结果、结论与健康影响 | 以局部绿灯代替回归 |
@@ -120,32 +123,42 @@ metadata:
 | `qa_failed` | 修复完成并重新提测 | `ready_for_qa` | 修复证据、回归范围、复测计划 | 直接标记通过 |
 | `qa_conditional` | 缺口修复并准备复测 | `ready_for_qa` | 修复证据、受影响范围、复测计划 | 直接标记 `qa_passed` |
 | `qa_conditional` | 风险被用户或授权方限时接受，且发布预检完整 | `ready` | 当前版本/环境、`health_snapshot.state=degraded`、风险接受证据、补偿控制及有效期、发布共识、`dp` 预检、授权责任人与授权路径 | 声称 `qa_passed`/`healthy` 或省略补偿控制 |
-| `qa_conditional` | QA 条件证据/补偿控制失效，或适用范围、版本、环境变化/风险升级 | `needs_revalidation` | `revalidation_from=qa_conditional`、`invalidated_by`、受影响范围、失效证据 | 沿用条件结论或继续发布 |
+| `qa_conditional` | QA 条件证据/补偿控制失效，或适用范围、版本、环境变化/非 P0/P1 风险升级 | `needs_revalidation` | `revalidation_from=qa_conditional`、`invalidated_by`、受影响范围、失效证据 | 沿用条件结论或继续发布 |
+| `qa_conditional` | 确认 P0/P1 | `blocked` | `blocked_from=qa_conditional`、事件、健康快照、影响范围、退出条件 | 继续条件放行或仅做重验证 |
 | `qa_passed` | 发布共识、`cr`/`qa` 门禁通过且整体健康为 `healthy`，`dp` 预检完整 | `ready` | 当前工作单元、共识 ID/更新时间/有效期、需求与代码版本、目标环境、`cr` 阻断结论、QA 范围/风险、`dp` 预检、授权责任人与授权路径 | 以局部测试或跨环境旧共识代替当前共识 |
-| `ready` | 用户或授权方给出最终发布授权 | `deploying` | 最终授权身份、范围、证据与有效期，构建、配置、迁移、回滚 | 预填授权、以风险接受代替发布授权或执行未授权操作 |
-| `deploying` | 部署命令完成 | `deployed` | 版本、目标、操作者、部署记录 | 宣布交付成功 |
-| `deploying` | 部署失败或健康门禁未满足 | `blocked` | 失败记录、健康快照、恢复动作 | 宣布部署成功 |
+| `ready` | 未尝试部署，最终授权为 `not_requested` / `pending` | `ready` | 当前预检、授权状态、`conclusion=preflight_pass`、等待授权的下一行动 | 无 `granted` 时部署或误记为 `blocked` |
+| `ready` | 未尝试部署，最终授权为 `rejected` / `expired` | `ready` | 拒绝/过期证据、`conclusion=no_go`、取得新授权的下一行动 | 部署、误记为 `blocked`，或仅因此进入 `needs_revalidation` |
+| `ready` | 最终授权为有效的 `granted`，但部署尚未实际开始 | `ready` | 最终授权身份、范围、证据与有效期，当前预检、等待开始的下一行动 | 提前标记 `deploying`、把授权当部署结果或在授权失效后继续执行 |
+| `ready` | 最终授权有效，且实际开始首个可能改变目标环境的部署动作 | `deploying` | 最终授权身份、范围、证据与有效期，构建、配置、迁移、回滚、开始记录 | 预填授权、以风险接受代替发布授权或执行未授权操作 |
+| `deploying` | 部署命令成功完成，且执行期所有适用即时健康门禁均明确为 `pass`、授权仍有效 | `deployed` | 版本、目标、操作者、部署记录、执行期授权与健康结果 | 宣布交付成功 |
+| `deploying` | 部署失败、执行期授权失效，或任一适用即时健康门禁为 `fail`/`unknown`/`expired` | `blocked` | 失败/授权记录、健康快照、已产生副作用、恢复动作 | 宣布部署成功或继续放量 |
 | `deployed` | 当前目标环境观察通过 | `verified` | 当前环境健康快照、观察窗口结果 | 省略观察或沿用旧环境证据 |
 | `deployed` | 观察证据缺失、`unknown` 或 `expired`，但尚未确认异常 | `deployed` | `health_snapshot.state=recovering`、缺失证据、冻结扩量动作、重新观察计划 | 重复部署、扩大放量或声称异常 |
 | `deployed` | 已确认异常并原地隔离或修复 | `deployed` | `health_snapshot.state=unstable`、事件、影响范围、隔离/修复动作 | 扩大放量或声称已恢复 |
 | `deployed` | 已确认异常且回滚完成 | `rolled_back` | 异常证据、影响范围、回滚记录 | 仅因观察延迟触发回滚 |
 | `verified` | 追溯发现 P0/P1 或数据/安全异常，且回滚尚未完成 | `blocked` | 事件、影响范围、冻结动作、恢复或回滚计划 | 继续扩散或提前声称已回滚 |
 | `verified` | 追溯发现异常且回滚已经完成 | `rolled_back` | 事件、影响范围、回滚记录与恢复验证 | 回滚完成前标记 `rolled_back` |
-| `rolled_back` | 根因修复并重新规划 | `planned` | 回滚报告、修复证据、当前需求版本、新方案、OpenSpec ID/版本/`status=confirmed`（如需） | 直接重新放量 |
-| 任意状态 | P0/P1 或关键证据已确认阻断 | `blocked` | `blocked_from`、事件、健康快照、责任人、退出条件 | 继续受影响交接/放量 |
-| `ready` / `deploying` | 尝试部署时最终授权缺失，或最终授权被拒/过期 | `blocked` | 授权缺失、拒绝或过期记录，`blocked_from`、健康快照、责任人、退出条件 | 部署或扩大放量；正常等待授权不触发本行 |
-| `blocked` | 阻断关闭，但需求、实现、契约、数据、安全或测试证据曾变化或失效 | `needs_revalidation` | `event.status=closed`、`blocked_from`、`invalidated_by`、影响范围、失效证据、健康快照 | 直接回到 `planned`、`ready` 或复用旧证据 |
+| `rolled_back` | 根因修复，且当前需求/验收仍已确认且未变化 | `planned` | 回滚报告、修复证据、当前已确认需求版本、需求/验收未变化证据、新方案、OpenSpec ID/版本/`status=confirmed`（如需） | 需求未重新确认时规划或直接放量 |
+| `rolled_back` | 需求或验收发生变化 | `needs_revalidation` | `revalidation_from=rolled_back`、新旧差异、影响链、`resume_state=needs_user_confirm` | 直接进入 `planned` 或复用旧确认 |
+| 任意非 `blocked` 状态 | 已确认并定级为 P0/P1，且没有已完成并核验的运行期回滚专用结论 | `blocked` | `blocked_from`、事件、健康快照、责任人、退出条件 | 继续受影响交接/放量 |
+| `ready` / `deploying` | 已实际开始部署，但最终授权不是有效的 `granted` | `blocked` | 授权缺失、拒绝或过期记录，`blocked_from`、健康快照、责任人、退出条件 | 部署或扩大放量；未开始部署不触发本行 |
+| `blocked` | `blocked_from` 为 `deploying`、`deployed` 或 `verified`，已产生需回退的运行期变更，且回滚完成并通过恢复核验 | `rolled_back` | 事件状态、原目标与回滚版本、影响范围、回滚记录、恢复快照与验证结果 | 直接回到 `ready`/`deployed`/`verified` 或省略回滚验证 |
+| `blocked` | `blocked_from` 为 `ready`，P0/P1 事件已关闭且恢复核验通过，仅 `dp_preflight`/`authorization`/`health` 失效，上游 `req`/`cr`/`qa` 基线未变 | `ready` | 事件关闭与恢复证据、失效范围、更新后的 `dp` 预检、发布共识、授权与健康快照、`resume_state=ready` | 复用旧发布侧证据或直接部署 |
+| `blocked` | `blocked_from` 为 `qa_conditional`，P0/P1 事件已关闭且恢复核验通过，仅 `dp_preflight`/`authorization`/`health` 失效，QA 条件证据、补偿控制和适用范围仍有效 | `qa_conditional` | 事件关闭与恢复证据、当前 QA 条件/补偿控制、更新后的发布侧预检与健康快照、`resume_state=qa_conditional` | 改写为 `qa_passed` 或省略条件控制 |
+| `blocked` | 阻断关闭，不适用运行期回滚或发布侧恢复专用行，且需求、实现、契约、数据、安全或测试证据曾变化或失效 | `needs_revalidation` | `event.status=closed`、`blocked_from`、`invalidated_by`、影响范围、失效证据、健康快照 | 直接回到 `planned`、`ready` 或复用旧证据 |
 | `blocked` | 非发布阶段仅外部依赖或授权中断已恢复，且没有证据失效 | `resume_state`（必须等于记录的 `blocked_from`） | `event.status=closed`、同一 `work_unit_id`/`reference_version`/`environment`、未过期证据、`resume_state=blocked_from` | 把动态目标当作新状态、改写恢复目标或跳过原状态门禁 |
-| `blocked` | `blocked_from` 为 `ready` 或 `deploying`，仅授权缺失、部署命令失败或运行中断已恢复，且交付物未变 | `ready` | `event.status=closed`、同一工作单元和需求/代码/配置/迁移版本、`cr`/`qa` 仍适用、更新后的 `dp` 预检、发布共识、授权与健康快照、`resume_state=ready` | 省略预检、共识、授权或直接部署 |
+| `blocked` | `blocked_from` 为 `ready` 或 `deploying`，仅授权缺失、部署命令失败或运行中断已恢复，未产生需回退变更且交付物未变 | `ready` | `event.status=closed`、同一工作单元和需求/代码/配置/迁移版本、`cr`/`qa` 仍适用、更新后的 `dp` 预检、发布共识、授权与健康快照、`resume_state=ready` | 省略预检、共识、授权或直接部署 |
 | `needs_revalidation` | 需求或验收发生变化 | `needs_user_confirm` | 新需求版本、前后差异、影响链、开放问题、`resume_state=needs_user_confirm` | 直接进入 `planned` 或复用旧确认 |
 | `needs_revalidation` | 已确认需求仍有效，但实现、配置、依赖、迁移、契约、权限、安全或数据不变量变化后重新基线 | `planned` | 当前已确认需求版本、新技术基线、失效影响、影响链、OpenSpec（如需）、`resume_state=planned` | 跳过 dev、cr 或 qa |
 | `needs_revalidation` | 实现基线未变，但 CR 证据失效或其适用性无法证明 | `ready_for_cr` | 工作单元和实现基线不变、失效影响、复审输入、`resume_state=ready_for_cr` | 直接提测或发布 |
 | `needs_revalidation` | `revalidation_from=qa_conditional`，仅条件结论或补偿控制失效且上游基线未变 | `ready_for_qa` | 当前工作单元/版本/环境、失效影响、新测试与风险评估计划、`resume_state=ready_for_qa` | 直接恢复 `qa_conditional` 或 `ready` |
 | `needs_revalidation` | 仅测试执行环境、测试夹具或 QA 证据失效，且上游基线未变 | `ready_for_qa` | 工作单元、产物/配置/依赖基线不变，CR 明确确认仍适用，环境/数据基线、复测计划、`resume_state=ready_for_qa` | 把配置、权限、安全、契约或数据不变量变化归为 QA-only |
 | `needs_revalidation` | `revalidation_from` 为 `qa_passed` 或 `ready`，仅 DP 预检、授权或健康证据失效且上游证据未变 | `ready` | 同一 `work_unit_id`/`reference_version`/`environment`、需求/代码/配置/迁移版本不变、`cr`/`qa` 仍适用、更新后的预检、发布共识、授权与健康快照、`resume_state=ready` | 直接部署或复用失效证据 |
+| `needs_revalidation` | `revalidation_from=verified`，仅目标环境健康/观察证据失效且尚未确认异常，上游与部署基线未变 | `deployed` | 当前目标与版本、失效证据、重新观察计划、`health_snapshot.state=recovering`、`resume_state=deployed` | 保持 `verified` 或重复部署 |
+| `needs_revalidation` | `revalidation_from=rolled_back`，仅回滚/恢复证据失效且没有新异常或基线变化 | `rolled_back` | 回滚版本与记录、更新后的恢复快照和核验结果、`resume_state=rolled_back` | 未复核恢复结果即重新规划或放量 |
 | 任意状态 | 版本、证据或环境变化 | `needs_revalidation` | `revalidation_from`、失效原因、影响范围 | 继续使用旧结论 |
 
-具体状态行及 `invalidated_by` / `revalidation_from` 恢复规则优先于“任意状态”兜底；`unknown|expired` 只表示证据失效，只有 P0/P1 或已确认阻断才进入 `blocked`。同一事件同时包含多个 `invalidated_by` 分类时，按最上游影响链选择唯一 `resume_state`：需求变化到 `needs_user_confirm`；实现/配置/依赖/迁移/契约/权限/安全/数据到 `planned`；`cr` 到 `ready_for_cr`；QA 环境/夹具/证据或条件补偿控制到 `ready_for_qa`；仅发布侧 `dp_preflight`、授权证据（`ready` 前仅指责任人与路径，`ready` 后指最终授权）或健康证据失效时，按当前状态规则保持 `qa_conditional` 或恢复 `ready`，不得被通用兜底改写。
+同一事件匹配多行时，按“已完成并核验的运行期回滚专用行 -> 已定级 P0/P1 或未授权执行 -> 当前状态的失败/失效专用行 -> 当前状态的成功推进专用行 -> 任意状态证据失效兜底”选择唯一入口。已完成并核验的运行期回滚是原子安全终态，即使同时定级 P0/P1 也直接进入 `rolled_back`，但必须保留 P0/P1 事件与 `invalidated_by`；否则 P0/P1 与证据失效同时发生时先进入 `blocked`，事件关闭后按运行期回滚、发布侧恢复或重验证专用行继续。`unknown|expired` 只表示证据失效，只有具体状态行明确要求或事件已定级为 P0/P1 时才进入 `blocked`。同一事件同时包含多个 `invalidated_by` 分类时，按最上游影响链选择唯一 `resume_state`：需求变化到 `needs_user_confirm`；实现/配置/依赖/迁移/契约/权限/安全/数据到 `planned`；`cr` 到 `ready_for_cr`；QA 环境/夹具/证据或条件补偿控制到 `ready_for_qa`；仅发布侧 `dp_preflight`、授权证据（`ready` 前仅指责任人与路径，`ready` 后指最终授权）或健康证据失效时，按当前状态规则保持 `qa_conditional` 或恢复 `ready`，不得被通用兜底改写。
 
 同一工作单元出现并发或乱序事件时，不按到达顺序逐个推进；先按因果依赖、版本和环境合并仍有效的失效证据，顺序无法判定时按 `unknown` 冻结受影响动作，再用合并后的 `invalidated_by` 计算唯一 `resume_state`。后到事件不得覆盖仍未关闭的上游失效。
 
@@ -153,10 +166,10 @@ metadata:
 
 恢复判定按以下顺序执行，不由执行者自行选择目标：
 
-1. 将 `blocked_from`、`revalidation_from`、`resume_state` 与同一 `work_unit_id`、`reference_version`、`environment` 绑定；前两者只记录前态，`resume_state` 必须是计算后的目标。
-2. 用 `invalidated_by` 和影响链定位最上游失效门禁；入口和出口优先级为 `needs_user_confirm > planned > ready_for_cr > ready_for_qa > ready`。允许的分类为 `requirement`、`implementation`、`config`、`dependency`、`migration`、`contract`、`permission`、`security`、`data`、`cr`、`qa_environment`、`qa_fixture`、`qa_evidence`、`dp_preflight`、`authorization`、`health`；若同时命中多个分类，按上一句优先级只选一个出口，QA 类失效优先于发布侧失效。
+1. 将 `blocked_from`、`revalidation_from`、`resume_state` 与同一 `work_unit_id`、`reference_version`、`environment` 绑定；`blocked_from` 只记录首次进入 `blocked` 的前态且不可改写，`revalidation_from` 记录本次重验证入口，`resume_state` 必须是计算后的目标。
+2. 用 `invalidated_by` 和影响链定位最上游失效门禁；先匹配 `rolled_back`/`deployed` 运行期专用恢复行，其余入口和出口优先级为 `needs_user_confirm > planned > ready_for_cr > ready_for_qa > ready`。允许的分类为 `requirement`、`implementation`、`config`、`dependency`、`migration`、`contract`、`permission`、`security`、`data`、`cr`、`qa_environment`、`qa_fixture`、`qa_evidence`、`dp_preflight`、`authorization`、`health`；若同时命中多个分类，按上一句优先级只选一个出口，QA 类失效优先于发布侧失效。
 3. 需求变化必须回到 `needs_user_confirm`；P0/P1、`security` 或 `data` 失效至少回到 `planned`；实现、契约、配置、迁移或依赖变化也必须重新基线，不能复用旧证据。
-4. 仅当发布阶段只发生授权缺失、部署命令失败或运行中断，交付物及上游证据未变，且新的 `dp` 预检、共识、授权和健康证据成立时，才可从 `blocked`/`needs_revalidation` 回到 `ready`；其他情况回到计算出的上游状态。
+4. 仅当发布阶段只发生授权缺失、部署命令失败、运行中断，或 P0/P1 事件已关闭且仅发布侧证据失效，交付物及上游证据未变，且新的 `dp` 预检、共识、授权和健康证据成立时，才可按 `blocked_from` 从 `blocked`/`needs_revalidation` 回到 `ready` 或 `qa_conditional`；其他情况回到计算出的上游状态。
 
 最小交接：
 
@@ -188,15 +201,15 @@ handoff:
   exit_conditions: []
 ```
 
-`target_role` 负责填写 `handoff_result`；未收到接收结果前，`status` 保持 `source_state`，不执行矩阵转换。`status` 是工作流状态，不兼作接收结果。`accepted` 才允许按状态表推进，且不等于 QA 或发布通过；`rejected` 或 `needs_revision` 都必须在 `handoff_feedback` 中写明原因、证据定位、影响、责任方、下一行动和退出条件，不能执行下游动作。`needs_revision` 是交接结果，不是 `needs_revalidation` 状态。
+`target_role` 负责填写 `handoff_result`；未收到接收结果前，正常下游推进保持 `source_state`。`accepted` 只门控正常下游推进；已确认 P0/P1、证据失效及其安全/重验证状态立即生效，不等待接收结果。`status` 是工作流状态，不兼作接收结果；`accepted` 不等于 QA 或发布通过。`rejected` 或 `needs_revision` 都必须在 `handoff_feedback` 中写明原因、证据定位、影响、责任方、下一行动和退出条件，不能执行下游动作。`needs_revision` 是交接结果，不是 `needs_revalidation` 状态。
 
-`rejected` 本身不决定状态；按下表从上到下匹配首个适用原因，得到唯一状态：
+先按状态矩阵处理已发生的事件；同一证据已经触发状态变化时，`rejected` 只记录交接反馈，不得重新计算或覆盖状态。其余 `rejected` 按下表从上到下匹配首个适用原因，得到唯一状态：
 
 | 交接结果与原因 | 唯一状态处理 |
 | --- | --- |
-| 任一交接确认 P0/P1 或关键证据阻断，或尝试部署时最终授权缺失/被拒/过期 | 进入 `blocked` |
-| `dev -> cr` 确认审查阻断 | 进入 `cr_blocked` |
-| `cr -> qa` 确认验证阻断 | 进入 `qa_failed` |
+| 任一交接确认并定级为 P0/P1，或实际开始部署时最终授权不是有效的 `granted` | 进入 `blocked` |
+| `dev -> cr` 确认非 P0/P1 审查阻断 | 进入 `cr_blocked` |
+| `cr -> qa` 确认非 P0/P1 验证阻断 | 进入 `qa_failed` |
 | `req -> dev` 在首次接受前发现需求变化 | 进入 `changed -> needs_user_confirm` |
 | `qa_conditional` 的 QA 条件证据、补偿控制或适用范围失效 | 进入 `needs_revalidation`，唯一恢复目标为 `ready_for_qa` |
 | `rejected`/`needs_revision` 仅因同一基线资料缺失 | 统一记为 `needs_revision`，保持或返回记录的 `source_state`，补齐后重新交接 |
@@ -265,9 +278,9 @@ release_consensus:
   compensating_controls: []
 ```
 
-进入 `ready` 前，`approval_evidence` 只记录风险接受或授权路径确认，不是最终发布授权；最终授权只能在 `ready -> deploying` 时采集，并绑定授权身份、范围、证据和有效期。
+进入 `ready` 前，`approval_evidence` 只记录风险接受或授权路径确认，不是最终发布授权；最终授权在准备执行时采集并绑定授权身份、范围、证据和有效期，尚未开始部署时保持 `ready`，只有授权仍有效且实际开始部署才进入 `deploying`。
 
-`P0`（生产、安全、数据损坏）立即停止受影响放量并恢复；`P1`（关键契约、阻断缺陷、发布门禁失败）冻结交接并修复复验；`P2`（需求、环境或基线变化）使旧结论失效；`P3` 记录责任人和复查期限。
+`P0`（已发生或迫近的生产中断、重大安全事件或数据损坏）立即停止受影响放量并恢复；`P1`（会使关键契约、权限或核心流程失效的高严重度缺陷、已确认的技术发布门禁失败或未授权部署尝试）冻结交接并修复复验。普通 CR/QA 阻断不因“阻断”一词自动升级为 P1；发布授权在执行前被拒或过期仅表示 No-Go，也不单独定级为 P1。`P2`（需求、环境或基线变化）使旧结论失效；`P3` 记录责任人和复查期限。
 
 ```yaml
 event:

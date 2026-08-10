@@ -1,4 +1,4 @@
-# Kotlin 编码标准
+# Kotlin/JVM 编码标准
 
 本文件只补充 Kotlin 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.md](general.md)、[security.md](security.md)、[database.md](database.md) 和 [logging.md](logging.md)。Spring 项目再读取 [spring.md](spring.md)。
 
@@ -24,15 +24,15 @@
 
 ## 协程与资源
 
-0. 使用结构化并发，协程必须属于明确 Scope；禁止无所有者的长期 `GlobalScope` 任务。
+0. 使用结构化并发，协程必须属于明确 Scope；每个 Scope 声明 fail-fast 或 supervisor 语义、子失败后的同级任务与多错误策略，禁止无所有者的长期 `GlobalScope` 任务。
 1. `CancellationException` 必须继续传播；清理逻辑放在 `finally` 或适合取消语义的上下文。
 2. 阻塞 I/O 使用合适 Dispatcher 或同步边界，不占用受限协程线程。
-3. Flow 的冷/热语义、背压、共享启动与收集生命周期必须清楚。
+3. Flow/Channel 的冷/热语义、背压、共享启动与收集生命周期必须清楚；关闭时定义停止生产/接收顺序及缓冲项排空或放弃计数。
 
 ## 工具与测试
 
 0. 格式化和 lint 沿用项目配置，可使用 ktlint、detekt 或 IDE formatter。
-1. 测试沿用 JUnit、Kotest 或项目既有框架；协程测试使用可控调度器和虚拟时间。
+1. 测试沿用 JUnit、Kotest 或项目既有框架；协程测试使用可控调度器和虚拟时间，并验证子失败、取消、关闭后无残留协程及目标 JVM/API 兼容。
 2. Java/Kotlin 混合模块要验证公开 API 在双方调用端的真实签名。
 
 ## 常见陷阱
