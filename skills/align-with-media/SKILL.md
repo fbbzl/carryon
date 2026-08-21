@@ -1,0 +1,138 @@
+---
+name: align-with-media
+description: "Use when req needs an HTML, prototype, flow, example, or decision surface to clarify requirements more efficiently than text alone."
+metadata:
+  version: 1.1.1
+  type: agent-skill
+  scope: software-engineering
+  tags: [req, clarification, html, prototype, workflow]
+  author: coding-skill
+---
+
+# align-with-media
+
+`align-with-media` 是 `req` 的媒介化对齐子技能。它把已整理的需求、分歧和假设变成可浏览、可选择、可反馈的媒介，默认是单文件 HTML；它不维护需求状态，也不把结论直接交给 `dev`。
+
+## 启用与边界
+
+仅在 `req` 判断文字对齐效率不足时启用，例如：
+
+- 页面、交互、流程、状态或角色协作难以仅靠文字准确理解；
+- 规则、数据口径或接口行为需要用正反例、样例数据或契约示例确认；
+- 存在可比较的方案，需要用户快速选择并理解影响；
+- 用户明确要求 HTML、原型、流程图、示例或可视化对齐页。
+
+已有材料中的高风险规则仍不清晰时，优先由 `req` 调用 `grill-with-docs` 取得关键澄清；可在规则收敛后再调用本技能展示流程或方案。两者不能自行确认需求，也不能相互替代。
+
+本技能不用于替代正式 OpenSpec、技术架构设计、代码实现或测试。权限、金额、数据、合规和验收规则即使已经展示，也必须保持待 `req` 和用户确认的状态。
+
+## 工作方式
+
+1. 读取 `req` 提供的当前需求版本、来源、目标、范围、非目标、假设、开放问题和风险；基线或来源不足时，返回给 `req`，不生成看似确定的页面。
+2. 默认使用 1 张主图，必要时最多增加 2 张互补图；每张图都必须消除一个明确分歧：
+   - UI 或交互：线框布局和主/异常状态；
+   - 多步骤业务：流程或状态图；
+   - 规则、金额或数据：输入、处理和预期结果的正例、反例与边界例；
+   - 权限：角色—动作—资源矩阵；
+   - 接口或集成：请求、响应、错误和幂等示例；
+   - 方案取舍：决策卡片，列出选项、推荐项和影响。
+3. 默认生成 UTF-8 编码、可单独预览的 HTML。媒介产物必须可关联到当前需求版本、来源和适用范围；只有实际存在的假设、未覆盖范围、示例数据或默认项才需要展示，并且不能伪装成已确认事实。
+4. 将可决定事项限制为最多 3 个。存在待决定事项时，每项提供可选方案、推荐项、影响和“确认 / 需修改 / 暂缓”反馈入口；反馈仅表示用户意见，不自动改变需求状态或执行外部操作。
+5. 对齐范围跨越完整用户路径、多个功能或版本优先级时，才补充故事地图：用户 → 活动 → 步骤 → 任务，并只在已有范围依据时标出 MVP / 后续版本切片。它用于确认全局路径与范围，不替代任务计划。
+6. 当前需求相对上一有效版本发生变化时，才生成受影响范围的简短差异视图，标出新增、修改、废弃项和需要 `req` 重验证的结论。
+7. 把媒介产物、关联摘要和反馈摘要返回给 `req`。只有 `req` 核对来源、风险和验收后，才能将用户反馈回写为需求结论、假设或开放问题。
+
+## 图形对齐原则
+
+图的职责是让用户确认需求理解，而不是装饰页面。每张图必须在图内或紧邻图处标明：它要对齐的事项、来源/版本、适用范围，以及用户需要确认的结论或分歧；无法回答其中任一项时不生成该图。
+
+优先按下列对齐维度组合图形：
+
+| 对齐维度 | 首选图形 | 用户确认的内容 |
+| --- | --- | --- |
+| 范围与边界 | 系统边界图、上下游关系图 | 哪些角色、系统和场景包含或排除 |
+| 用户体验 | 用户旅程图、页面流、状态线框图 | 主路径、入口、空态和异常态 |
+| 业务流程 | 泳道图、时序图、状态图 | 责任归属、先后顺序、转移条件与禁止路径 |
+| 业务规则 | 决策树、规则表、正反例卡片 | 条件、优先级、边界输入与预期结果 |
+| 数据与口径 | 数据流图、字段映射图、样例数据视图 | 数据来源、转换、归属和统计口径 |
+| 权限 | 角色—资源—动作矩阵 | 谁可在何种条件下执行何种动作 |
+| 方案取舍 | 方案比较图、影响链图、决策卡片 | 选项、推荐项、代价和待定决策 |
+
+同一张图只能支撑其标明的确认范围；图间共享的数据、规则和状态必须一致。不得用无来源的统计图、装饰性图表或虚构流程制造“已对齐”的错觉。
+
+## 轻量关联与复核
+
+每张图在返回结果中记录来源、支撑的需求/决策/验收 ID 和待确认结论；不另建完整矩阵。`req` 只需检查：关键项是否有对应图或明确的未可视化原因，图间共享事实是否一致。高风险关键项既没有可靠图也没有原因说明时，保持开放问题。
+
+只对实际生成的图做一次对应复核：UI 看主路径和状态；流程看责任和异常出口；规则看边界例；数据/接口看口径和权限；故事地图看路径与切片是否回指当前范围。
+
+## HTML 组合约定
+
+HTML 不是固定页面模板。每次只组合解决当前对齐障碍所需的模块；不需要的区域不得保留占位内容。唯一必需的是至少一个能够验证或比较当前需求理解的主体媒介。
+
+- UI 对齐可只包含页面原型和状态切换说明；
+- 流程对齐可只包含范围说明和流程/状态图；
+- 规则对齐可只包含输入输出示例；
+- 方案取舍才增加决策卡片与反馈控件；
+- 只有出现假设或未覆盖范围时才增加对应说明。
+
+下例仅展示“含待决策项”的一种组合，不是每次生成的结构：
+
+```html
+<main aria-labelledby="alignment-title">
+  <header>
+    <h1 id="alignment-title">需求对齐</h1>
+    <p>版本：REQ-001@v1 · 范围：……</p>
+  </header>
+  <section aria-labelledby="proposal-title">
+    <h2 id="proposal-title">对齐内容</h2>
+  </section>
+  <section aria-labelledby="decision-title">
+    <h2 id="decision-title">待决策项</h2>
+    <fieldset>
+      <legend>Q1：……</legend>
+      <label><input type="radio" name="q1"> 方案 A</label>
+      <label><input type="radio" name="q1"> 方案 B（推荐）</label>
+    </fieldset>
+  </section>
+  <footer>反馈：确认 / 需修改 / 暂缓</footer>
+</main>
+```
+
+HTML 应保持单文件、无外部数据写入和无未授权网络请求；交互仅在需要时用于本地展示与收集反馈。需要持久化、提交或连接外部系统时，先由 `req` 获得相应授权。
+
+## 返回给 req 的结果
+
+```yaml
+media_alignment:
+  work_unit_id:
+  requirement_version:
+  reference_version:
+  observed_at:
+  artifact:
+    format: html
+    locator:
+    media_types: []
+  alignment_views:
+    - view_id:
+      purpose:
+      source_evidence: []
+      verified_scope: []
+      confirmation_target:
+      requirement_ids: []
+      decision_ids: []
+      acceptance_ids: []
+  change_summary:
+    previous_requirement_version:
+    affected_view_ids: []
+    invalidated_conclusions: []
+  verified_scope: []
+  unverified_scope: []
+  assumptions: []
+  decision_items: []
+  user_feedback: []
+  open_questions: []
+  next_action:
+```
+
+`user_feedback` 只能记录用户原话、选择和观察时间。`confirmed`、验收、风险接受和需求版本更新均由 `req` 根据当前基线另行判定与记录。
