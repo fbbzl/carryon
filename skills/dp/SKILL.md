@@ -33,7 +33,7 @@ metadata:
 
 ## 专属 Git 同步 Skill
 
-当用户明确要求同步分支改动时，`dp` 先按改动形态选择专属子 Skill：已提交且提交粒度干净时调用 [sync-with-cherrypick](../sync-with-cherrypick/SKILL.md) 精确搬运；未提交或需要按文件搬运时调用 [sync-with-stash](../sync-with-stash/SKILL.md) 使用本地任务包；同源分支整线追上游且用户同时授权提交、rebase 与推送当前分支时调用 [sync-with-rebase](../sync-with-rebase/SKILL.md)。三者都不构成部署或 Go/No-Go 授权，且冲突、未授权改动、受保护分支风险或需要重写远端历史时必须停止并请求用户决定。
+当用户明确要求同步分支改动时，`dp` 先按改动形态选择专属子 Skill：已提交且提交粒度干净时调用 [sync-with-cherrypick](../sync-with-cherrypick/SKILL.md) 精确搬运；未提交或需要按文件搬运时调用 [sync-with-stash](../sync-with-stash/SKILL.md) 使用本地任务包；同源分支整线追上游且用户同时授权提交、rebase 与推送当前分支时调用 [sync-with-rebase](../sync-with-rebase/SKILL.md)；异源分支合流且需要保留分叉拓扑时调用 [sync-with-merge](../sync-with-merge/SKILL.md)。四者都不构成部署或 Go/No-Go 授权，且冲突、未授权改动、受保护分支风险、分支关系不清或需要重写远端历史时必须停止并请求用户决定。
 
 ## 决策流程
 

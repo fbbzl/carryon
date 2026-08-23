@@ -79,6 +79,7 @@
 - `skills/qa/SKILL.md` — 测试代理剧本（含 AI 辅助测试生成）
 - `skills/dp/SKILL.md` — 发布预检、恢复建议与交付报告剧本（最终发布由用户或授权方执行）
 - `skills/sync-with-cherrypick/SKILL.md` — 已提交改动的精确跨分支搬运流程
+- `skills/sync-with-merge/SKILL.md` — 异源分支合流与拓扑保留流程
 - `skills/sync-with-rebase/SKILL.md` — 提交、变基同步与受控推送流程
 - `skills/sync-with-stash/SKILL.md` — 未提交改动的本地任务包同步流程
 - `skills/grill-with-docs/SKILL.md` — grill-me 替代方案，结合文档上下文做决策树追问
