@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Use when a software-engineering task spans two or more roles, requires evidence-based handoffs or state coordination, or includes risk escalation and release readiness."
 metadata:
-  version: 1.2.17
+  version: 1.2.18
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, agent, workflow]
@@ -18,8 +18,20 @@ metadata:
 ## 启动边界
 
 - 跨两个及以上角色、涉及交接、状态流转、公共契约、风险升级或发布时启用调查兵团。
-- 单一角色的小修改不强制启用完整链路；只加载相关角色剧本。
-- 先读本剧本，再读进入职责的 `skills/<role>/SKILL.md`；不自动创建文件、启动监听或执行未授权操作。
+- 单一角色的小修改不强制启用完整链路；但启动调查兵团工作流时，仍必须先完成角色激活与从属 Skill 选择。
+- 先读本剧本，再完成角色激活与从属 Skill 选择；之后只读取已激活角色的本体 Skill 与用户选择的从属 Skill，不自动创建文件、启动监听或执行未授权操作。
+
+## 角色激活与从属 Skill 选择
+
+每次启动调查兵团工作流时，总调度必须先让用户选择本轮启用的角色与各角色的从属 Skill，选择完成前不得进入任何角色职责。
+
+- 固定展示 `req -> dev -> cr -> qa -> dp` 五个角色，并说明大多数软件工程任务建议全链路启用。
+- 每个角色都必须提供“不激活该角色”选项，由用户决定本轮是否启用该角色。
+- 被激活的角色必须读取并应用自己的本体 Skill：`skills/<role>/SKILL.md`。本体 Skill 是角色职责的一部分，不作为可选从属 Skill。
+- 从属 Skill 是角色本体 Skill 之外的额外 Skill；只在用户为该角色明确选择后生效。用户未选择从属 Skill 时，该角色只应用本体 Skill。
+- 未激活角色不得读取其本体 Skill 或从属 Skill，不得产出该角色结论；其责任空缺必须记录为未验证范围或残余风险。
+- 选择结果必须绑定当前工作单元，记录激活角色、未激活角色、各角色本体 Skill、用户选择的从属 Skill、选择时间、适用环境与证据边界。
+- 工作流中途新增角色、停用角色或更换从属 Skill，属于角色基线变化；必须记录变化原因、影响范围，并按状态矩阵评估是否进入 `needs_revalidation`。
 
 ## 统一协作协议
 
@@ -48,6 +60,8 @@ metadata:
 - 高风险：公共 API、数据库、权限、金额、事务、生产或不可逆变更，先对齐方案，并提供恢复路径和验证证据。
 
 每个活跃角色在正式工作前定义自己的工作单元：ID、来源、目标、范围、依赖、交付物、验收标准、风险、验证方式、退出标准和残余风险。轻量任务可以只保留范围、自测证据和下一步。
+
+工作单元还必须记录本轮角色选择：`active_roles`、`inactive_roles`、`role_core_skills`、`role_subordinate_skills`、`selection_evidence`。未激活角色导致的职责缺口必须进入 `unverified_scope` 或 `residual_risks`。
 
 项目健康只在当前参照系下判断：`healthy` 可按门禁推进；`degraded` 仅可在明确范围、责任人和补偿措施下推进；`unstable` 冻结受影响放量并优先恢复；`recovering` 只允许复审、复测和受控观察。构建、联调、测试或部署成功都只证明自身范围。
 
@@ -107,10 +121,10 @@ metadata:
 | --- | --- | --- | --- | --- |
 | `draft` | 范围已整理 | `needs_user_confirm` | 目标、假设、开放问题 | 作为确定契约交给开发 |
 | `needs_user_confirm` | 用户确认 | `confirmed` | 验收标准、版本 | 以假设替代确认 |
-| `confirmed` | 开发范围与工作单元确认 | `planned` | 需求版本、验收、依赖、回滚、OpenSpec ID/版本/`status=confirmed`（如需） | 未确认技术方案编码 |
+| `confirmed` | 开发范围与工作单元确认 | `planned` | 需求版本、验收、依赖、回滚、方案协议 ID/版本/`status=confirmed`（如需） | 未确认技术方案编码 |
 | `confirmed` | 需求变化 | `changed` | 变更与影响 | 复用旧下游结论 |
 | `changed` | 新范围整理完成 | `needs_user_confirm` | 新版本、差异、影响链 | 沿用旧门禁 |
-| `planned` | 依赖满足且方案已确认 | `dev_in_progress` | 工作单元、范围、回滚、OpenSpec ID/版本/`status=confirmed`（如需） | 无工作单元或未确认方案编码 |
+| `planned` | 依赖满足且方案已确认 | `dev_in_progress` | 工作单元、范围、回滚、方案协议 ID/版本/`status=confirmed`（如需） | 无工作单元或未确认方案编码 |
 | `dev_in_progress` | 实现与自测完成 | `dev_done` | 变更、自测、风险 | 宣布 QA 或发布通过 |
 | `dev_done` | 交付输入完整 | `ready_for_cr` | 契约、影响、验证 | 跳过 `cr` |
 | `dev_done` | `cr` 退回资料且实现、版本基线未变 | `dev_done` | `handoff_result=needs_revision`、缺失字段、同一工作单元/版本/环境 | 禁止提测或发布；补齐后重新交接 |
@@ -138,7 +152,7 @@ metadata:
 | `deployed` | 已确认异常且回滚完成 | `rolled_back` | 异常证据、影响范围、回滚记录 | 仅因观察延迟触发回滚 |
 | `verified` | 追溯发现 P0/P1 或数据/安全异常，且回滚尚未完成 | `blocked` | 事件、影响范围、冻结动作、恢复或回滚计划 | 继续扩散或提前声称已回滚 |
 | `verified` | 追溯发现异常且回滚已经完成 | `rolled_back` | 事件、影响范围、回滚记录与恢复验证 | 回滚完成前标记 `rolled_back` |
-| `rolled_back` | 根因修复，且当前需求/验收仍已确认且未变化 | `planned` | 回滚报告、修复证据、当前已确认需求版本、需求/验收未变化证据、新方案、OpenSpec ID/版本/`status=confirmed`（如需） | 需求未重新确认时规划或直接放量 |
+| `rolled_back` | 根因修复，且当前需求/验收仍已确认且未变化 | `planned` | 回滚报告、修复证据、当前已确认需求版本、需求/验收未变化证据、新方案、方案协议 ID/版本/`status=confirmed`（如需） | 需求未重新确认时规划或直接放量 |
 | `rolled_back` | 需求或验收发生变化 | `needs_revalidation` | `revalidation_from=rolled_back`、新旧差异、影响链、`resume_state=needs_user_confirm` | 直接进入 `planned` 或复用旧确认 |
 | 任意非 `blocked` 状态 | 已确认并定级为 P0/P1，且没有已完成并核验的运行期回滚专用结论 | `blocked` | `blocked_from`、事件、健康快照、责任人、退出条件 | 继续受影响交接/放量 |
 | `ready` / `deploying` | 已实际开始部署，但最终授权不是有效的 `granted` | `blocked` | 授权缺失、拒绝或过期记录，`blocked_from`、健康快照、责任人、退出条件 | 部署或扩大放量；未开始部署不触发本行 |
@@ -149,7 +163,7 @@ metadata:
 | `blocked` | 非发布阶段仅外部依赖或授权中断已恢复，且没有证据失效 | `resume_state`（必须等于记录的 `blocked_from`） | `event.status=closed`、同一 `work_unit_id`/`reference_version`/`environment`、未过期证据、`resume_state=blocked_from` | 把动态目标当作新状态、改写恢复目标或跳过原状态门禁 |
 | `blocked` | `blocked_from` 为 `ready` 或 `deploying`，仅授权缺失、部署命令失败或运行中断已恢复，未产生需回退变更且交付物未变 | `ready` | `event.status=closed`、同一工作单元和需求/代码/配置/迁移版本、`cr`/`qa` 仍适用、更新后的 `dp` 预检、发布共识、授权与健康快照、`resume_state=ready` | 省略预检、共识、授权或直接部署 |
 | `needs_revalidation` | 需求或验收发生变化 | `needs_user_confirm` | 新需求版本、前后差异、影响链、开放问题、`resume_state=needs_user_confirm` | 直接进入 `planned` 或复用旧确认 |
-| `needs_revalidation` | 已确认需求仍有效，但实现、配置、依赖、迁移、契约、权限、安全或数据不变量变化后重新基线 | `planned` | 当前已确认需求版本、新技术基线、失效影响、影响链、OpenSpec（如需）、`resume_state=planned` | 跳过 dev、cr 或 qa |
+| `needs_revalidation` | 已确认需求仍有效，但实现、配置、依赖、迁移、契约、权限、安全或数据不变量变化后重新基线 | `planned` | 当前已确认需求版本、新技术基线、失效影响、影响链、方案协议（如需）、`resume_state=planned` | 跳过 dev、cr 或 qa |
 | `needs_revalidation` | 实现基线未变，但 CR 证据失效或其适用性无法证明 | `ready_for_cr` | 工作单元和实现基线不变、失效影响、复审输入、`resume_state=ready_for_cr` | 直接提测或发布 |
 | `needs_revalidation` | `revalidation_from=qa_conditional`，仅条件结论或补偿控制失效且上游基线未变 | `ready_for_qa` | 当前工作单元/版本/环境、失效影响、新测试与风险评估计划、`resume_state=ready_for_qa` | 直接恢复 `qa_conditional` 或 `ready` |
 | `needs_revalidation` | 仅测试执行环境、测试夹具或 QA 证据失效，且上游基线未变 | `ready_for_qa` | 工作单元、产物/配置/依赖基线不变，CR 明确确认仍适用，环境/数据基线、复测计划、`resume_state=ready_for_qa` | 把配置、权限、安全、契约或数据不变量变化归为 QA-only |
@@ -176,6 +190,11 @@ metadata:
 ```yaml
 handoff:
   work_unit_id:
+  active_roles: []
+  inactive_roles: []
+  role_core_skills: []
+  role_subordinate_skills: []
+  selection_evidence: []
   source_role:
   target_role:
   status:

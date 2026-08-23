@@ -130,7 +130,6 @@
 - `skills/qa/SKILL.md` — 测试与质量评估剧本
 - `skills/dp/SKILL.md` — 发布预检、恢复与交付报告剧本
 - `skills/req/SKILL.md` — 需求分析剧本
-- `skills/openspec/SKILL.md` — 重大变更前方案对齐协议
 - `skills/grill-with-docs/SKILL.md` — 基于文档的高风险问题澄清
 
 ---

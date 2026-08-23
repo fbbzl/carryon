@@ -71,10 +71,9 @@
 ### 自研 skill
 
 - `skills/survey-corps/SKILL.md` — 调查兵团完整协作流程
-- `skills/openspec/SKILL.md` — OpenSpec 使用协议
 - `skills/req/SKILL.md` — 需求代理剧本（含 AI 辅助文档能力）
 - `skills/dev/SKILL.md` — 开发代理剧本（含工程开发规范）
-- `skills/refactor/SKILL.md` — 高阶行为保持重构与等价证明流程
+- `skills/refactor-with-goal/SKILL.md` — 高阶行为保持重构与等价证明流程
 - `skills/cr/SKILL.md` — 代码审查代理剧本（含 AI 辅助审查）
 - `skills/qa/SKILL.md` — 测试代理剧本（含 AI 辅助测试生成）
 - `skills/dp/SKILL.md` — 发布预检、恢复建议与交付报告剧本（最终发布由用户或授权方执行）

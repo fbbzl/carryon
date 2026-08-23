@@ -32,7 +32,7 @@ metadata:
 
 0. 读取用户提供的 PRD / 设计文档 / 方案
 1. 读取相关 `std/` 标准文件（如 api-design.md、database.md、security.md）
-2. 读取相关 `skills/` 剧本（如 `skills/req/SKILL.md`、`skills/dev/SKILL.md`、`skills/openspec/SKILL.md`）
+2. 读取相关 `skills/` 剧本（如 `skills/req/SKILL.md`、`skills/dev/SKILL.md`、`skills/survey-corps/SKILL.md`）
 3. 如涉及代码变更，快速查看相关代码片段
 4. 为引用材料记录位置、版本或 `updated_at`（无法取得时记录内容摘要）、观察时间和本轮 `reference_version`
 

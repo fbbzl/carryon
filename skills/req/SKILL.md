@@ -102,6 +102,6 @@ requirement:
   invalidates: []
 ```
 
-成功指标说明基线、数据来源、测量窗口、阈值和责任人。冲突需求的 `decision_log` 必须记录双方来源与版本、裁决范围和授权依据、裁决证据、时间、有效期、适用/争议/未受影响范围；无法证明裁决或失效边界时保持 `needs_user_confirm`。需求变更提供前后差异，`invalidates` 精确列出失效的需求、验收、OpenSpec、API、文件、测试与发布产物 ID，防止被否决来源继续作为当前依据。
+成功指标说明基线、数据来源、测量窗口、阈值和责任人。冲突需求的 `decision_log` 必须记录双方来源与版本、裁决范围和授权依据、裁决证据、时间、有效期、适用/争议/未受影响范围；无法证明裁决或失效边界时保持 `needs_user_confirm`。需求变更提供前后差异，`invalidates` 精确列出失效的需求、验收、方案协议、API、文件、测试与发布产物 ID，防止被否决来源继续作为当前依据。
 
 交给 `dev`：已确认需求、假设、验收标准和变更影响；如使用过媒介对齐，附当前媒介产物定位、已纳入结论的反馈 ID，以及版本变化时的失效结论。交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `requirement_version`、`acceptance_ids`、`assumptions`、`open_questions`、`change_impact`。
