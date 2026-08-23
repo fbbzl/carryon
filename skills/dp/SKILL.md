@@ -31,9 +31,9 @@ metadata:
 
 默认交付边界是 `dp` 完成预检并交给用户，由用户决定并执行部署；用户回传部署记录后，`dp` 再进行健康观察与交付判断。只有用户明确授权时，其他执行主体才可进入部署动作。
 
-## 专属子 Skill：sync-with-rebase
+## 专属 Git 同步 Skill
 
-当用户明确要求把当前工作分支同步到指定远端分支，并同时授权提交本地改动与推送当前分支时，调用 [sync-with-rebase](../sync-with-rebase/SKILL.md)。该 Skill 按“受控提交 -> 获取目标分支 -> rebase 当前分支 -> 推送当前分支”执行；目标分支仅是基线，绝不直接向其推送。冲突、未授权改动或需要重写远端历史时停止；`--force-with-lease` 需要单独明确授权。该流程不构成部署或 Go/No-Go 授权。
+当用户明确要求同步分支改动时，`dp` 先按改动形态选择专属子 Skill：已提交且提交粒度干净时调用 [sync-with-cherrypick](../sync-with-cherrypick/SKILL.md) 精确搬运；未提交或需要按文件搬运时调用 [sync-with-stash](../sync-with-stash/SKILL.md) 使用本地任务包；同源分支整线追上游且用户同时授权提交、rebase 与推送当前分支时调用 [sync-with-rebase](../sync-with-rebase/SKILL.md)。三者都不构成部署或 Go/No-Go 授权，且冲突、未授权改动、受保护分支风险或需要重写远端历史时必须停止并请求用户决定。
 
 ## 决策流程
 
