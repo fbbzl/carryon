@@ -74,9 +74,11 @@
 - `skills/openspec/SKILL.md` — OpenSpec 使用协议
 - `skills/req/SKILL.md` — 需求代理剧本（含 AI 辅助文档能力）
 - `skills/dev/SKILL.md` — 开发代理剧本（含工程开发规范）
+- `skills/refactor/SKILL.md` — 行为保持的受控实现重构
 - `skills/cr/SKILL.md` — 代码审查代理剧本（含 AI 辅助审查）
 - `skills/qa/SKILL.md` — 测试代理剧本（含 AI 辅助测试生成）
 - `skills/dp/SKILL.md` — 发布预检、恢复建议与交付报告剧本（最终发布由用户或授权方执行）
+- `skills/sync-with-rebase/SKILL.md` — 提交、变基同步与受控推送流程
 - `skills/grill-with-docs/SKILL.md` — grill-me 替代方案，结合文档上下文做决策树追问
 
 ## 维护原则
