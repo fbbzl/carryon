@@ -31,7 +31,7 @@ metadata:
 
 ## Goal 驱动测试
 
-当一个测试工作单元可表达为明确的行为或风险目标时，调用 [test-with-goal](../test-with-goal/SKILL.md)。Goal 绑定现有 `work_unit_id`、版本和环境，记录目标、范围、测试资产、证据、退出条件和残余风险；它不是 Codex 平台任务，也不创建独立状态机。
+当一个测试工作单元可表达为明确的行为或风险目标时，调用 [test-with-goal](../subskills/test-with-goal/SKILL.md)。Goal 绑定现有 `work_unit_id`、版本和环境，记录目标、范围、测试资产、证据、退出条件和残余风险；它不是 Codex 平台任务，也不创建独立状态机。
 
 测试发现缺陷时，`qa` 负责登记带有复现条件、预期/实际结果、影响范围和证据的 Bug，并交给 `dev` 修复。`dev` 返回修复说明后，`qa` 复测原复现和受影响范围，独占决定关闭或重开 Bug。
 

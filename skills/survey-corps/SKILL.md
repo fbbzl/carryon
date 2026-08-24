@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Use when a software-engineering task spans two or more roles, requires evidence-based handoffs or state coordination, or includes risk escalation and release readiness."
 metadata:
-  version: 1.2.21
+  version: 1.2.22
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, agent, workflow]
@@ -27,11 +27,11 @@ metadata:
 
 | 角色 | 本体 Skill（激活后必用） | 可选从属 Skill |
 | --- | --- | --- |
-| `req` | `skills/req/SKILL.md` | `grill-with-docs`、`align-with-media` |
-| `dev` | `skills/dev/SKILL.md` | `refactor-with-goal` |
-| `cr` | `skills/cr/SKILL.md` | `review-with-goal` |
-| `qa` | `skills/qa/SKILL.md` | `test-with-goal` |
-| `dp` | `skills/dp/SKILL.md` | `sync-with-cherrypick`、`sync-with-stash`、`sync-with-rebase`、`sync-with-merge` |
+| `req` | `skills/req/SKILL.md` | [grill-with-docs](../subskills/grill-with-docs/SKILL.md)、[align-with-media](../subskills/align-with-media/SKILL.md) |
+| `dev` | `skills/dev/SKILL.md` | [refactor-with-goal](../subskills/refactor-with-goal/SKILL.md) |
+| `cr` | `skills/cr/SKILL.md` | [review-with-goal](../subskills/review-with-goal/SKILL.md) |
+| `qa` | `skills/qa/SKILL.md` | [test-with-goal](../subskills/test-with-goal/SKILL.md) |
+| `dp` | `skills/dp/SKILL.md` | [sync-with-cherrypick](../subskills/sync-with-cherrypick/SKILL.md)、[sync-with-stash](../subskills/sync-with-stash/SKILL.md)、[sync-with-rebase](../subskills/sync-with-rebase/SKILL.md)、[sync-with-merge](../subskills/sync-with-merge/SKILL.md) |
 
 任务类型的默认编排如下；`->` 表示预期交接顺序，不表示所有角色都必须参与。若任务同时命中多类，取覆盖全部已知风险的最小组合，并在表单中说明合并原因。
 
@@ -59,6 +59,8 @@ metadata:
 - 影响范围：{自动判定}
 - 风险等级：{自动判定}
 - 目标环境 / 分支：{已知值或未知}
+- 编排版本：{本工作单元内递增的 activation_version}
+- 当前门禁：pending（待确认）
 
 本次启动角色：
 - {例如：dev > qa}
@@ -66,6 +68,12 @@ metadata:
 | 角色 | 从属 Skill | 判定依据 |
 | --- | --- | --- |
 | {已启动角色} | {Skill 列表 / 无} | {任务类型、范围或风险依据} |
+
+本轮预期产物：
+{已启动角色将交付的产物与退出条件；例如：变更与自测证据、审查结论、测试结论或发布预检报告}
+
+重新编排条件：
+- 任务目标、范围、环境、风险、交付方式、角色或从属 Skill 变化。
 
 待确认信息：
 {仅当缺失信息会改变任务类型、编排或授权边界时提问；无则写“请确认以上编排后开始工作流”}
@@ -81,12 +89,15 @@ metadata:
 ```yaml
 workflow_activation_gate:
   status: pending | passed | invalidated
+  activation_version:
   task_type:
   default_role_chain: []
   default_subordinate_skills: {}
   final_active_roles: []
   final_inactive_roles: []
   final_subordinate_skills: {}
+  expected_artifacts: []
+  replan_triggers: []
   user_confirmation_evidence:
   observed_at:
   environment:
@@ -94,9 +105,9 @@ workflow_activation_gate:
   invalidated_by: []
 ```
 
-- `pending`：表单尚未完整展示、任务判定存在决定性缺口，或用户尚未确认；禁止读取角色 Skill 或开始工作流。
-- `passed`：表单已展示本次启动角色链路及每个已启动角色的从属 Skill，门禁记录精确覆盖五个角色的启用状态，且用户确认记录可核验；允许按表读取角色本体和从属 Skill。
-- `invalidated`：用户修改任务目标、范围、环境、风险、角色编排或从属 Skill；立即停止未完成的下游推进，重新生成并确认表单后才可再次通过。
+- `pending`：表单尚未完整展示编排版本、启动角色、从属 Skill、预期产物与重新编排条件，任务判定存在决定性缺口，或用户尚未确认；禁止读取角色 Skill 或开始工作流。
+- `passed`：表单已展示本次启动角色链路、每个已启动角色的从属 Skill、预期产物与重新编排条件，门禁记录精确覆盖五个角色的启用状态，且用户确认记录绑定当前 `activation_version` 并可核验；允许按表读取角色本体和从属 Skill。
+- `invalidated`：命中重新编排条件时立即失效；停止未完成的下游推进，将 `activation_version` 递增，重新生成并确认表单后才可再次通过。
 - 选择结果绑定当前工作单元，记录默认与最终角色链路、默认与最终从属 Skill、任务类型、确认时间、适用环境、证据边界与失效原因。工作流中途角色或从属 Skill 变化属于角色基线变化，按状态矩阵评估是否进入 `needs_revalidation`。
 
 ## 统一协作协议
@@ -127,7 +138,7 @@ workflow_activation_gate:
 
 每个活跃角色在正式工作前定义自己的工作单元：ID、来源、目标、范围、依赖、交付物、验收标准、风险、验证方式、退出标准和残余风险。轻量任务可以只保留范围、自测证据和下一步。
 
-工作单元还必须记录本轮启动编排门禁：`workflow_activation_gate.status`、`task_type`、默认与最终角色链路、默认与最终从属 Skill、`user_confirmation_evidence`、选择时间、适用环境、证据边界与失效原因。未激活角色导致的职责缺口必须进入 `unverified_scope` 或 `residual_risks`。
+工作单元还必须记录本轮启动编排门禁：`workflow_activation_gate.status`、`activation_version`、`task_type`、默认与最终角色链路、默认与最终从属 Skill、`expected_artifacts`、`replan_triggers`、`user_confirmation_evidence`、选择时间、适用环境、证据边界与失效原因。未激活角色导致的职责缺口必须进入 `unverified_scope` 或 `residual_risks`。
 
 项目健康只在当前参照系下判断：`healthy` 可按门禁推进；`degraded` 仅可在明确范围、责任人和补偿措施下推进；`unstable` 冻结受影响放量并优先恢复；`recovering` 只允许复审、复测和受控观察。构建、联调、测试或部署成功都只证明自身范围。
 

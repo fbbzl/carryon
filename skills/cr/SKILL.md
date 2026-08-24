@@ -30,7 +30,7 @@ metadata:
 
 ## Goal 驱动优化审查
 
-当审查范围可以归结为单一优化目标时，调用 [review-with-goal](../review-with-goal/SKILL.md)。Goal 绑定现有 `work_unit_id`、版本和环境，记录优化目标、影响范围、证据、交给 `dev` 的验收条件和退出条件；它不是 Codex 平台任务，也不创建独立状态机。
+当审查范围可以归结为单一优化目标时，调用 [review-with-goal](../subskills/review-with-goal/SKILL.md)。Goal 绑定现有 `work_unit_id`、版本和环境，记录优化目标、影响范围、证据、交给 `dev` 的验收条件和退出条件；它不是 Codex 平台任务，也不创建独立状态机。
 
 `cr` 只将优化项交给 `dev`，不登记或分派 Bug。若需要验证实际运行行为，由 `qa` 决定是否生成测试、登记 Bug 和给出测试结论。
 

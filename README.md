@@ -73,15 +73,18 @@
 - `skills/survey-corps/SKILL.md` — 调查兵团完整协作流程
 - `skills/req/SKILL.md` — 需求代理剧本（含 AI 辅助文档能力）
 - `skills/dev/SKILL.md` — 开发代理剧本（含工程开发规范）
-- `skills/refactor-with-goal/SKILL.md` — 高阶行为保持重构与等价证明流程
 - `skills/cr/SKILL.md` — 代码审查代理剧本（含 AI 辅助审查）
 - `skills/qa/SKILL.md` — 测试代理剧本（含 AI 辅助测试生成）
 - `skills/dp/SKILL.md` — 发布预检、恢复建议与交付报告剧本（最终发布由用户或授权方执行）
-- `skills/sync-with-cherrypick/SKILL.md` — 已提交改动的精确跨分支搬运流程
-- `skills/sync-with-merge/SKILL.md` — 异源分支合流与拓扑保留流程
-- `skills/sync-with-rebase/SKILL.md` — 提交、变基同步与受控推送流程
-- `skills/sync-with-stash/SKILL.md` — 未提交改动的本地任务包同步流程
-- `skills/grill-with-docs/SKILL.md` — grill-me 替代方案，结合文档上下文做决策树追问
+- `skills/subskills/align-with-media/SKILL.md` — 需求媒介化对齐流程
+- `skills/subskills/grill-with-docs/SKILL.md` — 基于文档的高风险问题澄清
+- `skills/subskills/refactor-with-goal/SKILL.md` — 高阶行为保持重构与等价证明流程
+- `skills/subskills/review-with-goal/SKILL.md` — 单一优化目标的代码或设计审查流程
+- `skills/subskills/test-with-goal/SKILL.md` — 单一行为或风险目标的测试流程
+- `skills/subskills/sync-with-cherrypick/SKILL.md` — 已提交改动的精确跨分支搬运流程
+- `skills/subskills/sync-with-merge/SKILL.md` — 异源分支合流与拓扑保留流程
+- `skills/subskills/sync-with-rebase/SKILL.md` — 提交、变基同步与受控推送流程
+- `skills/subskills/sync-with-stash/SKILL.md` — 未提交改动的本地任务包同步流程
 
 ## 维护原则
 
