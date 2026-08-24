@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Use when a software-engineering task spans two or more roles, requires evidence-based handoffs or state coordination, or includes risk escalation and release readiness."
 metadata:
-  version: 1.2.18
+  version: 1.2.21
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, agent, workflow]
@@ -18,20 +18,86 @@ metadata:
 ## 启动边界
 
 - 跨两个及以上角色、涉及交接、状态流转、公共契约、风险升级或发布时启用调查兵团。
-- 单一角色的小修改不强制启用完整链路；但启动调查兵团工作流时，仍必须先完成角色激活与从属 Skill 选择。
-- 先读本剧本，再完成角色激活与从属 Skill 选择；之后只读取已激活角色的本体 Skill 与用户选择的从属 Skill，不自动创建文件、启动监听或执行未授权操作。
+- 单一角色的小修改不强制启用完整链路；但一旦启动调查兵团工作流，必须先通过启动编排门禁。
+- 门禁通过前，只能读取本剧本和用户已提供的任务上下文，以生成编排表单；不得读取任何角色本体或从属 Skill，不得进入 `req`、`dev`、`cr`、`qa` 或 `dp` 职责，不得产出角色结论。
 
-## 角色激活与从属 Skill 选择
+## 自动编排与启动编排门禁
 
-每次启动调查兵团工作流时，总调度必须先让用户选择本轮启用的角色与各角色的从属 Skill，选择完成前不得进入任何角色职责。
+每次启动调查兵团工作流时，总调度先根据用户任务、已知范围、环境、风险和交付目标自动判定任务类型，生成精确的角色与从属 Skill 编排。自动判定只产生提案，不能自动启动工作流；必须向用户展示本次会启动的角色链路及各自从属 Skill，并由用户确认。未启动角色只在门禁记录中保存，不在用户侧表单展示。
 
-- 固定展示 `req -> dev -> cr -> qa -> dp` 五个角色，并说明大多数软件工程任务建议全链路启用。
-- 每个角色都必须提供“不激活该角色”选项，由用户决定本轮是否启用该角色。
-- 被激活的角色必须读取并应用自己的本体 Skill：`skills/<role>/SKILL.md`。本体 Skill 是角色职责的一部分，不作为可选从属 Skill。
-- 从属 Skill 是角色本体 Skill 之外的额外 Skill；只在用户为该角色明确选择后生效。用户未选择从属 Skill 时，该角色只应用本体 Skill。
-- 未激活角色不得读取其本体 Skill 或从属 Skill，不得产出该角色结论；其责任空缺必须记录为未验证范围或残余风险。
-- 选择结果必须绑定当前工作单元，记录激活角色、未激活角色、各角色本体 Skill、用户选择的从属 Skill、选择时间、适用环境与证据边界。
-- 工作流中途新增角色、停用角色或更换从属 Skill，属于角色基线变化；必须记录变化原因、影响范围，并按状态矩阵评估是否进入 `needs_revalidation`。
+| 角色 | 本体 Skill（激活后必用） | 可选从属 Skill |
+| --- | --- | --- |
+| `req` | `skills/req/SKILL.md` | `grill-with-docs`、`align-with-media` |
+| `dev` | `skills/dev/SKILL.md` | `refactor-with-goal` |
+| `cr` | `skills/cr/SKILL.md` | `review-with-goal` |
+| `qa` | `skills/qa/SKILL.md` | `test-with-goal` |
+| `dp` | `skills/dp/SKILL.md` | `sync-with-cherrypick`、`sync-with-stash`、`sync-with-rebase`、`sync-with-merge` |
+
+任务类型的默认编排如下；`->` 表示预期交接顺序，不表示所有角色都必须参与。若任务同时命中多类，取覆盖全部已知风险的最小组合，并在表单中说明合并原因。
+
+| 任务类型 | 默认激活角色 | 默认从属 Skill |
+| --- | --- | --- |
+| 需求澄清或影响不明 | `req` | 文档冲突且高风险时 `grill-with-docs`；图示、原型或示例能更有效澄清时 `align-with-media`；否则无 |
+| 已确认的功能或行为变更 | `req -> dev -> cr -> qa` | 仅当各角色满足下表触发条件时调用；否则无 |
+| 行为保持的受控重构 | `dev -> qa` | `dev/refactor-with-goal`；`qa/test-with-goal` |
+| 目标驱动的代码或设计审查 | `cr` | `cr/review-with-goal` |
+| 测试、缺陷验证或回归验收 | `qa` | `qa/test-with-goal` |
+| 发布预检、恢复评估或交付报告 | `dp` | 无；Git 同步需求另按下一行选择 |
+| Git 同步 | `dp` | 已提交的干净提交：`sync-with-cherrypick`；未提交或按文件搬运：`sync-with-stash`；同源整线追上游：`sync-with-rebase`；异源分支合流：`sync-with-merge`；一次只选择一种 |
+| 高风险且需交付的跨角色变更 | `req -> dev -> cr -> qa -> dp` | 按角色触发条件和 Git 同步规则精确选择，无触发条件时为无 |
+
+从属 Skill 的角色内触发条件：`req` 仅在上表所述的文档歧义或媒介澄清条件成立时调用；`dev` 仅在目标是行为保持的受控重构时调用 `refactor-with-goal`；`cr` 仅在存在明确审查优化目标时调用 `review-with-goal`；`qa` 仅在存在明确行为或风险测试目标时调用 `test-with-goal`；`dp` 仅在存在 Git 同步需求时调用且四种同步 Skill 互斥。未命中条件时明确记录“无从属 Skill”，不能凭角色激活自动附带从属 Skill。
+
+每次启动必须按以下固定表单向用户回显；表中出现的角色即为本次会启动的角色，`从属 Skill=无` 表示该角色只使用本体 Skill：
+
+```text
+调查兵团启动
+
+我对任务的理解：
+- 目标：{从用户请求提取}
+- 任务类型：{自动判定}
+- 影响范围：{自动判定}
+- 风险等级：{自动判定}
+- 目标环境 / 分支：{已知值或未知}
+
+本次启动角色：
+- {例如：dev > qa}
+
+| 角色 | 从属 Skill | 判定依据 |
+| --- | --- | --- |
+| {已启动角色} | {Skill 列表 / 无} | {任务类型、范围或风险依据} |
+
+待确认信息：
+{仅当缺失信息会改变任务类型、编排或授权边界时提问；无则写“请确认以上编排后开始工作流”}
+
+未覆盖范围与风险：
+{列表；无则写“无已知缺口”}
+```
+
+用户可以确认表单，也可以纠正任务理解、范围、环境、风险、角色或从属 Skill。收到纠正后必须重新生成完整表单，不能局部沿用旧表。只有用户明确确认表单后，启动编排门禁才通过；之后才读取表中角色的本体 Skill 与指定从属 Skill。未启动角色不得读取其本体或从属 Skill、不得产出该角色结论，其职责缺口必须记录为未验证范围或残余风险。
+
+启动编排门禁独立于四类健康门禁，不写入 `health_snapshot.gates`：
+
+```yaml
+workflow_activation_gate:
+  status: pending | passed | invalidated
+  task_type:
+  default_role_chain: []
+  default_subordinate_skills: {}
+  final_active_roles: []
+  final_inactive_roles: []
+  final_subordinate_skills: {}
+  user_confirmation_evidence:
+  observed_at:
+  environment:
+  reference_version:
+  invalidated_by: []
+```
+
+- `pending`：表单尚未完整展示、任务判定存在决定性缺口，或用户尚未确认；禁止读取角色 Skill 或开始工作流。
+- `passed`：表单已展示本次启动角色链路及每个已启动角色的从属 Skill，门禁记录精确覆盖五个角色的启用状态，且用户确认记录可核验；允许按表读取角色本体和从属 Skill。
+- `invalidated`：用户修改任务目标、范围、环境、风险、角色编排或从属 Skill；立即停止未完成的下游推进，重新生成并确认表单后才可再次通过。
+- 选择结果绑定当前工作单元，记录默认与最终角色链路、默认与最终从属 Skill、任务类型、确认时间、适用环境、证据边界与失效原因。工作流中途角色或从属 Skill 变化属于角色基线变化，按状态矩阵评估是否进入 `needs_revalidation`。
 
 ## 统一协作协议
 
@@ -61,7 +127,7 @@ metadata:
 
 每个活跃角色在正式工作前定义自己的工作单元：ID、来源、目标、范围、依赖、交付物、验收标准、风险、验证方式、退出标准和残余风险。轻量任务可以只保留范围、自测证据和下一步。
 
-工作单元还必须记录本轮角色选择：`active_roles`、`inactive_roles`、`role_core_skills`、`role_subordinate_skills`、`selection_evidence`。未激活角色导致的职责缺口必须进入 `unverified_scope` 或 `residual_risks`。
+工作单元还必须记录本轮启动编排门禁：`workflow_activation_gate.status`、`task_type`、默认与最终角色链路、默认与最终从属 Skill、`user_confirmation_evidence`、选择时间、适用环境、证据边界与失效原因。未激活角色导致的职责缺口必须进入 `unverified_scope` 或 `residual_risks`。
 
 项目健康只在当前参照系下判断：`healthy` 可按门禁推进；`degraded` 仅可在明确范围、责任人和补偿措施下推进；`unstable` 冻结受影响放量并优先恢复；`recovering` 只允许复审、复测和受控观察。构建、联调、测试或部署成功都只证明自身范围。
 
