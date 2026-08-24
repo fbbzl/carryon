@@ -1,17 +1,17 @@
 ---
-name: align-with-media
-description: "Use when req needs an HTML, prototype, flow, example, or decision surface to clarify requirements more efficiently than text alone."
+name: align-with-visuals
+description: "Use when req needs visual requirements artifacts such as an HTML prototype, flow, example, or decision surface to clarify intent more efficiently than text alone."
 metadata:
-  version: 1.1.1
+  version: 1.1.2
   type: agent-skill
   scope: software-engineering
-  tags: [req, clarification, html, prototype, workflow]
+  tags: [req, clarification, visualization, html, prototype, workflow]
   author: coding-skill
 ---
 
-# align-with-media
+# align-with-visuals
 
-`align-with-media` 是 `req` 的媒介化对齐子技能。它把已整理的需求、分歧和假设变成可浏览、可选择、可反馈的媒介，默认是单文件 HTML；它不维护需求状态，也不把结论直接交给 `dev`。
+`align-with-visuals` 是 `req` 的可视化对齐子技能。它把已整理的需求、分歧和假设变成可浏览、可选择、可反馈的可视化产物，默认是单文件 HTML；它不维护需求状态，也不把结论直接交给 `dev`。
 
 ## 启用与边界
 
@@ -36,11 +36,11 @@ metadata:
    - 权限：角色—动作—资源矩阵；
    - 接口或集成：请求、响应、错误和幂等示例；
    - 方案取舍：决策卡片，列出选项、推荐项和影响。
-3. 默认生成 UTF-8 编码、可单独预览的 HTML。媒介产物必须可关联到当前需求版本、来源和适用范围；只有实际存在的假设、未覆盖范围、示例数据或默认项才需要展示，并且不能伪装成已确认事实。
+3. 默认生成 UTF-8 编码、可单独预览的 HTML。可视化产物必须可关联到当前需求版本、来源和适用范围；只有实际存在的假设、未覆盖范围、示例数据或默认项才需要展示，并且不能伪装成已确认事实。
 4. 将可决定事项限制为最多 3 个。存在待决定事项时，每项提供可选方案、推荐项、影响和“确认 / 需修改 / 暂缓”反馈入口；反馈仅表示用户意见，不自动改变需求状态或执行外部操作。
 5. 对齐范围跨越完整用户路径、多个功能或版本优先级时，才补充故事地图：用户 → 活动 → 步骤 → 任务，并只在已有范围依据时标出 MVP / 后续版本切片。它用于确认全局路径与范围，不替代任务计划。
 6. 当前需求相对上一有效版本发生变化时，才生成受影响范围的简短差异视图，标出新增、修改、废弃项和需要 `req` 重验证的结论。
-7. 把媒介产物、关联摘要和反馈摘要返回给 `req`。只有 `req` 核对来源、风险和验收后，才能将用户反馈回写为需求结论、假设或开放问题。
+7. 把可视化产物、关联摘要和反馈摘要返回给 `req`。只有 `req` 核对来源、风险和验收后，才能将用户反馈回写为需求结论、假设或开放问题。
 
 ## 图形对齐原则
 
@@ -68,7 +68,7 @@ metadata:
 
 ## HTML 组合约定
 
-HTML 不是固定页面模板。每次只组合解决当前对齐障碍所需的模块；不需要的区域不得保留占位内容。唯一必需的是至少一个能够验证或比较当前需求理解的主体媒介。
+HTML 不是固定页面模板。每次只组合解决当前对齐障碍所需的模块；不需要的区域不得保留占位内容。唯一必需的是至少一个能够验证或比较当前需求理解的主体可视化产物。
 
 - UI 对齐可只包含页面原型和状态切换说明；
 - 流程对齐可只包含范围说明和流程/状态图；
@@ -104,7 +104,7 @@ HTML 应保持单文件、无外部数据写入和无未授权网络请求；交
 ## 返回给 req 的结果
 
 ```yaml
-media_alignment:
+visual_alignment:
   work_unit_id:
   requirement_version:
   reference_version:
@@ -112,7 +112,7 @@ media_alignment:
   artifact:
     format: html
     locator:
-    media_types: []
+    visual_types: []
   alignment_views:
     - view_id:
       purpose:

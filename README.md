@@ -76,7 +76,7 @@
 - `skills/cr/SKILL.md` — 代码审查代理剧本（含 AI 辅助审查）
 - `skills/qa/SKILL.md` — 测试代理剧本（含 AI 辅助测试生成）
 - `skills/dp/SKILL.md` — 发布预检、恢复建议与交付报告剧本（最终发布由用户或授权方执行）
-- `skills/subskills/align-with-media/SKILL.md` — 需求媒介化对齐流程
+- `skills/subskills/align-with-visuals/SKILL.md` — 需求可视化对齐流程
 - `skills/subskills/grill-with-docs/SKILL.md` — 基于文档的高风险问题澄清
 - `skills/subskills/refactor-with-goal/SKILL.md` — 高阶行为保持重构与等价证明流程
 - `skills/subskills/review-with-goal/SKILL.md` — 单一优化目标的代码或设计审查流程

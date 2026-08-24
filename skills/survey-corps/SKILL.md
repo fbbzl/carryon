@@ -27,7 +27,7 @@ metadata:
 
 | 角色 | 本体 Skill（激活后必用） | 可选从属 Skill |
 | --- | --- | --- |
-| `req` | `skills/req/SKILL.md` | [grill-with-docs](../subskills/grill-with-docs/SKILL.md)、[align-with-media](../subskills/align-with-media/SKILL.md) |
+| `req` | `skills/req/SKILL.md` | [grill-with-docs](../subskills/grill-with-docs/SKILL.md)、[align-with-visuals](../subskills/align-with-visuals/SKILL.md) |
 | `dev` | `skills/dev/SKILL.md` | [refactor-with-goal](../subskills/refactor-with-goal/SKILL.md) |
 | `cr` | `skills/cr/SKILL.md` | [review-with-goal](../subskills/review-with-goal/SKILL.md) |
 | `qa` | `skills/qa/SKILL.md` | [test-with-goal](../subskills/test-with-goal/SKILL.md) |
@@ -37,7 +37,7 @@ metadata:
 
 | 任务类型 | 默认激活角色 | 默认从属 Skill |
 | --- | --- | --- |
-| 需求澄清或影响不明 | `req` | 文档冲突且高风险时 `grill-with-docs`；图示、原型或示例能更有效澄清时 `align-with-media`；否则无 |
+| 需求澄清或影响不明 | `req` | 文档冲突且高风险时 `grill-with-docs`；图示、原型或示例能更有效澄清时 `align-with-visuals`；否则无 |
 | 已确认的功能或行为变更 | `req -> dev -> cr -> qa` | 仅当各角色满足下表触发条件时调用；否则无 |
 | 行为保持的受控重构 | `dev -> qa` | `dev/refactor-with-goal`；`qa/test-with-goal` |
 | 目标驱动的代码或设计审查 | `cr` | `cr/review-with-goal` |
