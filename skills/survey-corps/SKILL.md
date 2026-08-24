@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Use when a software-engineering task spans two or more roles, requires evidence-based handoffs or state coordination, or includes risk escalation and release readiness."
 metadata:
-  version: 1.2.22
+  version: 1.2.23
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, agent, workflow]
@@ -33,20 +33,20 @@ metadata:
 | `qa` | `skills/qa/SKILL.md` | [test-with-goal](../subskills/test-with-goal/SKILL.md) |
 | `dp` | `skills/dp/SKILL.md` | [sync-with-cherrypick](../subskills/sync-with-cherrypick/SKILL.md)、[sync-with-stash](../subskills/sync-with-stash/SKILL.md)、[sync-with-rebase](../subskills/sync-with-rebase/SKILL.md)、[sync-with-merge](../subskills/sync-with-merge/SKILL.md) |
 
-任务类型的默认编排如下；`->` 表示预期交接顺序，不表示所有角色都必须参与。若任务同时命中多类，取覆盖全部已知风险的最小组合，并在表单中说明合并原因。
+任务类型的默认编排如下；`->` 表示预期交接顺序，不表示所有角色都必须参与。若任务同时命中多类，取覆盖全部已知风险的最小组合，并在表单中说明合并原因。只有表中明确命中的从属 Skill 才能调用，其他已启动角色只使用本体 Skill。
 
 | 任务类型 | 默认激活角色 | 默认从属 Skill |
 | --- | --- | --- |
 | 需求澄清或影响不明 | `req` | 文档冲突且高风险时 `grill-with-docs`；图示、原型或示例能更有效澄清时 `align-with-visuals`；否则无 |
-| 已确认的功能或行为变更 | `req -> dev -> cr -> qa` | 仅当各角色满足下表触发条件时调用；否则无 |
+| 已确认的功能或行为变更 | `dev -> cr -> qa` | 无；命中其他具体任务类型时按该类型调用 |
 | 行为保持的受控重构 | `dev -> qa` | `dev/refactor-with-goal`；`qa/test-with-goal` |
 | 目标驱动的代码或设计审查 | `cr` | `cr/review-with-goal` |
 | 测试、缺陷验证或回归验收 | `qa` | `qa/test-with-goal` |
 | 发布预检、恢复评估或交付报告 | `dp` | 无；Git 同步需求另按下一行选择 |
 | Git 同步 | `dp` | 已提交的干净提交：`sync-with-cherrypick`；未提交或按文件搬运：`sync-with-stash`；同源整线追上游：`sync-with-rebase`；异源分支合流：`sync-with-merge`；一次只选择一种 |
-| 高风险且需交付的跨角色变更 | `req -> dev -> cr -> qa -> dp` | 按角色触发条件和 Git 同步规则精确选择，无触发条件时为无 |
+| 高风险且需交付的跨角色变更 | `req -> dev -> cr -> qa -> dp` | 组合本表已命中的从属 Skill；未命中则无 |
 
-从属 Skill 的角色内触发条件：`req` 仅在上表所述的文档歧义或媒介澄清条件成立时调用；`dev` 仅在目标是行为保持的受控重构时调用 `refactor-with-goal`；`cr` 仅在存在明确审查优化目标时调用 `review-with-goal`；`qa` 仅在存在明确行为或风险测试目标时调用 `test-with-goal`；`dp` 仅在存在 Git 同步需求时调用且四种同步 Skill 互斥。未命中条件时明确记录“无从属 Skill”，不能凭角色激活自动附带从属 Skill。
+需求、验收或影响范围尚不明确时，归为“需求澄清或影响不明”并加入 `req`；已确认后不因常规功能变更重复启动 `req`。Git 同步四种从属 Skill 互斥，一次只选择一种。
 
 每次启动必须按以下固定表单向用户回显；表中出现的角色即为本次会启动的角色，`从属 Skill=无` 表示该角色只使用本体 Skill：
 
@@ -138,7 +138,7 @@ workflow_activation_gate:
 
 每个活跃角色在正式工作前定义自己的工作单元：ID、来源、目标、范围、依赖、交付物、验收标准、风险、验证方式、退出标准和残余风险。轻量任务可以只保留范围、自测证据和下一步。
 
-工作单元还必须记录本轮启动编排门禁：`workflow_activation_gate.status`、`activation_version`、`task_type`、默认与最终角色链路、默认与最终从属 Skill、`expected_artifacts`、`replan_triggers`、`user_confirmation_evidence`、选择时间、适用环境、证据边界与失效原因。未激活角色导致的职责缺口必须进入 `unverified_scope` 或 `residual_risks`。
+工作单元必须附带完整的 `workflow_activation_gate` 记录，不重复展开其字段；未激活角色导致的职责缺口必须进入 `unverified_scope` 或 `residual_risks`。
 
 项目健康只在当前参照系下判断：`healthy` 可按门禁推进；`degraded` 仅可在明确范围、责任人和补偿措施下推进；`unstable` 冻结受影响放量并优先恢复；`recovering` 只允许复审、复测和受控观察。构建、联调、测试或部署成功都只证明自身范围。
 
