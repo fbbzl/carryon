@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes or releases."
 metadata:
-  version: 2.1.0
+  version: 2.1.1
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, workflow]
@@ -21,7 +21,7 @@ metadata:
 
 ## 最小编排
 
-只读取和启动已选择角色的本体 Skill；从属 Skill 仅在下表条件命中时使用。
+只读取和启动已选择角色的本体 Skill。下表只给出跨角色默认编排；每个活跃角色仍按自身本体 Skill 的条件选择专属从属 Skill。
 
 | 情形 | 默认链路 | 需要时使用的从属 Skill |
 | --- | --- | --- |
@@ -29,7 +29,7 @@ metadata:
 | 已确认的功能或行为变更 | `dev -> cr -> qa` | 无 |
 | 受控重构 | `dev -> qa` | `refactor-with-goal`、`test-with-goal` |
 | 缺陷修复 | `dev -> qa`；触及契约、安全或数据时加入 `cr` | `test-with-goal` |
-| 高风险变更或发布 | `req -> dev -> cr -> qa -> dp` | 仅使用上表已命中的从属 Skill |
+| 高风险变更或发布 | `req -> dev -> cr -> qa -> dp` | 各角色按本体 Skill 选择 |
 
 高风险包括公共 API、权限、数据库或迁移、金额/事务、生产环境和不可逆操作。代码或设计审查、测试验收、发布预检、Git 同步等单一职责工作，直接使用对应角色 Skill；Git 同步一次只选择一种同步从属 Skill。
 
@@ -57,7 +57,7 @@ work_unit:
 
 - 结论按“观察 → 解释 → 边界 → 行动”表达；不能将局部、旧版本或其他环境的证据扩大为系统结论。
 - 需求、代码、配置、依赖、数据或环境变化时，只要影响旧结论，就让受影响的下游结论重新验证；不复用失效证据。
-- 轻量任务只记录范围、验证证据、风险和下一步；标准任务补充验收与影响；高风险任务按下一节处理。
+- 所有任务必填 `work_unit_id`、目标、角色、基线、环境、观察时间、已验证/未验证范围、证据和下一步；`updated_at`、`valid_until`、验收和风险仅在适用时填写。轻量任务不再扩展其他文档，标准任务补充验收与影响，高风险任务按下一节处理。
 
 新模块、公共 API、数据库、权限、事务、缓存/MQ 或不兼容变化实施前，建立最小方案协议：`protocol_id`、版本、范围、契约/数据/安全影响、恢复路径、裁决者和 `draft | needs_user_confirm | confirmed | invalidated` 状态；未到 `confirmed` 不实施高风险变更。
 
@@ -92,6 +92,7 @@ handoff:
   state:
   source_state:
   handoff_result: pending | accepted | needs_revision | rejected
+  handoff_feedback:
   reference_version:
   environment:
   observed_at:
@@ -109,7 +110,7 @@ handoff:
   next_action:
 ```
 
-- 接收方填写 `handoff_result`；未 `accepted` 不正常推进。实现、环境或证据适用性变化立即进入 `needs_revalidation`，不等待接收结果。
+- 接收方填写 `handoff_result`；未 `accepted` 不正常推进。`needs_revision` 表示同一基线下材料不全，`rejected` 表示因职责、授权或结论不可接受而拒收，两者均保持 `source_state` 并记录 `handoff_feedback`；若拒收证据同时证明基线失效则进入 `needs_revalidation`，确认 P0/P1 则进入 `blocked`。
 - 审查或测试发现问题，返回 `dev` 修复并复核受影响范围；未解决的高严重度风险保持 `blocked`。
 - 角色边界：`req` 负责需求和验收；`dev` 负责实现、构建/静态检查和恢复输入；`cr` 负责契约、安全、数据与影响审查；`qa` 负责测试资产、正式测试和验收；`dp` 负责预检、观测和交付报告。
 
