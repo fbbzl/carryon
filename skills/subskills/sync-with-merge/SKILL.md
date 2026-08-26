@@ -2,7 +2,7 @@
 name: sync-with-merge
 description: "Use when the user explicitly authorizes merging two independently evolved branch lines and preserving their branch topology. Do not use for same-line synchronization, clean commit transfer, uncommitted file transfer, or automatic conflict resolution."
 metadata:
-  version: 1.0.0
+  version: 1.0.1
   type: agent-skill
   scope: software-engineering
   tags: [git, merge, sync, dp, workflow]
@@ -21,7 +21,7 @@ metadata:
 
 ## 安全流程
 
-1. 读取 `git status`、当前分支和远端配置；工作树不干净或存在进行中的 merge/rebase/cherry-pick/bisect 时停止。
+1. 读取 `git status`、当前分支和远端配置；merge 前要求工作树干净，且不存在进行中的 merge/rebase/cherry-pick/bisect。
 2. 执行只读检查确认来源分支与目标分支不是同源上下游同步场景；若可以用 cherry-pick、stash 或 rebase 达成目标，优先改用对应 Skill。
 3. 按用户授权 fetch 来源与目标分支，确认两边分支存在且没有被保护策略禁止本地合并。
 4. 切到目标分支，确认其指向用户指定基线；需要更新目标分支时先按项目规则取得授权。

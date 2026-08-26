@@ -2,7 +2,7 @@
 name: align-with-visuals
 description: "Use when req needs visual requirements artifacts such as an HTML prototype, flow, example, or decision surface to clarify intent more efficiently than text alone."
 metadata:
-  version: 1.1.2
+  version: 1.2.0
   type: agent-skill
   scope: software-engineering
   tags: [req, clarification, visualization, html, prototype, workflow]
@@ -75,29 +75,6 @@ HTML 不是固定页面模板。每次只组合解决当前对齐障碍所需的
 - 规则对齐可只包含输入输出示例；
 - 方案取舍才增加决策卡片与反馈控件；
 - 只有出现假设或未覆盖范围时才增加对应说明。
-
-下例仅展示“含待决策项”的一种组合，不是每次生成的结构：
-
-```html
-<main aria-labelledby="alignment-title">
-  <header>
-    <h1 id="alignment-title">需求对齐</h1>
-    <p>版本：REQ-001@v1 · 范围：……</p>
-  </header>
-  <section aria-labelledby="proposal-title">
-    <h2 id="proposal-title">对齐内容</h2>
-  </section>
-  <section aria-labelledby="decision-title">
-    <h2 id="decision-title">待决策项</h2>
-    <fieldset>
-      <legend>Q1：……</legend>
-      <label><input type="radio" name="q1"> 方案 A</label>
-      <label><input type="radio" name="q1"> 方案 B（推荐）</label>
-    </fieldset>
-  </section>
-  <footer>反馈：确认 / 需修改 / 暂缓</footer>
-</main>
-```
 
 HTML 应保持单文件、无外部数据写入和无未授权网络请求；交互仅在需要时用于本地展示与收集反馈。需要持久化、提交或连接外部系统时，先由 `req` 获得相应授权。
 

@@ -2,7 +2,7 @@
 name: grill-with-docs
 description: "Use when a high-risk decision remains ambiguous after reading supplied documents and proceeding without focused clarification could cause material rework or harm."
 metadata:
-  version: 1.0.4
+  version: 1.1.0
   type: agent-skill
   scope: software-engineering
   tags: [req, clarification, agent, workflow]
@@ -11,9 +11,7 @@ metadata:
 
 # grill-with-docs
 
-> **本项目禁止使用 `grill me`。统一使用 `grill-with-docs` 进行高风险问题澄清。**
-
-`grill-with-docs` 是 `grill me` 的轻量替代方案。它不再进行持续多轮追问，而是通过阅读现有文档和方案，一次性提出最关键的几个澄清问题，快速达成可推进的共识。
+`grill-with-docs` 由 `req` 用于基于现有材料一次性澄清少量高风险问题；本项目不使用持续多轮的 `grill me`。
 
 ## 适用场景
 
@@ -31,10 +29,9 @@ metadata:
 ### 第一步：阅读材料
 
 0. 读取用户提供的 PRD / 设计文档 / 方案
-1. 读取相关 `std/` 标准文件（如 api-design.md、database.md、security.md）
-2. 读取相关 `skills/` 剧本（如 `skills/req/SKILL.md`、`skills/dev/SKILL.md`、`skills/survey-corps/SKILL.md`）
-3. 如涉及代码变更，快速查看相关代码片段
-4. 为引用材料记录位置、版本或 `updated_at`（无法取得时记录内容摘要）、观察时间和本轮 `reference_version`
+1. 只读取与当前问题相关的 `std/*.std` 和已激活角色 Skill，不批量加载无关规范
+2. 如涉及代码变更，快速查看相关代码片段
+3. 为引用材料记录位置、版本或摘要、观察时间和本轮 `reference_version`
 
 ### 第二步：识别高风险问题
 
@@ -75,16 +72,6 @@ metadata:
 2. 仍开放的问题
 3. 下一步行动
 
-## 与 grill me 的区别
-
-| 维度 | grill me | grill-with-docs |
-|---|---|---|
-| 驱动方式 | 持续对话访谈 | 文档驱动 |
-| 提问方式 | 多轮逐步深入 | 一次性提出核心问题 |
-| 停止条件 | 达成 shared understanding | 剩余不确定性可安全作为假设 |
-| 适用场景 | 高风险、无文档 | 有文档、想快速推进 |
-| 输出产物 | 对话记录 | 确认清单 + 假设清单 + 行动项 |
-
 ## 质量门禁
 
 0. 问题必须基于文档证据，不凭空提出
@@ -93,32 +80,3 @@ metadata:
 3. 输出必须区分「已确认」「假设」「开放问题」
 4. 不因为低风险不确定性阻塞主流程；高风险事项未获用户或授权方确认时必须阻断相关范围。
 5. “已确认”必须绑定当前材料基线；证据失效时退回开放问题，不得沿用旧回答。
-
-## 使用示例
-
-用户：请帮我 review 一下这个 PRD。
-
-代理动作：
-0. 阅读 PRD
-1. 识别出 3 个高风险问题
-2. 输出：
-   ```
-   已确认需求：...
-   
-   需要澄清的问题：
-   Q1: 订单取消后优惠券是否退回？
-      来源: PRD 第 3.2 节
-      风险: 影响退款金额计算和库存回滚
-      默认假设: 待确认方案：优惠券不退回
-   
-   Q2: 管理员能否取消他人订单？
-      来源: PRD 第 4.1 节角色表
-      风险: 权限设计越界
-      默认假设: 待确认方案：仅超级管理员可操作
-   
-   Q3: 取消接口是否需要幂等？
-      来源: std/api-design.md 幂等性章节
-      风险: 重复请求导致多次退款
-      默认假设: 待确认方案：需要幂等，通过 Idempotency-Key 实现
-   ```
-3. 根据用户回答更新结论；未回答的低风险问题才可按默认假设推进，高风险问题保持开放并阻断相关范围。

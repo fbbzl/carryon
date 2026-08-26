@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes or releases."
 metadata:
-  version: 2.1.1
+  version: 2.2.0
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, workflow]
@@ -25,13 +25,14 @@ metadata:
 
 | 情形 | 默认链路 | 需要时使用的从属 Skill |
 | --- | --- | --- |
-| 需求或影响不明 | `req -> dev` | 文档冲突且高风险：`grill-with-docs`；视觉化能消除歧义：`align-with-visuals` |
+| 需求或影响不明 | `req -> 重新编排` | 文档冲突且高风险：`grill-with-docs`；视觉化能消除歧义：`align-with-visuals` |
 | 已确认的功能或行为变更 | `dev -> cr -> qa` | 无 |
-| 受控重构 | `dev -> qa` | `refactor-with-goal`、`test-with-goal` |
+| 受控重构 | `dev -> cr -> qa` | `refactor-with-goal`、`test-with-goal` |
 | 缺陷修复 | `dev -> qa`；触及契约、安全或数据时加入 `cr` | `test-with-goal` |
-| 高风险变更或发布 | `req -> dev -> cr -> qa -> dp` | 各角色按本体 Skill 选择 |
+| 高风险实现 | `dev -> cr -> qa`；需求/验收未确认时前置 `req` | 各角色按本体 Skill 选择 |
+| 发布预检或交付 | 在当前已验证链路后加入 `dp` | Git 同步由 `dp` 选择一种专属 Skill |
 
-高风险包括公共 API、权限、数据库或迁移、金额/事务、生产环境和不可逆操作。代码或设计审查、测试验收、发布预检、Git 同步等单一职责工作，直接使用对应角色 Skill；Git 同步一次只选择一种同步从属 Skill。
+`req` 确认需求后必须按已确认范围重新编排，不能把 `req -> 重新编排` 当作实现链路。高风险包括公共 API、权限、数据库或迁移、金额/事务、生产环境和不可逆操作；只有任务包含发布准备、交付或运行观察时才加入 `dp`。单一职责工作直接使用对应角色 Skill，Git 同步一次只选择一种专属 Skill。
 
 ## 共同约束
 
@@ -68,7 +69,7 @@ work_unit:
 | 项目 | 最低证据 |
 | --- | --- |
 | 功能与契约 | 已确认验收，以及 API/业务行为影响 |
-| 质量与测试 | `dev` 的构建/静态检查，以及 `qa` 的主路径、边界和受影响回归 |
+| 质量与测试 | `dev` 的构建/静态检查/实现单元测试，以及 `qa` 的独立主路径、边界和受影响回归 |
 | 安全与数据 | 权限/输入输出边界、数据不变量、迁移或补偿 |
 | 发布与运行 | 目标环境、观测、停止或回滚路径 |
 
@@ -112,7 +113,7 @@ handoff:
 
 - 接收方填写 `handoff_result`；未 `accepted` 不正常推进。`needs_revision` 表示同一基线下材料不全，`rejected` 表示因职责、授权或结论不可接受而拒收，两者均保持 `source_state` 并记录 `handoff_feedback`；若拒收证据同时证明基线失效则进入 `needs_revalidation`，确认 P0/P1 则进入 `blocked`。
 - 审查或测试发现问题，返回 `dev` 修复并复核受影响范围；未解决的高严重度风险保持 `blocked`。
-- 角色边界：`req` 负责需求和验收；`dev` 负责实现、构建/静态检查和恢复输入；`cr` 负责契约、安全、数据与影响审查；`qa` 负责测试资产、正式测试和验收；`dp` 负责预检、观测和交付报告。
+- 角色边界：`req` 负责需求和验收标准；`dev` 负责实现、实现耦合的单元测试及恢复输入；`cr` 负责静态审查发现和复审；`qa` 负责独立正式测试、Bug 生命周期和验收结论；`dp` 负责发布预检、观测和交付报告。
 
 ## 发布边界
 

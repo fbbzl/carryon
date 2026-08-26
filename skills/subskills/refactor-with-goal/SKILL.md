@@ -1,8 +1,8 @@
 ---
 name: refactor-with-goal
-description: "Use when a confirmed implementation task needs platform-agnostic, behavior-preserving refactoring with explicit equivalence evidence, structural-boundary analysis, and rollback control. Do not use for new behavior, defect fixes, review conclusions, or test execution."
+description: "Use when a confirmed implementation task needs behavior-preserving refactoring with explicit equivalence evidence, structural-boundary analysis, and rollback control. Do not use for new behavior, defect fixes, review conclusions, or formal test execution."
 metadata:
-  version: 1.0.0
+  version: 1.1.0
   type: agent-skill
   scope: software-engineering
   tags: [refactor-with-goal, refactor, maintainability, dev, workflow]
@@ -28,7 +28,7 @@ metadata:
 
 ## 实施纪律
 
-- 先建立保护网：读取现有验证入口、构建命令、静态检查、依赖关系和可观测证据；`dev` 可以运行构建/静态检查或现有测试作为证据，但不得生成/维护测试资产或输出 QA 结论。
+- 先建立保护网：读取现有验证入口、构建命令、依赖关系和可观测证据；`dev` 维护并运行实现耦合的单元测试和构建/静态检查，独立正式测试由 `qa` 负责。
 - 切片必须小到可独立回退：优先“移动不改写 -> 改名/提取 -> 替换调用 -> 删除旧路径”的顺序；格式化、批量重命名和语义调整分开。
 - 每个切片只改变一种结构关系；涉及公共入口时保留兼容路径，直到所有依赖方迁移且 `cr/qa` 证据允许删除。
 - 对循环关系、共享可变状态、隐式全局约束、非确定性来源、外部资源访问、同步边界和派生状态失效要单独写风险说明；无法证明等价时停止扩大范围。
@@ -42,10 +42,10 @@ metadata:
 
 ## 交付
 
-- 向 `cr` 交付：重构目标、行为不变量、策略选择、直接/受影响文件、依赖边界变化、等价证据、构建/静态检查结果、未验证风险和建议审查重点。
-- 向 `qa` 交付输入：受影响外部行为清单、应保持不变的场景、边界条件和未验证范围；是否生成或执行测试由 `qa` 决定。
+- 向 `cr` 交付：重构目标、行为不变量、策略、影响文件、依赖边界、等价证据、开发验证、未验证风险和审查重点。
+- 向 `qa` 交付：受影响外部行为、应保持不变的场景、边界条件和未验证范围，由 `qa` 独立验证。
 - 退出时必须能说明：目标是否完成、保持的行为、实际改动文件、可回退点、残余耦合、已知风险和下一步。
 
-- 不生成或执行测试，不作代码审查、验收或发布结论。
+- 不生成或执行独立正式测试，不作代码审查、验收或发布结论。
 - 不以“重构”为名扩大需求、删除兼容行为或跳过迁移/恢复设计。
 - 当行为等价性无法从当前证据证明时，冻结争议范围，标记未验证范围并交给 `cr`、`qa` 决定后续验证。
