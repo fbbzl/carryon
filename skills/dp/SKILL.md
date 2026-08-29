@@ -2,7 +2,7 @@
 name: dp
 description: "Use when code changes need branch synchronization, release preflight, recovery assessment, health observation, or delivery reporting."
 metadata:
-  version: 1.5.0
+  version: 1.6.0
   type: agent-skill
   scope: software-engineering
   tags: [dp, devops, git, sync, deployment, agent, workflow]
@@ -51,14 +51,13 @@ metadata:
 
 ## 发布策略与恢复
 
-- 根据风险和现有环境能力选择直接发布、滚动、灰度或蓝绿。
+- 根据风险和现有环境能力选择直接发布、滚动、灰度或蓝绿，并记录停止扩散、回滚或降级触发条件及责任人。
 - 同时观察技术指标和关键业务指标，记录观察窗口；健康门禁失败时先停止扩散，再升级给用户或授权方。
 - 事故复盘记录时间线、影响范围、根因、检测缺口、修复项、责任人和截止时间。
 
 ## 可观测性与预检裁剪
 
 - 预检为每项关键变更明确运行问题、信号、阈值和观察窗口：例如成功率、延迟、错误率、资源饱和度或关键业务指标。没有与具体问题对应的信号，不得作为“已可观测”的证据。
-- 发布策略仅在现有授权与环境能力范围内选择直接发布、滚动、灰度或蓝绿；每种策略都必须记录停止扩散、回滚或降级的触发条件和责任人。
 - 预检清单只核对已交付证据：构建产物与版本、环境配置、迁移前置条件、审查与测试结论、监控与恢复路径。缺失项输出 `no_go`，但不得由 `dp` 自行补写代码、测试或审查结论。
 
 ## 门禁与输出

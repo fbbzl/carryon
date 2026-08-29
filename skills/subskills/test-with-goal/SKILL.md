@@ -2,7 +2,7 @@
 name: test-with-goal
 description: "Use when QA needs to generate or execute tests for one explicit behavior or risk goal."
 metadata:
-  version: 1.4.0
+  version: 1.5.0
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, goal, workflow]
@@ -39,7 +39,7 @@ Goal 是剧本内工作单元，不调用平台 Goal 工具，也不另建状态
 
 ## 执行闭环
 
-1. 根据目标选择最低足以独立覆盖风险的测试层次，并由 `qa` 生成或更新正式测试资产。
+1. 按已选测试层次由 `qa` 生成或更新正式测试资产。
 2. 在绑定环境和数据边界内执行测试，记录命令、结果、版本、环境与未覆盖范围。
 3. 发现不符合预言机的行为时，`qa` 登记 Bug：复现步骤、预期/实际结果、影响范围、版本、环境和证据齐全后交给 `dev`。
 4. `dev` 返回修复说明后，`qa` 复测原复现及受影响范围，并独占决定关闭或重开 Bug。

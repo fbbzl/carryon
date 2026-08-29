@@ -2,7 +2,7 @@
 name: req
 description: "Use when user intent needs requirement clarification, business modeling, acceptance criteria, boundary definition, or change-impact analysis before implementation."
 metadata:
-  version: 1.3.0
+  version: 1.4.0
   type: agent-skill
   scope: software-engineering
   tags: [req, product, agent, workflow]
@@ -39,7 +39,7 @@ metadata:
 `req` 是需求对齐的唯一编排者：它维护需求 ID、版本、状态、假设、开放问题、验收标准和对下游的交接。子技能只提供澄清或展示结果，不能自行将需求标记为 `confirmed`，也不能直接交给 `dev`。
 
 - 默认从用户任务和现有材料提炼目标、范围、非目标和成功标准；低风险缺口记录为假设，只有答案会实质改变范围、验收或风险时才追问。
-- 已有 PRD、设计文档或方案，且架构、验收、数据、权限、金额、合规、排期或交付范围仍存在高风险歧义时，调用 `grill-with-docs`。它基于材料一次性返回关键问题、默认假设和澄清结果。
+- 已有 PRD、设计文档或方案，且架构、验收、数据、权限、金额、合规、排期或交付范围仍存在高风险歧义时，调用 `grill-with-docs`。它基于材料聚焦澄清；问题较多或有依赖时按决策依赖分批。
 - 页面、流程、规则示例、权限矩阵、接口行为或方案取舍难以用文字高效确认，或用户明确要求 HTML、原型、图表或示例时，调用 `align-with-visuals`。它默认以少量对齐图返回可视化产物、关联摘要和用户反馈；跨完整用户路径或多版本优先级时才生成故事地图。
 - 同一需求可组合调用：先用 `grill-with-docs` 收敛已有材料中的高风险规则，再用 `align-with-visuals` 展示待确认流程或方案。来源、版本、范围或风险变化时，子技能结果失效并由 `req` 重新判断；只有存在上一有效版本且本次确有变化时，才核对可视化差异视图和失效结论。
 - 用户对媒介页面的“确认 / 需修改 / 暂缓”只是反馈。`req` 必须核对当前基线、风险和验收后，才分别回写为已确认结论、开放问题或假设。
