@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes or releases."
 metadata:
-  version: 2.2.0
+  version: 2.3.0
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, workflow]
@@ -30,9 +30,10 @@ metadata:
 | 受控重构 | `dev -> cr -> qa` | `refactor-with-goal`、`test-with-goal` |
 | 缺陷修复 | `dev -> qa`；触及契约、安全或数据时加入 `cr` | `test-with-goal` |
 | 高风险实现 | `dev -> cr -> qa`；需求/验收未确认时前置 `req` | 各角色按本体 Skill 选择 |
-| 发布预检或交付 | 在当前已验证链路后加入 `dp` | Git 同步由 `dp` 选择一种专属 Skill |
+| 发布预检或交付 | 在当前已验证链路后加入 `dp` | 无 |
+| 代码或分支同步 | `dp` | 按改动形态选择一种 Git 同步 Skill |
 
-`req` 确认需求后必须按已确认范围重新编排，不能把 `req -> 重新编排` 当作实现链路。高风险包括公共 API、权限、数据库或迁移、金额/事务、生产环境和不可逆操作；只有任务包含发布准备、交付或运行观察时才加入 `dp`。单一职责工作直接使用对应角色 Skill，Git 同步一次只选择一种专属 Skill。
+`req` 收敛需求后按当前范围重新编排，不能把 `req -> 重新编排` 当作实现链路。高风险包括公共 API、权限、数据库或迁移、金额/事务、生产环境和不可逆操作；任务包含代码同步、发布准备、交付或运行观察时使用 `dp`。单一职责工作直接使用对应角色 Skill，Git 同步一次只选择一种专属 Skill。
 
 ## 共同约束
 
@@ -45,9 +46,6 @@ work_unit:
   roles: []            # 本轮实际角色
   reference_version:   # 需求、代码、配置或依赖的当前基线
   environment:
-  observed_at:
-  updated_at:
-  valid_until:
   verified_scope: []
   unverified_scope: []
   acceptance: []
@@ -58,7 +56,7 @@ work_unit:
 
 - 结论按“观察 → 解释 → 边界 → 行动”表达；不能将局部、旧版本或其他环境的证据扩大为系统结论。
 - 需求、代码、配置、依赖、数据或环境变化时，只要影响旧结论，就让受影响的下游结论重新验证；不复用失效证据。
-- 所有任务必填 `work_unit_id`、目标、角色、基线、环境、观察时间、已验证/未验证范围、证据和下一步；`updated_at`、`valid_until`、验收和风险仅在适用时填写。轻量任务不再扩展其他文档，标准任务补充验收与影响，高风险任务按下一节处理。
+- 工作单元只记录会影响执行或结论的字段；时间敏感证据补充观察时间与有效期，高风险任务按下一节补充门禁。不为模板完整度创建额外文档或空字段。
 
 新模块、公共 API、数据库、权限、事务、缓存/MQ 或不兼容变化实施前，建立最小方案协议：`protocol_id`、版本、范围、契约/数据/安全影响、恢复路径、裁决者和 `draft | needs_user_confirm | confirmed | invalidated` 状态；未到 `confirmed` 不实施高风险变更。
 
@@ -91,29 +89,19 @@ handoff:
   from:
   to:
   state:
-  source_state:
   handoff_result: pending | accepted | needs_revision | rejected
-  handoff_feedback:
   reference_version:
-  environment:
-  observed_at:
-  updated_at:
-  valid_until:
   verified_scope: []
   unverified_scope: []
   evidence: []
-  blocked_from:
-  revalidation_from:
-  invalidated_by: []
-  resume_state:
   decision:
   risks: []
   next_action:
 ```
 
-- 接收方填写 `handoff_result`；未 `accepted` 不正常推进。`needs_revision` 表示同一基线下材料不全，`rejected` 表示因职责、授权或结论不可接受而拒收，两者均保持 `source_state` 并记录 `handoff_feedback`；若拒收证据同时证明基线失效则进入 `needs_revalidation`，确认 P0/P1 则进入 `blocked`。
+- 接收方填写 `handoff_result`；未 `accepted` 不正常推进。`needs_revision` 表示同一基线下材料不全，`rejected` 表示职责、授权或结论不可接受，并在 `decision` 中说明原因；基线失效进入 `needs_revalidation`，确认 P0/P1 进入 `blocked`。
 - 审查或测试发现问题，返回 `dev` 修复并复核受影响范围；未解决的高严重度风险保持 `blocked`。
-- 角色边界：`req` 负责需求和验收标准；`dev` 负责实现、实现耦合的单元测试及恢复输入；`cr` 负责静态审查发现和复审；`qa` 负责独立正式测试、Bug 生命周期和验收结论；`dp` 负责发布预检、观测和交付报告。
+- 角色边界：`req` 负责需求和验收标准；`dev` 负责实现、实现耦合的单元测试及恢复输入；`cr` 负责静态审查发现和复审；`qa` 负责独立正式测试、Bug 生命周期和验收结论；`dp` 负责代码同步、发布预检、观测和交付报告。
 
 ## 发布边界
 

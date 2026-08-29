@@ -2,7 +2,7 @@
 name: review-with-goal
 description: "Use when CR needs to review one explicit correctness, contract, security, data, performance, or maintainability goal before formal testing."
 metadata:
-  version: 1.2.0
+  version: 1.3.0
   type: agent-skill
   scope: software-engineering
   tags: [cr, review, optimization, goal, workflow]
@@ -27,9 +27,9 @@ metadata:
 
 Goal 是剧本内工作单元，不调用平台 Goal 工具，也不另建状态机。
 
-## Goal 确认
+## Goal 建立
 
-开始审查前，必须与用户确认本次 Goal，至少明确审查目标、影响范围、当前基线和退出条件；得到用户明确同意后才能取证和输出审查结论。任务名称、既有 `work_unit_id` 或上游角色结论均不能替代该确认。
+从用户任务、变更范围和既有 `work_unit_id` 建立 Goal，写明审查目标、影响范围、当前基线和退出条件。输入已足以界定审查时直接取证；只有目标或范围存在会实质改变结论的歧义时才询问用户。
 
 ## 审查纪律
 

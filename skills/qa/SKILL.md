@@ -2,7 +2,7 @@
 name: qa
 description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
 metadata:
-  version: 1.5.0
+  version: 1.6.0
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, agent, workflow]
@@ -27,7 +27,7 @@ metadata:
 - `qa` 的唯一结论是“测试与验收是否通过、条件通过或阻断”；该结论不等同于 `dp` 的发布预检或用户的最终发布授权。
 - `dev` 独占业务实现及实现单元测试；`qa` 可复跑其交付命令核验证据，但不维护这些单元测试。
 - `cr` 独占静态审查与复审；`qa` 按测试重点验证运行行为并管理可复现 Bug，不改写审查结论。
-- `dp` 独占发布预检和运行观察；`qa` 只提供当前版本、环境和风险的测试输入，不给出 Go/No-Go 或部署策略。
+- `dp` 独占代码同步、发布预检和运行观察；`qa` 只提供当前版本、环境和风险的测试输入，不决定同步方式、Go/No-Go 或部署策略。
 
 ## Goal 驱动测试
 
@@ -58,49 +58,35 @@ metadata:
 
 测试数据必须可重复、可清理、可审计。当前测试执行因环境漂移、数据污染或 flaky 无法形成有效结果时，结论为 `blocked`，非 P0/P1 状态进入 `qa_failed`；已有结论后来因环境、夹具或证据失效时才进入 `needs_revalidation`，并以 `resume_state=ready_for_qa` 复测。两种情况都不能用偶然通过替代验证。
 
-## 最小压力示例
-
-金额并发不变量只有一轮小样本绿灯且夹具 flaky 时，结论必须为 `blocked`、状态进入 `qa_failed`，不得降为 `conditional`；输出阻断/未测范围、禁止动作和复测退出条件。
-
 ## 门禁
 
 Bug 按 `open -> assigned -> fixed -> retest -> closed` 流转，复测失败进入 `reopened -> assigned`；记录来源、严重级别、复现环境/步骤、预期/实际结果、责任侧、修复证据和关闭原因。
 
 - 阻断或未解决 Bug、未归档反馈、关键风险无证据或退出标准未满足时，不能输出通过结论。
 - 需求解释冲突转 `req`；契约、安全或影响范围问题走 `qa -> dev -> cr -> qa`。
-- AI 只能生成测试初稿；测试代码必须可运行并由 `qa` 复核，安全、权限、金额和数据一致性测试必须人工确认。
+- 测试资产必须可运行且实际执行；安全、权限、金额和数据一致性测试需要与风险相称的独立证据。
 
-AI 生成的用例必须标注来源并由 `qa` 补齐前置条件、步骤、预期结果和优先级；测试代码必须实际运行，不能以空壳覆盖率作为证据。
+用例必须标注需求或风险来源，并包含前置条件、步骤、预期结果和优先级；测试代码必须实际运行，不能以空壳覆盖率作为证据。
 
 测试报告至少包含：
 
 ```yaml
 test_report:
   work_unit_id:
-  requirement_version:
   code_version:
-  status:
   observed_at:
-  updated_at:
   valid_until:
   environment:
-  dataset:
   health_state: healthy | degraded | unstable | recovering
-  related_events: []
   tested_scope: []
   untested_scope: []
   blocked_scope: []
+  evidence: []
   cases: []
   bugs: []
-  allowed_actions: []
-  forbidden_actions: []
-  risk_acceptance_owner:
-  risk_acceptance_evidence:
-  exception_id:
-  compensating_controls: []
-  review_conditions: []
   residual_risks: []
   conclusion: pass | conditional | blocked
+  next_action:
 ```
 
 结论与交接状态必须一一对应；健康状态仍由全局证据决定：

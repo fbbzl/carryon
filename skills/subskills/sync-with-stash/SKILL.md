@@ -1,8 +1,8 @@
 ---
 name: sync-with-stash
-description: "Use when the user explicitly authorizes moving scoped uncommitted local changes to another branch with a named git stash package. Do not use for committed changes, merge commits, stash pop, or automatic conflict resolution."
+description: "Use when dp needs to move scoped uncommitted local changes to another branch with a named git stash package. Do not use for committed changes, merge commits, stash pop, or automatic conflict resolution."
 metadata:
-  version: 1.1.0
+  version: 1.2.0
   type: agent-skill
   scope: software-engineering
   tags: [git, stash, sync, dp, workflow]
@@ -11,13 +11,13 @@ metadata:
 
 # sync-with-stash
 
-用本地任务包把未提交改动按精确文件同步到目标分支。stash 只是搬运载体，不是备份策略、合并历史或发布授权；用户明确要求后才 commit 或 push。
+仅由 `dp` 选择本 Skill，用本地任务包把未提交改动按精确文件同步到目标分支。stash 只是搬运载体，不是备份策略、合并历史或发布授权；commit 或 push 只有包含在用户请求中才执行。
 
 ## 必要输入
 
 - 源分支、目标分支、精确文件列表、文件数量，以及每个文件的 tracked/untracked 状态。
 - 规范 stash message：`type(scope): task=<任务号或需求名> | source=<源分支> | target=<目标分支> | files=N | purpose=<一句话目的>`。
-- 目标分支更新方式、允许执行的验证命令，以及是否允许后续 commit/push 的单独授权。
+- 目标分支更新方式、与改动风险相称的本地验证，以及请求是否包含后续 commit 或 push。
 
 ## 安全流程
 
@@ -25,8 +25,8 @@ metadata:
 2. 核对已授权文件与数量。无关改动或未跟踪文件可以保留，但必须与搬运文件不重叠，且已证明不会被切换目标分支覆盖或阻断；路径不清、存在重叠、无法证明安全，或有进行中的 merge/rebase/cherry-pick/bisect 时停止。
 3. 仅含 tracked 文件时执行 `git stash push -m "<规范 message>" -- <精确文件列表>`；包含已授权 untracked 文件时加 `-u`。两种情况都使用精确 pathspec，禁止 `stash pop`。
 4. 用 `git stash show -u --name-only '<stash>'` 核对文件数量与文件名；不一致时停止并保留 stash。
-5. 切到目标分支，按用户授权获取远端更新；同源追上游优先使用 fast-forward 或 rebase，避免 merge commit。
-6. 执行 `git stash apply '<stash>'`，随后对本次搬运文件运行 `git diff --check -- <精确文件列表>` 和用户授权的构建/检查命令，不把无关改动的结果归入本任务结论。
+5. 切到目标分支，按已明确的同步范围获取远端更新；同源追上游优先使用 fast-forward 或 rebase，避免 merge commit。
+6. 执行 `git stash apply '<stash>'`，随后对本次搬运文件运行 `git diff --check -- <精确文件列表>` 和与改动风险相称的本地验证，不把无关改动的结果归入本任务结论。
 
 ## 冲突与退出条件
 

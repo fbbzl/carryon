@@ -2,7 +2,7 @@
 name: refactor-with-goal
 description: "Use when a confirmed implementation task needs behavior-preserving refactoring with explicit equivalence evidence, structural-boundary analysis, and rollback control. Do not use for new behavior, defect fixes, review conclusions, or formal test execution."
 metadata:
-  version: 1.1.0
+  version: 1.2.0
   type: agent-skill
   scope: software-engineering
   tags: [refactor-with-goal, refactor, maintainability, dev, workflow]
@@ -19,9 +19,9 @@ metadata:
 - 已明确行为不变量、外部契约、输入输出、状态读写、依赖方向、错误语义、时序/并发语义、资源生命周期和可回退路径；缺任一关键证据时先完成影响分析。
 - 若涉及新行为、缺陷修复、外部契约变化、持久状态迁移、权限/信任边界变化、跨边界协议变化或性能目标变化，回到 `dev` 常规实现流程；新模块或重大边界变化先交由 `survey-corps` 确认方案协议。
 
-## Goal 确认
+## Goal 建立
 
-开始重构前，必须与用户确认本次 Goal，至少明确重构目标、保持不变的外部行为、影响范围和退出条件；得到用户明确同意后才能实施。任务名称、既有 `work_unit_id` 或上游角色结论均不能替代该确认。
+从用户任务和现有 `work_unit_id` 建立 Goal，写明重构目标、保持不变的外部行为、影响范围和退出条件。输入已经明确时直接实施；只有无法推断的内容会改变外部行为、范围或回退能力时才询问用户。
 
 ## 重构设计
 
@@ -42,7 +42,7 @@ metadata:
 - 外部契约、信任边界、错误分类、可观测输出、持久状态语义、同步提交点、幂等性、派生状态标识、外部消息、配置入口和运行入口不得静默改变。
 - 删除代码前必须证明没有仍在使用的入口、配置、外部表示、迁移依赖或运行脚本；证据不足时保留兼容路径并标记退出条件。
 - 构建、静态检查和 diff 复核只能证明实现证据，不等同于审查或测试通过。
-- AI 辅助重构必须由 `dev` 人工复核调用链、差异和不变量；不能把 AI 的等价判断直接交付。
+- 等价性结论必须由调用链、实际差异、不变量和验证证据支撑；不能把生成式判断直接当作交付证据。
 
 ## 交付
 

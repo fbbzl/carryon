@@ -1,11 +1,11 @@
 ---
 name: dp
-description: "Use when a change needs release preflight, deployment or recovery assessment, health observation, or delivery reporting before user-authorized release."
+description: "Use when code changes need branch synchronization, release preflight, recovery assessment, health observation, or delivery reporting."
 metadata:
-  version: 1.2.1
+  version: 1.3.0
   type: agent-skill
   scope: software-engineering
-  tags: [dp, devops, deployment, agent, workflow]
+  tags: [dp, devops, git, sync, deployment, agent, workflow]
   author: coding-skill
 ---
 
@@ -13,18 +13,19 @@ metadata:
 
 ## 定位与职责
 
-`dp` 独占发布前预检、环境就绪性核对、可观测性、恢复建议、健康观察和交付报告。用户或项目授权方负责最终发布与 Go/No-Go；`dp` 不实现交付物、不作代码或安全审查、不执行正式测试，不默认创建 CI/CD，也不直接执行生产发布。
+`dp` 独占代码与分支同步、发布前预检、环境就绪性核对、可观测性、恢复建议、健康观察和交付报告。用户或项目授权方负责最终发布与 Go/No-Go；`dp` 不实现交付物、不作代码或安全审查、不执行正式测试，不默认创建 CI/CD，也不直接执行生产发布。
 
 核心任务：
 
-1. 消费 QA 验收结论、`cr` 阻断结论、`dev` 构建/迁移/回滚证据和环境约束。
-2. 检查构建输入、配置、迁移、发布策略、健康门禁、观察窗口和回滚触发条件。
-3. 发布失败或健康恶化时提出停止扩散、回滚、降级、Feature Flag 或数据补偿路径。
-4. 用户完成部署后记录版本、目标、验证结果、观察范围、风险和下一步交付报告。
+1. 根据改动形态选择并执行一种代码同步流程，保留来源、目标、结果和验证证据。
+2. 消费 QA 验收结论、`cr` 阻断结论、`dev` 构建/迁移/回滚证据和环境约束。
+3. 检查构建输入、配置、迁移、发布策略、健康门禁、观察窗口和回滚触发条件。
+4. 发布失败或健康恶化时提出停止扩散、回滚、降级、Feature Flag 或数据补偿路径。
+5. 用户完成部署后记录版本、目标、验证结果、观察范围、风险和下一步交付报告。
 
 ## 职责排他
 
-- `dp` 的唯一结论是“发布预检和运行观察是否满足当前环境的交付条件”；它不覆盖 `cr` 审查结论、`qa` 验收结论，也不构成用户最终发布授权。
+- `dp` 对代码同步给出同步结果，对发布与运行给出交付条件结论；两者不覆盖 `cr` 审查、`qa` 验收或用户最终发布授权。
 - `dev` 独占实现、构建产物、迁移和配置的制作；`dp` 只核对其目标环境适用性和恢复输入，不修改交付物。
 - `cr` 独占代码、契约、安全和数据审查；`dp` 只确认相应审查证据已作为预检输入，不重做审查。
 - `qa` 独占正式测试与验收；`dp` 只消费测试范围、结论和未测风险，不执行或改写测试结论。
@@ -33,12 +34,13 @@ metadata:
 
 ## 专属 Git 同步 Skill
 
-当用户明确要求同步分支改动时，`dp` 先按改动形态选择专属子 Skill：已提交且提交粒度干净时调用 [sync-with-cherrypick](../subskills/sync-with-cherrypick/SKILL.md) 精确搬运；未提交或需要按文件搬运时调用 [sync-with-stash](../subskills/sync-with-stash/SKILL.md) 使用本地任务包；同源分支整线追上游且用户同时授权提交、rebase 与推送当前分支时调用 [sync-with-rebase](../subskills/sync-with-rebase/SKILL.md)；异源分支合流且需要保留分叉拓扑时调用 [sync-with-merge](../subskills/sync-with-merge/SKILL.md)。四者都不构成部署或 Go/No-Go 授权，且冲突、未授权改动、受保护分支风险、分支关系不清或需要重写远端历史时必须停止并请求用户决定。
+用户要求同步代码时，`dp` 按改动形态只选择一种专属子 Skill：干净提交用 [sync-with-cherrypick](../subskills/sync-with-cherrypick/SKILL.md)，未提交或按文件搬运用 [sync-with-stash](../subskills/sync-with-stash/SKILL.md)，同源分支追上游用 [sync-with-rebase](../subskills/sync-with-rebase/SKILL.md)，异源分支合流用 [sync-with-merge](../subskills/sync-with-merge/SKILL.md)。明确的同步请求覆盖流程内必要的只读检查、本地切换、应用与验证，不逐步重复确认；普通 commit、push、远端历史重写、受保护分支写入和删除仍需在用户请求中明确授权。冲突语义、目标分支或改动范围不清时停止并请用户决定。
 
 ## 决策流程
 
 ```text
-发布准入 -> 构建/迁移预检 -> 发布策略 -> 健康观察 -> 回滚判断 -> 交付报告
+代码同步：改动形态 -> 同步方式 -> 执行与验证 -> 同步结果
+发布交付：发布准入 -> 构建/迁移预检 -> 发布策略 -> 健康观察 -> 回滚判断 -> 交付报告
 ```
 
 - 部署成功与服务交付成功分开判断；没有验证结果不能宣布交付成功。
@@ -63,7 +65,8 @@ metadata:
 - 缺少健康门禁、恢复路径或关键证据时输出 `no_go` 并阻断受影响发布。部署尚未实际开始时，最终授权 `not_requested|pending` 保持 `ready + preflight_pass`，`granted` 也保持 `ready` 直至首个部署动作开始，`rejected|expired` 保持 `ready + no_go` 并等待新授权；实际开始部署且没有有效的 `granted` 才进入 `blocked`。
 - 消费 `qa_conditional` 时，核对当前版本/环境、`degraded` 健康快照、风险接受证据、补偿控制和有效期；任一缺失或过期即 No-Go。仅发布侧补证时保持 `qa_conditional`，QA 证据、补偿控制、适用范围或上游基线失效时按 `survey-corps` 回到唯一重验证入口。
 - 活动 P0/P1、`unstable` 或例外过期时必须 `no_go`；紧急例外只授权恢复动作，不能跳过恢复验证和观察窗口。
-- 交付报告至少包含版本、环境、目标、操作者、构建产物、变更模块、迁移/配置、验证步骤、健康结果、已知风险、回滚计划和下一步。
+- 交付报告至少包含版本、环境、目标、变更模块、预检与验证证据、未验证范围、健康结果、已知风险、回滚条件和下一步。
+- 同步结果至少包含同步方式、来源、目标、执行前后版本、变更范围、验证结果、push 状态和未解决风险。
 - CI/CD 配置、Docker、Kubernetes 等仅在用户明确要求时处理。
 - 交付给用户或授权方：预检结论、健康观察、授权状态、停止/回滚路径和交付结论；交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `preflight`、`health_observation`、`authorization`、`deployment_or_rollback`、`delivery_conclusion`。
 
@@ -74,25 +77,18 @@ delivery_report:
   work_unit_id:
   version:
   observed_at:
-  updated_at:
-  valid_until:
   environment:
   target:
-  operator:
   source_commit:
   changed_modules: []
   unverified_scope: []
+  preflight: []
   verification: []
   health_window:
   health_snapshot:
   rollback_triggers: []
   known_risks: []
-  authorization:
   authorization_status: not_requested | pending | granted | rejected | expired
-  risk_acceptance_owner:
-  exception_id:
-  exception_expires_at:
-  compensating_controls: []
   conclusion: preflight_pass | no_go | deployed | verified | rolled_back | blocked
   next_action:
 ```

@@ -21,8 +21,8 @@
 
 ## 如何使用
 
-- 写 Java 项目：先看 `std/general.md`，再看 `std/java.md`，如果是 Spring Boot 项目加看 `std/spring.md`
-- 写 API：参考 `std/api-design.md` + 语言标准
+- 写 Java 项目：先看 `std/general.std`，再看 `std/java.std`，如果是 Spring Boot 项目加看 `std/spring.std`
+- 写 API：参考 `std/api-design.std` + 语言标准
 - 做代码审查：参考 `skills/cr/SKILL.md`
 - 做测试与验收：参考 `skills/qa/SKILL.md`
 - 需求分析：参考 `skills/req/SKILL.md`，完整流程见 `skills/survey-corps/SKILL.md`
@@ -32,37 +32,37 @@
 
 ### 通用跨领域标准
 
-- `std/general.md` — 通用编码原则
-- `std/api-design.md` — API 设计规范
-- `std/database.md` — 数据库设计规范
-- `std/security.md` — 安全规范
-- `std/git.md` — Git 使用规范
-- `std/frontend.md` — 前端开发规范
-- `std/devops.md` — DevOps 规范
-- `std/logging.md` — 日志与可观测性规范
+- `std/general.std` — 通用编码原则
+- `std/api-design.std` — API 设计规范
+- `std/database.std` — 数据库设计规范
+- `std/security.std` — 安全规范
+- `std/git.std` — Git 使用规范
+- `std/frontend.std` — 前端开发规范
+- `std/devops.std` — DevOps 规范
+- `std/logging.std` — 日志与可观测性规范
 
 ### 语言标准
 
-- `std/java.md`
-- `std/python.md`
-- `std/go.md`
-- `std/rust.md`
-- `std/typescript.md`
-- `std/csharp.md`
-- `std/cpp.md`
-- `std/kotlin.md`
-- `std/scala.md`
+- `std/java.std`
+- `std/python.std`
+- `std/go.std`
+- `std/rust.std`
+- `std/typescript.std`
+- `std/csharp.std`
+- `std/cpp.std`
+- `std/kotlin.std`
+- `std/scala.std`
 
 ### 框架标准
 
-- `std/spring.md`
-- `std/django.md`
-- `std/fastapi.md`
-- `std/nestjs.md`
-- `std/react.md`
-- `std/vue.md`
-- `std/angular.md`
-- `std/flutter.md`
+- `std/spring.std`
+- `std/django.std`
+- `std/fastapi.std`
+- `std/nestjs.std`
+- `std/react.std`
+- `std/vue.std`
+- `std/angular.std`
+- `std/flutter.std`
 
 ## skills/ 文件索引
 
@@ -75,7 +75,7 @@
 - `skills/dev/SKILL.md` — 开发代理剧本（含工程开发规范）
 - `skills/cr/SKILL.md` — 代码审查代理剧本（含 AI 辅助审查）
 - `skills/qa/SKILL.md` — 测试代理剧本（含 AI 辅助测试生成）
-- `skills/dp/SKILL.md` — 发布预检、恢复建议与交付报告剧本（最终发布由用户或授权方执行）
+- `skills/dp/SKILL.md` — 代码同步、发布预检、恢复建议与交付报告剧本（最终发布由用户或授权方执行）
 - `skills/subskills/align-with-visuals/SKILL.md` — 需求可视化对齐流程
 - `skills/subskills/grill-with-docs/SKILL.md` — 基于文档的高风险问题澄清
 - `skills/subskills/refactor-with-goal/SKILL.md` — 高阶行为保持重构与等价证明流程
@@ -83,13 +83,13 @@
 - `skills/subskills/test-with-goal/SKILL.md` — 单一行为或风险目标的测试流程
 - `skills/subskills/sync-with-cherrypick/SKILL.md` — 已提交改动的精确跨分支搬运流程
 - `skills/subskills/sync-with-merge/SKILL.md` — 异源分支合流与拓扑保留流程
-- `skills/subskills/sync-with-rebase/SKILL.md` — 提交、变基同步与受控推送流程
+- `skills/subskills/sync-with-rebase/SKILL.md` — 同源分支变基同步与可选推送流程
 - `skills/subskills/sync-with-stash/SKILL.md` — 未提交改动的本地任务包同步流程
 
 ## 维护原则
 
 - 新增标准时，保持与现有文件格式一致
-- 跨语言通用的规则优先放在 `std/general.md`
-- 框架特定的规则放在 `std/<framework>.md`
+- 跨语言通用的规则优先放在 `std/general.std`
+- 框架特定的规则放在 `std/<framework>.std`
 - 语言标准文件引用通用标准，避免重复描述
 - 技能文件保持精炼，完整流程以 `skills/survey-corps/SKILL.md` 为准

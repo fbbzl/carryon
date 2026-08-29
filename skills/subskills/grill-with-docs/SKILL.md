@@ -2,7 +2,7 @@
 name: grill-with-docs
 description: "Use when a high-risk decision remains ambiguous after reading supplied documents and proceeding without focused clarification could cause material rework or harm."
 metadata:
-  version: 1.1.0
+  version: 1.2.0
   type: agent-skill
   scope: software-engineering
   tags: [req, clarification, agent, workflow]
@@ -48,16 +48,8 @@ metadata:
 
 ### 第三步：生成澄清问题
 
-0. 最多提出 5 个核心问题
-1. 每个问题说明：来源依据、风险点、默认假设（如果没有答案）
-   高风险问题的默认假设仅用于列出待确认方案，不得形成确定契约、放行或执行不可逆动作。
-2. 问题格式：
-   ```
-   Q1: [具体问题]
-   来源: [文档位置 + 版本/updated_at 或内容摘要 + observed_at + reference_version]
-   风险: [不澄清的后果]
-   默认假设: [低风险无回复可按此推进；高风险仅作待确认方案]
-   ```
+0. 最多提出 5 个会改变方案、验收或风险的核心问题。
+1. 每个问题带来源依据和不澄清的后果；只有存在可安全采用的默认值时才写默认假设。高风险假设仅用于列出待确认方案，不得形成确定契约、放行或不可逆动作。
 
 ### 第四步：用户回答
 
@@ -75,7 +67,7 @@ metadata:
 ## 质量门禁
 
 0. 问题必须基于文档证据，不凭空提出
-1. 每个问题必须有默认假设
+1. 默认假设必须有证据且不扩大风险；无法安全推断时明确保持开放问题
 2. 问题数量不超过 5 个
 3. 输出必须区分「已确认」「假设」「开放问题」
 4. 不因为低风险不确定性阻塞主流程；高风险事项未获用户或授权方确认时必须阻断相关范围。
