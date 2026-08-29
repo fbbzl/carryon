@@ -2,7 +2,7 @@
 name: qa
 description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
 metadata:
-  version: 1.7.0
+  version: 1.8.0
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, agent, workflow]
@@ -46,9 +46,7 @@ metadata:
 - 测试失败分类为产品缺陷、环境、数据、测试缺陷或 flaky；flaky 不能作为无条件通过依据。
 - 小改动做影响范围内回归；公共 API、数据库、权限和流程变更按风险矩阵扩展白盒、黑盒、API 和回归测试。
 
-开发单元测试验证局部分支与不变量；`qa` 核验其证据后，从集成、API、端到端和回归中选择能独立捕获剩余风险的最低层次，关键变更需要实现证据与黑盒行为互证。
-
-正式测试选择能捕获剩余风险的最低独立层次，避免用端到端测试代替集成或 API 验证。测试相互独立，Mock 只放在系统边界；名称表达预期行为。
+核验开发单元测试证据后，从集成、API、端到端和回归中选择能独立捕获剩余风险的最低层次；关键变更需实现证据与黑盒行为互证，避免用端到端代替集成或 API。测试相互独立，Mock 仅用于系统边界，名称表达预期行为。
 
 缺陷先建立可重复执行的失败复现，再移交 `dev` 修复；修复后由 `qa` 复测原复现和受影响回归范围。无法稳定复现时，记录环境、数据和观察证据，不能以猜测性缺陷结论替代复现。
 

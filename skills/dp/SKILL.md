@@ -2,7 +2,7 @@
 name: dp
 description: "Use when code changes need branch synchronization, release preflight, recovery assessment, health observation, or delivery reporting."
 metadata:
-  version: 1.4.0
+  version: 1.5.0
   type: agent-skill
   scope: software-engineering
   tags: [dp, devops, git, sync, deployment, agent, workflow]
@@ -51,7 +51,7 @@ metadata:
 
 ## 发布策略与恢复
 
-- 根据风险选择直接发布、滚动、灰度或蓝绿；明确停止发布、回滚、降级、Feature Flag 或数据补偿触发条件。
+- 根据风险和现有环境能力选择直接发布、滚动、灰度或蓝绿。
 - 同时观察技术指标和关键业务指标，记录观察窗口；健康门禁失败时先停止扩散，再升级给用户或授权方。
 - 事故复盘记录时间线、影响范围、根因、检测缺口、修复项、责任人和截止时间。
 

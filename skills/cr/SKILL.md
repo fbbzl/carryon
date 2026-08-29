@@ -2,7 +2,7 @@
 name: cr
 description: "Use when code or design changes need evidence-based review of correctness, contracts, security, data, performance, or maintainability before formal testing."
 metadata:
-  version: 1.9.0
+  version: 1.10.0
   type: agent-skill
   scope: software-engineering
   tags: [cr, code-review, agent, workflow]
@@ -31,8 +31,6 @@ metadata:
 ## Goal 驱动审查
 
 当审查范围可以归结为单一目标时，调用 [review-with-goal](../subskills/review-with-goal/SKILL.md)。Goal 绑定 `work_unit_id`、版本和环境，记录目标、影响、证据、交给 `dev` 的验收条件和退出条件；它不创建独立状态机。
-
-`cr` 将审查项交给 `dev`；需要运行时复现、Bug 登记、定级或关闭时交由 `qa`。
 
 ## 决策流程
 
