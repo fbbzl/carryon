@@ -2,7 +2,7 @@
 name: sync-with-cherrypick
 description: "Use when dp needs to copy one or more existing clean commits onto another branch with git cherry-pick. Do not use for uncommitted changes, whole-branch synchronization, merge commits, or automatic conflict resolution."
 metadata:
-  version: 1.1.0
+  version: 1.2.0
   type: agent-skill
   scope: software-engineering
   tags: [git, cherry-pick, sync, dp, workflow]
@@ -22,7 +22,7 @@ metadata:
 ## 安全流程
 
 1. 读取 `git status`、当前分支和远端配置；工作树不干净或存在进行中的 merge/rebase/cherry-pick/bisect 时停止。
-2. 用 `git show --stat <sha>` 或等价只读命令核对提交范围；包含 merge commit、回滚提交、版本发布提交或无关混合改动时停止并请用户拆分或改用其他流程。
+2. 用 `git show --stat <sha>` 或等价只读命令核对提交范围；包含 merge commit 或无关混合改动时停止并请用户拆分或改用其他流程。回滚或版本提交只有在用户明确指定且范围完整时才继续。
 3. 切到目标分支并按用户授权更新目标分支；受保护分支需额外确认。
 4. 按用户给定顺序执行 `git cherry-pick <sha>`；多个提交保持原顺序，不压缩、不重写提交信息，除非用户明确要求。
 5. 每个提交应用后检查状态；全部完成后运行 `git diff --check` 和与改动风险相称的本地验证。

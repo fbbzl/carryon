@@ -2,7 +2,7 @@
 name: refactor-with-goal
 description: "Use when a confirmed implementation task needs behavior-preserving refactoring with explicit equivalence evidence, structural-boundary analysis, and rollback control. Do not use for new behavior, defect fixes, review conclusions, or formal test execution."
 metadata:
-  version: 1.2.0
+  version: 1.3.0
   type: agent-skill
   scope: software-engineering
   tags: [refactor-with-goal, refactor, maintainability, dev, workflow]
@@ -11,17 +11,17 @@ metadata:
 
 # refactor-with-goal
 
-在不改变已确认外部行为的前提下，完成高抽象、跨语言、跨平台、范围受控且可回退的实现重构。该 Skill 只服务于 `dev` 的实现工作，不绑定具体技术栈、架构流派或工程平台，也不替代 `survey-corps` 的重大方案确认、`cr` 的审查结论或 `qa` 的测试结论。
+在不改变已确认外部行为的前提下完成范围受控、可验证且可回退的实现重构。该 Skill 只服务于 `dev`，不替代 `survey-corps` 的重大方案确认、`cr` 的审查结论或 `qa` 的测试结论。
 
 ## 适用条件
 
 - 目标是降低结构耦合、提取稳定边界、消除重复路径、收敛表示模型、简化控制流、归一状态转移、隔离副作用或改善可理解性，且外部行为不变。
-- 已明确行为不变量、外部契约、输入输出、状态读写、依赖方向、错误语义、时序/并发语义、资源生命周期和可回退路径；缺任一关键证据时先完成影响分析。
+- 明确本次实际触及的行为不变量、外部契约、状态、副作用、错误语义、时序或资源生命周期，以及可回退路径；关键证据缺失时先完成影响分析。
 - 若涉及新行为、缺陷修复、外部契约变化、持久状态迁移、权限/信任边界变化、跨边界协议变化或性能目标变化，回到 `dev` 常规实现流程；新模块或重大边界变化先交由 `survey-corps` 确认方案协议。
 
 ## Goal 建立
 
-从用户任务和现有 `work_unit_id` 建立 Goal，写明重构目标、保持不变的外部行为、影响范围和退出条件。输入已经明确时直接实施；只有无法推断的内容会改变外部行为、范围或回退能力时才询问用户。
+从用户任务建立或复用 `work_unit_id`，再建立 Goal，写明重构目标、保持不变的外部行为、影响范围和退出条件。输入已经明确时直接实施；只有无法推断的内容会改变外部行为、范围或回退能力时才询问用户。
 
 ## 重构设计
 

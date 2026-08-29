@@ -2,7 +2,7 @@
 name: test-with-goal
 description: "Use when QA needs to generate or execute tests for one explicit behavior or risk goal."
 metadata:
-  version: 1.3.0
+  version: 1.4.0
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, goal, workflow]
@@ -19,7 +19,7 @@ metadata:
 
 ## Goal 定义
 
-每个 Goal 绑定既有 `work_unit_id`、需求/代码版本和环境，并至少记录：
+每个 Goal 绑定当前 `work_unit_id`、需求/代码版本和环境，并至少记录：
 
 - `goal_id`、目标行为或风险、测试预言机和退出条件；
 - 已测范围、未测范围、数据/夹具和测试资产；
@@ -29,7 +29,7 @@ Goal 是剧本内工作单元，不调用平台 Goal 工具，也不另建状态
 
 ## Goal 建立
 
-从用户任务、验收标准和既有 `work_unit_id` 建立 Goal，写明目标行为或风险、测试范围、环境和退出条件。输入已足以确定测试时直接执行；只有环境、范围或判定依据存在会实质改变结论的歧义时才询问用户。
+从用户任务和验收标准建立或复用 `work_unit_id`，再建立 Goal，写明目标行为或风险、测试范围、环境和退出条件。输入已足以确定测试时直接执行；只有环境、范围或判定依据存在会实质改变结论的歧义时才询问用户。
 
 ## 测试设计
 

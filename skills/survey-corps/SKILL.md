@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes or releases."
 metadata:
-  version: 2.3.0
+  version: 2.4.0
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, workflow]
@@ -73,13 +73,15 @@ work_unit:
 
 健康快照 `health_snapshot` 只表示当前 `work_unit_id + reference_version + environment`：`healthy` 为受影响门禁证据均有效；`degraded` 为已知非 P0/P1 缺口且有责任人、补偿控制和有效期；`unstable` 为关键契约、安全、数据或生产存在阻断风险；`recovering` 为风险已控制但仍需复审、复测或观察。
 
-`P0` 是已发生或迫近的生产中断、重大安全事件或数据损坏；`P1` 是关键契约、权限或核心流程失效、已确认的技术发布门禁失败或未授权部署尝试。确认 P0/P1 时立即冻结受影响动作并记录 `event_id`、影响、`health_effect`、责任人、证据和恢复条件；修复后从最早失效环节重新验证。
+`P0` 是已发生或迫近的生产中断、重大安全事件或数据损坏；`P1` 是已发生或迫近的关键契约、权限或核心流程失效，或造成同等级实际影响的未授权部署。普通构建、测试或发布门禁失败使用角色自身的阻断或 `no_go`，只有影响达到上述定义时才升级为 P0/P1。确认 P0/P1 后冻结受影响动作并记录 `event_id`、影响、责任人、证据和恢复条件；修复后从最早失效环节重新验证。
 
 ## 交接与状态
 
 正常链路是 `req -> dev -> cr -> qa -> dp -> 用户发布`，但只运行已选择的段。每次交接使用：
 
-主线状态为 `needs_user_confirm -> confirmed -> planned -> dev_in_progress -> ready_for_cr -> ready_for_qa -> qa_passed | qa_conditional -> ready -> deployed -> verified`。CR 阻断走 `cr_blocked -> ready_for_cr`，QA 阻断走 `qa_failed -> ready_for_qa`，已回滚记 `rolled_back`；P0/P1 或未授权执行进入 `blocked`。
+开发与发布主线为 `confirmed -> planned -> dev_in_progress -> ready_for_cr -> ready_for_qa -> qa_passed | qa_conditional -> ready -> deployed -> verified`；只有高风险事项尚待裁决时才前置 `needs_user_confirm`。CR 阻断走 `cr_blocked -> ready_for_cr`，QA 阻断走 `qa_failed -> ready_for_qa`，已回滚记 `rolled_back`；P0/P1 或未授权执行进入 `blocked`。
+
+仅同步代码时不进入开发与发布主线，由 `dp` 使用 `sync_pending -> sync_in_progress -> synced | sync_blocked`，并记录同步方式、前后版本、验证和未解决风险。
 
 需求、实现、配置、依赖、迁移、契约、权限、安全、数据、测试证据或环境变化时进入 `needs_revalidation`，按最早失效环节计算 `resume_state`；仅同一基线下补材料使用 `needs_revision`，不改变工作流状态。
 
@@ -99,8 +101,8 @@ handoff:
   next_action:
 ```
 
-- 接收方填写 `handoff_result`；未 `accepted` 不正常推进。`needs_revision` 表示同一基线下材料不全，`rejected` 表示职责、授权或结论不可接受，并在 `decision` 中说明原因；基线失效进入 `needs_revalidation`，确认 P0/P1 进入 `blocked`。
-- 审查或测试发现问题，返回 `dev` 修复并复核受影响范围；未解决的高严重度风险保持 `blocked`。
+- 仅在职责或执行主体切换时记录交接；同一主体连续承担多个已选角色时可复用工作单元，但必须分别保留各角色结论。接收方填写 `handoff_result`；`needs_revision` 表示同一基线下材料不全，`rejected` 表示职责、授权或结论不可接受，并在 `decision` 中说明原因；基线失效进入 `needs_revalidation`，确认 P0/P1 进入 `blocked`。
+- 审查或测试发现问题，返回 `dev` 修复并复核受影响范围；未解决的阻断项保持其来源状态（如 `cr_blocked` 或 `qa_failed`），达到 P0/P1 或发生未授权执行时才进入全局 `blocked`。
 - 角色边界：`req` 负责需求和验收标准；`dev` 负责实现、实现耦合的单元测试及恢复输入；`cr` 负责静态审查发现和复审；`qa` 负责独立正式测试、Bug 生命周期和验收结论；`dp` 负责代码同步、发布预检、观测和交付报告。
 
 ## 发布边界

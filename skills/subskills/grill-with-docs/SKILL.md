@@ -2,7 +2,7 @@
 name: grill-with-docs
 description: "Use when a high-risk decision remains ambiguous after reading supplied documents and proceeding without focused clarification could cause material rework or harm."
 metadata:
-  version: 1.2.0
+  version: 1.4.0
   type: agent-skill
   scope: software-engineering
   tags: [req, clarification, agent, workflow]
@@ -11,7 +11,7 @@ metadata:
 
 # grill-with-docs
 
-`grill-with-docs` 由 `req` 用于基于现有材料一次性澄清少量高风险问题；本项目不使用持续多轮的 `grill me`。
+`grill-with-docs` 由 `req` 基于现有材料进行一次聚焦澄清；问题较多或存在依赖时可按决策依赖分批澄清，但不进行无界追问。本项目不使用持续多轮的 `grill me`。
 
 ## 适用场景
 
@@ -48,12 +48,12 @@ metadata:
 
 ### 第三步：生成澄清问题
 
-0. 最多提出 5 个会改变方案、验收或风险的核心问题。
+0. 优先提出少量会改变方案、验收或风险的核心问题；问题较多时按决策依赖分批澄清，不为了数量限制遗漏关键风险。
 1. 每个问题带来源依据和不澄清的后果；只有存在可安全采用的默认值时才写默认假设。高风险假设仅用于列出待确认方案，不得形成确定契约、放行或不可逆动作。
 
 ### 第四步：用户回答
 
-0. 用户回答后，更新文档或记录结论
+0. 用户回答后，将结论、来源和未决项返回给 `req`；除非用户任务明确包含文档修改，否则不直接改写原文档
 1. 未回答的问题保留为「假设」或「开放问题」
 2. 只有剩余问题不影响主流程且引用材料仍匹配本轮基线时才停止追问；来源变化、过期或无法证明适用时，冻结受影响范围，重读差异并只重问受影响项
 
@@ -68,7 +68,7 @@ metadata:
 
 0. 问题必须基于文档证据，不凭空提出
 1. 默认假设必须有证据且不扩大风险；无法安全推断时明确保持开放问题
-2. 问题数量不超过 5 个
+2. 问题应保持少量且聚焦；问题较多时按决策依赖分批提出
 3. 输出必须区分「已确认」「假设」「开放问题」
 4. 不因为低风险不确定性阻塞主流程；高风险事项未获用户或授权方确认时必须阻断相关范围。
 5. “已确认”必须绑定当前材料基线；证据失效时退回开放问题，不得沿用旧回答。

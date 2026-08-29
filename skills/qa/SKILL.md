@@ -2,7 +2,7 @@
 name: qa
 description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
 metadata:
-  version: 1.6.0
+  version: 1.7.0
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, agent, workflow]
@@ -62,7 +62,7 @@ metadata:
 
 Bug 按 `open -> assigned -> fixed -> retest -> closed` 流转，复测失败进入 `reopened -> assigned`；记录来源、严重级别、复现环境/步骤、预期/实际结果、责任侧、修复证据和关闭原因。
 
-- 阻断或未解决 Bug、未归档反馈、关键风险无证据或退出标准未满足时，不能输出通过结论。
+- 当前范围内仍有阻断 Bug、达到阻断级别且未归档的反馈、关键风险无证据或退出标准未满足时，不能输出通过结论；无关或非阻断事项记录后不扩大结论范围。
 - 需求解释冲突转 `req`；契约、安全或影响范围问题走 `qa -> dev -> cr -> qa`。
 - 测试资产必须可运行且实际执行；安全、权限、金额和数据一致性测试需要与风险相称的独立证据。
 
@@ -102,7 +102,7 @@ test_report:
 
 “通过”必须写明适用版本、环境和观察窗口，不能由局部测试推出系统整体 `healthy`。`qa` 只记录条件风险，不能代替用户或授权方接受风险；条件结论过期、控制失效或范围变化时进入 `needs_revalidation`，不得沿用。
 
-发现生产、安全、数据损坏或关键发布阻断信号时，`qa` 必须创建或关联 P0/P1 事件，并在报告中写明健康影响和发布限制。
+发现已发生或迫近且影响达到 `survey-corps` 定义的生产中断、重大安全、数据损坏或关键流程失效时，`qa` 创建或关联 P0/P1 事件。普通测试或发布门禁失败保持 `qa_failed` 或 `no_go`，不自动升级为事故。
 
 ## 输出与交接
 

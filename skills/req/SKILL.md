@@ -2,7 +2,7 @@
 name: req
 description: "Use when user intent needs requirement clarification, business modeling, acceptance criteria, boundary definition, or change-impact analysis before implementation."
 metadata:
-  version: 1.2.0
+  version: 1.3.0
   type: agent-skill
   scope: software-engineering
   tags: [req, product, agent, workflow]
@@ -62,7 +62,7 @@ metadata:
 ## 门禁与边界
 
 - 高风险的架构、数据模型、权限、金额、合规、排期或交付范围问题使用 `grill-with-docs`，低风险歧义记录为假设。
-- 需要通过 HTML、原型、流程、示例或决策卡片降低理解偏差时使用 `align-with-visuals`；可视化产物是对齐证据，不替代用户确认或高风险门禁。关键规则、权限、金额、数据或验收项既没有可靠对齐图也没有明确未可视化说明时，保持受影响范围为开放问题。
+- 只有可视化能比文字更有效地消除当前歧义时才使用 `align-with-visuals`；可视化产物是对齐证据，不替代来源、用户裁决或高风险门禁。已有充分文字证据的规则不因缺少可视化而退回开放问题。
 - 用户原话或权威材料已明确的内容无需重复确认；业务规则、权限、金额、合规或验收存在冲突或高风险歧义时，才交由用户或授权方裁决。
 - `req` 不以“业务急需”替代安全、数据、审查或测试门禁。
 

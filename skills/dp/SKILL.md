@@ -2,7 +2,7 @@
 name: dp
 description: "Use when code changes need branch synchronization, release preflight, recovery assessment, health observation, or delivery reporting."
 metadata:
-  version: 1.3.0
+  version: 1.4.0
   type: agent-skill
   scope: software-engineering
   tags: [dp, devops, git, sync, deployment, agent, workflow]
@@ -34,7 +34,9 @@ metadata:
 
 ## 专属 Git 同步 Skill
 
-用户要求同步代码时，`dp` 按改动形态只选择一种专属子 Skill：干净提交用 [sync-with-cherrypick](../subskills/sync-with-cherrypick/SKILL.md)，未提交或按文件搬运用 [sync-with-stash](../subskills/sync-with-stash/SKILL.md)，同源分支追上游用 [sync-with-rebase](../subskills/sync-with-rebase/SKILL.md)，异源分支合流用 [sync-with-merge](../subskills/sync-with-merge/SKILL.md)。明确的同步请求覆盖流程内必要的只读检查、本地切换、应用与验证，不逐步重复确认；普通 commit、push、远端历史重写、受保护分支写入和删除仍需在用户请求中明确授权。冲突语义、目标分支或改动范围不清时停止并请用户决定。
+用户要求同步代码时，`dp` 按改动形态只选择一种专属子 Skill：把干净提交复制到另一分支用 [sync-with-cherrypick](../subskills/sync-with-cherrypick/SKILL.md)，把未提交文件搬到另一分支用 [sync-with-stash](../subskills/sync-with-stash/SKILL.md)，让当前工作分支追上同源基线用 [sync-with-rebase](../subskills/sync-with-rebase/SKILL.md)，两条独立分支线合流用 [sync-with-merge](../subskills/sync-with-merge/SKILL.md)。明确的同步请求覆盖必要的只读检查、本地切换、应用与验证，不逐步重复确认；额外 `git commit`、push、远端历史重写、受保护分支写入和删除仍需在用户请求中明确授权。冲突语义、目标分支或改动范围不清时停止并请用户决定。
+
+仅同步代码时使用 `survey-corps` 的同步状态并输出同步结果，不要求经过 CR、QA、发布状态或交付报告；同步后的代码是否可发布仍由相应审查、测试和发布门禁决定。
 
 ## 决策流程
 
@@ -70,7 +72,7 @@ metadata:
 - CI/CD 配置、Docker、Kubernetes 等仅在用户明确要求时处理。
 - 交付给用户或授权方：预检结论、健康观察、授权状态、停止/回滚路径和交付结论；交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `preflight`、`health_observation`、`authorization`、`deployment_or_rollback`、`delivery_conclusion`。
 
-交付报告最小字段：
+以下交付报告只用于发布与运行观察：
 
 ```yaml
 delivery_report:

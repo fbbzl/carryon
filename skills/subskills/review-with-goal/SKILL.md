@@ -2,7 +2,7 @@
 name: review-with-goal
 description: "Use when CR needs to review one explicit correctness, contract, security, data, performance, or maintainability goal before formal testing."
 metadata:
-  version: 1.3.0
+  version: 1.4.0
   type: agent-skill
   scope: software-engineering
   tags: [cr, review, optimization, goal, workflow]
@@ -19,7 +19,7 @@ metadata:
 
 ## Goal 定义
 
-每个 Goal 绑定既有 `work_unit_id`、需求/代码版本和环境，并至少记录：
+每个 Goal 绑定当前 `work_unit_id`、需求/代码版本和环境，并至少记录：
 
 - `goal_id`、审查目标、影响范围、当前基线和退出条件；
 - 审查证据、已覆盖/未覆盖范围和残余风险；
@@ -29,7 +29,7 @@ Goal 是剧本内工作单元，不调用平台 Goal 工具，也不另建状态
 
 ## Goal 建立
 
-从用户任务、变更范围和既有 `work_unit_id` 建立 Goal，写明审查目标、影响范围、当前基线和退出条件。输入已足以界定审查时直接取证；只有目标或范围存在会实质改变结论的歧义时才询问用户。
+从用户任务和变更范围建立或复用 `work_unit_id`，再建立 Goal，写明审查目标、影响范围、当前基线和退出条件。输入已足以界定审查时直接取证；只有目标或范围存在会实质改变结论的歧义时才询问用户。
 
 ## 审查纪律
 
@@ -40,7 +40,7 @@ Goal 是剧本内工作单元，不调用平台 Goal 工具，也不另建状态
 ## 执行闭环
 
 1. 审查代码、契约、数据、安全、性能或兼容性证据，产出可验证的审查项。
-2. 正确性、契约、安全和数据风险为阻断项；其余按高、中风险或建议分级。
+2. 已证明违反当前验收、公共契约、安全边界或数据不变量的风险为阻断项；其他发现按实际影响分级。
 3. 将证据、影响、验收条件和范围交给 `dev`；需要运行时复现或 Bug 生命周期时交给 `qa`。
 4. `dev` 修复后，`cr` 按原 Goal 复审；通过后移交测试重点给 `qa`。
 5. 退出时输出复审结论、非阻断项和残余风险，不输出 QA 或发布结论。
