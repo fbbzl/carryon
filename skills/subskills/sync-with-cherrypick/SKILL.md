@@ -6,7 +6,7 @@ metadata:
   type: agent-skill
   scope: software-engineering
   tags: [git, cherry-pick, sync, dp, workflow]
-  author: coding-skill
+  author: carryon
 ---
 
 # sync-with-cherrypick

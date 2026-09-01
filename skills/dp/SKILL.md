@@ -6,7 +6,7 @@ metadata:
   type: agent-skill
   scope: software-engineering
   tags: [dp, devops, git, sync, deployment, agent, workflow]
-  author: coding-skill
+  author: carryon
 ---
 
 # dp 子代理剧本

@@ -6,7 +6,7 @@ metadata:
   type: agent-skill
   scope: software-engineering
   tags: [dev, fullstack, agent, workflow]
-  author: coding-skill
+  author: carryon
 ---
 
 # dev 子代理剧本

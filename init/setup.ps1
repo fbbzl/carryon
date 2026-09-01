@@ -1,6 +1,6 @@
 # D 盘开发环境一键初始化脚本
 # 用法：以管理员身份运行 PowerShell，然后执行：
-#   cd D:\workspace\coding-skill\init
+#   cd D:\workspace\carryon\init
 #   .\setup.ps1
 # 或指定要安装的工具：
 #   .\setup.ps1 -Tools @("git", "java", "maven", "vscode")

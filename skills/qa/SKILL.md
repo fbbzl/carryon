@@ -6,7 +6,7 @@ metadata:
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, agent, workflow]
-  author: coding-skill
+  author: carryon
 ---
 
 # qa 子代理剧本

@@ -6,7 +6,7 @@ metadata:
   type: agent-skill
   scope: software-engineering
   tags: [req, clarification, agent, workflow]
-  author: coding-skill
+  author: carryon
 ---
 
 # grill-with-docs

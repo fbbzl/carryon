@@ -6,7 +6,7 @@ metadata:
   type: agent-skill
   scope: software-engineering
   tags: [cr, review, optimization, goal, workflow]
-  author: coding-skill
+  author: carryon
 ---
 
 # review-with-goal

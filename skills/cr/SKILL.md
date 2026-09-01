@@ -6,7 +6,7 @@ metadata:
   type: agent-skill
   scope: software-engineering
   tags: [cr, code-review, agent, workflow]
-  author: coding-skill
+  author: carryon
 ---
 
 # cr 子代理剧本

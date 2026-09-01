@@ -6,7 +6,7 @@ metadata:
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, workflow]
-  author: coding-skill
+  author: carryon
 ---
 
 # 调查兵团

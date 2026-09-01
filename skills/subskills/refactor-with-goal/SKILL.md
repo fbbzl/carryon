@@ -6,7 +6,7 @@ metadata:
   type: agent-skill
   scope: software-engineering
   tags: [refactor-with-goal, refactor, maintainability, dev, workflow]
-  author: coding-skill
+  author: carryon
 ---
 
 # refactor-with-goal

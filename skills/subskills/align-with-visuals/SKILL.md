@@ -6,7 +6,7 @@ metadata:
   type: agent-skill
   scope: software-engineering
   tags: [req, clarification, visualization, html, prototype, workflow]
-  author: coding-skill
+  author: carryon
 ---
 
 # align-with-visuals

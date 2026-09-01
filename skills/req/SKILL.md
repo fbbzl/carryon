@@ -6,7 +6,7 @@ metadata:
   type: agent-skill
   scope: software-engineering
   tags: [req, product, agent, workflow]
-  author: coding-skill
+  author: carryon
 ---
 
 # req 子代理剧本
