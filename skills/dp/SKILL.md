@@ -32,6 +32,10 @@ metadata:
 
 默认交付边界是 `dp` 完成预检并交给用户，由用户决定并执行部署；用户回传部署记录后，`dp` 再进行健康观察与交付判断。只有用户明确授权时，其他执行主体才可进入部署动作。
 
+## 图示对齐
+
+当分支同步、发布链路、健康门禁或回滚条件的关系影响交付判断时，可用 Mermaid 或 ASCII 字符图辅助说明；图示不替代版本、环境、授权或观测证据。
+
 ## 专属 Git 同步 Skill
 
 用户要求同步代码时，`dp` 按改动形态只选择一种专属子 Skill：把干净提交复制到另一分支用 [sync-with-cherrypick](../subskills/sync-with-cherrypick/SKILL.md)，把未提交文件搬到另一分支用 [sync-with-stash](../subskills/sync-with-stash/SKILL.md)，让当前工作分支追上同源基线用 [sync-with-rebase](../subskills/sync-with-rebase/SKILL.md)，两条独立分支线合流用 [sync-with-merge](../subskills/sync-with-merge/SKILL.md)。明确的同步请求覆盖必要的只读检查、本地切换、应用与验证，不逐步重复确认；额外 `git commit`、push、远端历史重写、受保护分支写入和删除仍需在用户请求中明确授权。冲突语义、目标分支或改动范围不清时停止并请用户决定。
