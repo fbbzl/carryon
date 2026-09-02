@@ -2,7 +2,7 @@
 name: align-with-visuals
 description: "Use when req needs a visual artifact to clarify requirements more efficiently than text alone."
 metadata:
-  version: 1.4.0
+  version: 1.4.1
   type: agent-skill
   scope: software-engineering
   tags: [req, clarification, visualization, html, prototype, workflow]
@@ -21,13 +21,13 @@ metadata:
 
 ## 图示表达
 
-需要图示时优先 Mermaid；当前客户端无法渲染时提供等价的 ASCII 字符图。图示仅用于澄清当前材料中的结构、流程或选项，不新增需求、不替代用户确认。
+静态关系图优先 Mermaid；当前客户端无法渲染时提供等价的 ASCII 字符图。只有需要交互探索或用户明确要求时才产出 HTML；图示仅用于澄清当前材料中的结构、流程或选项，不新增需求、不替代用户确认。
 
 ## 工作方式
 
 1. 读取当前需求版本、来源、范围、假设、开放问题和需要对齐的具体分歧；来源不足时返回 `req`。
 2. 选择能消除该分歧的最小视觉形式，通常只生成一个主体视图；额外视图必须解决不同问题。
-3. 默认产出 UTF-8、可独立查看的单文件 HTML，用户指定其他格式时服从用户要求。
+3. 选择与分歧匹配的最小格式：静态关系图用 Mermaid 或 ASCII；需要交互探索时产出 UTF-8、可独立查看的单文件 HTML；用户指定其他格式时服从用户要求。
 4. 在产物中区分已确认事实、假设、开放问题和未覆盖范围，并关联来源、版本和适用范围。
 5. 将产物、已验证/未验证范围和用户反馈返回 `req`；反馈不自动改变需求状态或触发外部操作。
 

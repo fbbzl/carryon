@@ -2,7 +2,7 @@
 name: sync-with-stash
 description: "Use when dp needs to move scoped uncommitted local changes to another branch with a named git stash package. Do not use for committed changes, merge commits, stash pop, or automatic conflict resolution."
 metadata:
-  version: 1.3.0
+  version: 1.3.1
   type: agent-skill
   scope: software-engineering
   tags: [git, stash, sync, dp, workflow]

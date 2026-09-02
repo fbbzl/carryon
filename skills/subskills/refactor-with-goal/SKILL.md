@@ -2,7 +2,7 @@
 name: refactor-with-goal
 description: "Use when a confirmed implementation task needs behavior-preserving refactoring with explicit equivalence evidence, structural-boundary analysis, and rollback control. Do not use for new behavior, defect fixes, review conclusions, or formal test execution."
 metadata:
-  version: 1.3.0
+  version: 1.3.1
   type: agent-skill
   scope: software-engineering
   tags: [refactor-with-goal, refactor, maintainability, dev, workflow]

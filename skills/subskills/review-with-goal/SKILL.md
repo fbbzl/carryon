@@ -2,7 +2,7 @@
 name: review-with-goal
 description: "Use when CR needs to review one explicit correctness, contract, security, data, performance, or maintainability goal before formal testing."
 metadata:
-  version: 1.4.0
+  version: 1.4.1
   type: agent-skill
   scope: software-engineering
   tags: [cr, review, optimization, goal, workflow]

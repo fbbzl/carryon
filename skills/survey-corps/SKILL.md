@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes or releases."
 metadata:
-  version: 2.4.0
+  version: 2.4.1
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, workflow]
@@ -62,7 +62,7 @@ work_unit:
 
 ## 图示对齐
 
-当组件、流程、依赖、状态或影响范围的关系会影响当前决策时，可用图示辅助对齐：优先输出 Mermaid；当前客户端无法渲染时输出等价的 ASCII 字符图。图示只表达当前已确认范围和证据，不替代契约、测试、审批或交接记录。
+当组件、流程、依赖、状态或影响范围的关系会影响当前决策时，可用图示辅助对齐：静态关系图优先 Mermaid，无法渲染时输出等价的 ASCII 字符图；只有需要交互探索或用户明确要求时才使用 HTML。图示中的事实、假设和开放问题必须显式区分，不替代契约、测试、审批或交接记录。
 
 ## 高风险门槛
 

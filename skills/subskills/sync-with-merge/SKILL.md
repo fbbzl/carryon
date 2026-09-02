@@ -2,7 +2,7 @@
 name: sync-with-merge
 description: "Use when dp needs to merge two independently evolved branch lines while preserving their topology. Do not use for same-line synchronization, clean commit transfer, uncommitted file transfer, or automatic conflict resolution."
 metadata:
-  version: 1.2.0
+  version: 1.2.1
   type: agent-skill
   scope: software-engineering
   tags: [git, merge, sync, dp, workflow]

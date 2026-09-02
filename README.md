@@ -93,3 +93,7 @@
 - 框架特定的规则放在 `std/<framework>.std`
 - 语言标准文件引用通用标准，避免重复描述
 - 技能文件保持精炼，完整流程以 `skills/survey-corps/SKILL.md` 为准
+
+## Skill 校验
+
+修改 Skill 后运行：`pwsh -File skills/validate-skills.ps1`。

@@ -2,7 +2,7 @@
 name: test-with-goal
 description: "Use when QA needs to generate or execute tests for one explicit behavior or risk goal."
 metadata:
-  version: 1.5.0
+  version: 1.5.1
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, goal, workflow]

@@ -2,7 +2,7 @@
 name: cr
 description: "Use when code or design changes need evidence-based review of correctness, contracts, security, data, performance, or maintainability before formal testing."
 metadata:
-  version: 1.10.0
+  version: 1.10.1
   type: agent-skill
   scope: software-engineering
   tags: [cr, code-review, agent, workflow]

@@ -2,7 +2,7 @@
 name: sync-with-rebase
 description: "Use when dp needs to rebase the current working branch onto a specified upstream baseline. Do not use to merge independent histories, move selected commits or uncommitted files, push directly to the baseline branch, or resolve conflicts automatically."
 metadata:
-  version: 1.2.0
+  version: 1.2.1
   type: agent-skill
   scope: software-engineering
   tags: [git, rebase, sync, dp, workflow]

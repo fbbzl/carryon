@@ -2,7 +2,7 @@
 name: dp
 description: "Use when code changes need branch synchronization, release preflight, recovery assessment, health observation, or delivery reporting."
 metadata:
-  version: 1.6.0
+  version: 1.6.1
   type: agent-skill
   scope: software-engineering
   tags: [dp, devops, git, sync, deployment, agent, workflow]

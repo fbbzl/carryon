@@ -2,7 +2,7 @@
 name: dev
 description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or recovery inputs."
 metadata:
-  version: 1.6.0
+  version: 1.6.1
   type: agent-skill
   scope: software-engineering
   tags: [dev, fullstack, agent, workflow]
