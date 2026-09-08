@@ -45,15 +45,27 @@
 - 操作 git 前先看 `git status`。
 - 不直接操作 `master` / `main`，除非用户明确要求。
 - 默认在当前业务分支工作；切分支前先确认目标分支和未提交改动。
-- 缩写：`cmt`=提交，`mrg`=合并，`rb`=rebase，`cp`=cherry-pick。
-- 提交（`cmt`）必须用户显式要求；禁止擅自 `push`。
+- 提示 Git 操作时使用“缩写（英文全称）”格式：`c (commit)`、`a (amend commit)`、`m (merge)`、`s (squash)`、`rb (rebase)`、`cp (cherry-pick)`、`p (push)`。
+- 提示用户时不能只给缩写，必须同时带英文全称，例如 `是否执行 c (commit)？`。
+- 任务完成且验证通过、改动范围明确、工作区存在待提交改动时，主动向用户申请执行 `c (commit)`；未获明确同意不得执行。
+- 需要执行 `a (amend commit)`、`m (merge)`、`s (squash)`、`rb (rebase)`、`cp (cherry-pick)` 或 `p (push)` 时，必须先向用户确认，并使用上述缩写提示。
 - 删除分支前，确认已合并且无未提交改动。
-- 默认避免产生 `mrg cmt`；除异源分支合流外，不主动做会产生 `mrg` 的操作。
-- 分支同步优先级：`cp` > `stash` > `rb`（同源）/ `mrg`（异源）。
-- 已 `push` 且他人依赖的分支，禁止 `rb`。
-- 同步远端时优先保持线性历史，不为省事制造灰色 `mrg` 节点。
+- 默认避免产生 `m`；除异源分支合流外，不主动做会产生 `m` 的操作。
+- 分支同步优先级：`cp` > `stash` > `rb`（同源）/ `m`（异源）。
+- 已 `p (push)` 且他人依赖的分支，禁止 `rb`。
+- 同步远端时优先保持线性历史，不为省事制造灰色 `m` 节点。
 - 提交信息用 Conventional Commits：`type(scope): subject`，常见 `feat`、`fix`、`refactor`、`test`、`chore`、`docs`。
-- 单次 `cmt` 只做一件事；PR 范围要可审查。
+- 单次 `c (commit)` 只做一件事；PR 范围要可审查。
+
+### `c (commit)` 的合适时机
+
+- 用户要求的任务已经完成。
+- 相关测试、编译、静态检查或 `git diff --check` 已通过。
+- 改动范围已经稳定，没有待处理的错误、冲突或方案分歧。
+- 已排除与当前任务无关的改动。
+- 工作区确实存在待提交改动。
+
+若检查未执行或失败，先说明原因和风险，再询问是否仍执行 `c (commit)`。
 
 ### 本地任务包
 
@@ -70,7 +82,7 @@
 5. `git stash apply '<stash>'`
 6. `git diff --check`
 7. 运行相关编译/测试
-8. 用户明确要求后再 `cmt` / `push`
+8. 用户明确要求后再 `c (commit)` / `p (push)`
 9. 确认无误后，再决定是否保留或删除 stash
 
 ### stash message
