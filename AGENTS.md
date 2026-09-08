@@ -45,8 +45,10 @@
 - 操作 git 前先看 `git status`。
 - 不直接操作 `master` / `main`，除非用户明确要求。
 - 默认在当前业务分支工作；切分支前先确认目标分支和未提交改动。
-- 提示 Git 操作时使用“缩写（英文全称）”格式：`c (commit)`、`a (amend commit)`、`m (merge)`、`s (squash)`、`rb (rebase)`、`cp (cherry-pick)`、`p (push)`。
-- 提示用户时不能只给缩写，必须同时带英文全称，例如 `是否执行 c (commit)？`。
+- 当需要向用户发起确认时，使用“缩写（英文全称）”格式：`c (commit)`、`a (amend commit)`、`m (merge)`、`s (squash)`、`rb (rebase)`、`cp (cherry-pick)`、`p (push)`。
+- 缩写只用于确认语句，目的是让用户少输入；其他陈述性说明保持原样，不必刻意改写成缩写。
+- 例如询问是否提交时，写 `是否执行 c (commit)？`；日常说明仍可直接写 `提交`、`push` 等原词。
+- 展示状态或结果时，使用自然原词，不使用缩写提示格式；例如写 `已经 commit`，不写 `已执行 c (commit)`。
 - 任务完成且验证通过、改动范围明确、工作区存在待提交改动时，主动向用户申请执行 `c (commit)`；未获明确同意不得执行。
 - 需要执行 `a (amend commit)`、`m (merge)`、`s (squash)`、`rb (rebase)`、`cp (cherry-pick)` 或 `p (push)` 时，必须先向用户确认，并使用上述缩写提示。
 - 删除分支前，确认已合并且无未提交改动。
