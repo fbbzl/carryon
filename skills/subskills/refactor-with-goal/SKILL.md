@@ -2,7 +2,7 @@
 name: refactor-with-goal
 description: "Use when a confirmed implementation task needs behavior-preserving refactoring with explicit equivalence evidence, structural-boundary analysis, and rollback control. Do not use for new behavior, defect fixes, review conclusions, or formal test execution."
 metadata:
-  version: 1.3.1
+  version: 1.3.2
   type: agent-skill
   scope: software-engineering
   tags: [refactor-with-goal, refactor, maintainability, dev, workflow]
@@ -18,10 +18,6 @@ metadata:
 - 目标是降低结构耦合、提取稳定边界、消除重复路径、收敛表示模型、简化控制流、归一状态转移、隔离副作用或改善可理解性，且外部行为不变。
 - 明确本次实际触及的行为不变量、外部契约、状态、副作用、错误语义、时序或资源生命周期，以及可回退路径；关键证据缺失时先完成影响分析。
 - 若涉及新行为、缺陷修复、外部契约变化、持久状态迁移、权限/信任边界变化、跨边界协议变化或性能目标变化，回到 `dev` 常规实现流程；新模块或重大边界变化先交由 `survey-corps` 确认方案协议。
-
-## 图示对齐
-
-当重构前后的边界、依赖方向或副作用关系影响等价判断时，可用 Mermaid 或 ASCII 字符图辅助说明；图示不替代行为不变量、代码证据或复审。
 
 ## Goal 建立
 

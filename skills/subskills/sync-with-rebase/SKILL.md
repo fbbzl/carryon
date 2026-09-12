@@ -2,7 +2,7 @@
 name: sync-with-rebase
 description: "Use when dp needs to rebase the current working branch onto a specified upstream baseline. Do not use to merge independent histories, move selected commits or uncommitted files, push directly to the baseline branch, or resolve conflicts automatically."
 metadata:
-  version: 1.2.1
+  version: 1.2.2
   type: agent-skill
   scope: software-engineering
   tags: [git, rebase, sync, dp, workflow]
@@ -12,10 +12,6 @@ metadata:
 # sync-with-rebase
 
 仅由 `dp` 选择本 Skill，将当前工作分支 rebase 到用户指定的同源基线。它可在请求明确包含 commit 时先提交当前分支自身的范围内改动，但不把未提交文件搬到另一分支；请求包含 push 时才推送当前分支。它不构成发布授权，也不向基线分支直接写入。
-
-## 图示对齐
-
-当当前分支、上游基线或历史重写影响难以线性说明时，可用 Mermaid 或 ASCII 字符图辅助对齐；图示不替代基线核对、冲突处理或验证结果。
 
 ## 必要输入
 

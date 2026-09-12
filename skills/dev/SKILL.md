@@ -2,7 +2,7 @@
 name: dev
 description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or recovery inputs."
 metadata:
-  version: 1.8.0
+  version: 1.8.1
   type: agent-skill
   scope: software-engineering
   tags: [dev, fullstack, agent, workflow]
@@ -39,10 +39,6 @@ metadata:
 - 新模块、公共 API、数据库、权限、事务、缓存/MQ 或不兼容变化前，升级给 `survey-corps` 确认方案协议与状态入口。
 - 优先完成可运行的最小闭环，再处理非关键路径。
 - API 标记新增、兼容扩展、行为变化或破坏性变化；废弃 API 不得静默删除。
-
-## 图示对齐
-
-当后端组件、调用链、数据流或外部依赖关系影响实现取舍时，可用 Mermaid 或 ASCII 字符图与用户对齐；图示只辅助方案说明，不替代实现、契约或验证证据。
 
 ## 专属子 Skill
 

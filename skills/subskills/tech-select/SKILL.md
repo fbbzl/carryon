@@ -2,7 +2,7 @@
 name: tech-select
 description: "Use only while dev and the user are actively aligning an implementation approach that requires choosing among technologies, libraries, components, or integration patterns. Do not invoke after the approach is confirmed or for routine internal choices."
 metadata:
-  version: 1.2.0
+  version: 1.2.1
   type: agent-skill
   scope: software-engineering
   tags: [tech-select, architecture, dependencies, dev, workflow]
@@ -19,10 +19,6 @@ metadata:
 - 先读取项目本地规范、现有依赖、运行环境、运维能力和已确认约束；已有标准能满足目标时默认复用，不为新颖性引入替代品。
 - 目标明确为一个技术决策，例如客户端状态方案、序列化库、任务队列接入方式、缓存模式或观测组件；需求、验收和非目标已可界定。
 - 若选项会新增运行平台或关键基础设施、改变安全/合规边界、处理敏感数据、引入付费或外部账户、变更数据库/迁移策略、公共 API 或发布模型，先将选项和风险升级 `survey-corps`，不得自行落地。
-
-## 图示对齐
-
-当候选方案的组件边界、数据流、部署形态或依赖方向影响判断时，可用 Mermaid 或 ASCII 字符图比较关键差异；图示不替代契约、成本、安全或兼容性证据。
 
 ## 选型过程
 

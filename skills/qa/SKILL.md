@@ -2,7 +2,7 @@
 name: qa
 description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
 metadata:
-  version: 1.9.1
+  version: 1.9.2
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, agent, workflow]
@@ -28,10 +28,6 @@ metadata:
 - `dev` 独占业务实现及实现单元测试；`qa` 可复跑其交付命令核验证据，但不维护这些单元测试。
 - `cr` 独占静态审查与复审；`qa` 按测试重点验证运行行为并管理可复现 Bug，不改写审查结论。
 - `dp` 独占代码同步、发布预检和运行观察；`qa` 只提供当前版本、环境和风险的测试输入，不决定同步方式、Go/No-Go 或部署策略。
-
-## 图示对齐
-
-当测试路径、状态转换、覆盖边界或缺陷影响关系难以线性说明时，可用 Mermaid 或 ASCII 字符图辅助对齐；图示不替代测试用例、执行结果或验收结论。
 
 ## Goal 驱动测试
 

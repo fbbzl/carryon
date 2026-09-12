@@ -2,7 +2,7 @@
 name: grill-with-docs
 description: "Use when a high-risk decision remains ambiguous after reading supplied documents and proceeding without focused clarification could cause material rework or harm."
 metadata:
-  version: 1.4.1
+  version: 1.4.2
   type: agent-skill
   scope: software-engineering
   tags: [req, clarification, agent, workflow]
@@ -23,10 +23,6 @@ metadata:
 
 0. 完全没有文档，需要从零访谈
 1. 用户明确要求深度讨论和持续追问
-
-## 图示对齐
-
-当文档间的范围、依赖或决策冲突难以线性表达时，可用 Mermaid 或 ASCII 字符图定位冲突关系；图示不补全缺失证据，也不替代澄清问题。
 
 ## 工作流程
 

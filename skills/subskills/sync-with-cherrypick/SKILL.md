@@ -2,7 +2,7 @@
 name: sync-with-cherrypick
 description: "Use when dp needs to copy one or more existing clean commits onto another branch with git cherry-pick. Do not use for uncommitted changes, whole-branch synchronization, merge commits, or automatic conflict resolution."
 metadata:
-  version: 1.2.1
+  version: 1.2.2
   type: agent-skill
   scope: software-engineering
   tags: [git, cherry-pick, sync, dp, workflow]
@@ -12,10 +12,6 @@ metadata:
 # sync-with-cherrypick
 
 仅由 `dp` 选择本 Skill，把已经提交且粒度干净的改动精确搬运到目标分支。明确的 cherry-pick 请求覆盖目标分支上的本地 cherry-pick 提交，不表示 push 或发布授权，也不替代 rebase 或 stash。
-
-## 图示对齐
-
-当提交来源、目标分支或应用顺序难以线性说明时，可用 Mermaid 或 ASCII 字符图辅助对齐；图示不替代提交核对、冲突处理或验证结果。
 
 ## 必要输入
 

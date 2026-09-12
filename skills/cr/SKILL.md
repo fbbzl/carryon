@@ -2,7 +2,7 @@
 name: cr
 description: "Use when code or design changes need evidence-based review of correctness, contracts, security, data, performance, or maintainability before formal testing."
 metadata:
-  version: 1.10.1
+  version: 1.10.2
   type: agent-skill
   scope: software-engineering
   tags: [cr, code-review, agent, workflow]
@@ -27,10 +27,6 @@ metadata:
 - `dev` 独占实现交付；`cr` 不修改代码，只移交证据、影响和验收条件并复审结果。
 - `qa` 独占独立测试资产、正式测试、Bug 生命周期和验收；`cr` 只移交测试重点，不重复生成或执行测试。
 - `dp` 独占代码同步、发布预检和运行观察；`cr` 的安全、性能和兼容性结论只作为后续输入，不替代同步或发布门禁。
-
-## 图示对齐
-
-当影响链、依赖边界或风险传播关系影响审查结论时，可用 Mermaid 或 ASCII 字符图说明已取证关系；图示不替代审查证据、问题分级或复审结论。
 
 ## Goal 驱动审查
 

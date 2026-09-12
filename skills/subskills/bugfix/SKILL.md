@@ -2,7 +2,7 @@
 name: bugfix
 description: "Use only when QA hands a registered, reproducible Bug to dev for correction and expects implementation evidence back. Do not invoke directly for user-reported or dev-discovered defects before QA registration."
 metadata:
-  version: 1.2.0
+  version: 1.2.1
   type: agent-skill
   scope: software-engineering
   tags: [bugfix, dev, regression, workflow]
@@ -20,10 +20,6 @@ metadata:
 - 修复目标是恢复已有契约或已确认需求的预期行为，而非借机扩展功能、重定义业务规则或清理无关代码。
 - 无法稳定复现时，先收集日志、Trace、输入、环境差异和最小反例；证据仍不足时，输出假设、观测方案与未关闭风险，不将猜测写成修复结论。
 - 涉及公共契约、权限/信任边界、持久化修复、数据回填、不可逆操作、跨服务一致性或重大架构调整时，先升级 `survey-corps` 确认方案协议。
-
-## 图示对齐
-
-当 Bug 的状态转换、事件时序、调用链或数据传播影响根因判断时，可用 Mermaid 或 ASCII 字符图记录最小复现路径；图示不替代复现证据、根因链路或修复验证。
 
 ## 诊断与修复
 

@@ -2,7 +2,7 @@
 name: review-with-goal
 description: "Use when CR needs to review one explicit correctness, contract, security, data, performance, or maintainability goal before formal testing."
 metadata:
-  version: 1.4.1
+  version: 1.4.2
   type: agent-skill
   scope: software-engineering
   tags: [cr, review, optimization, goal, workflow]
@@ -16,10 +16,6 @@ metadata:
 仅由 `cr` 在变更范围、基线和审查目标明确时调用。它把一次审查收束为一个 Goal，不替代 `cr` 剧本、`survey-corps` 状态机或用户发布授权。
 
 `cr` 输出并复审静态审查项，不修改代码、不执行测试、不管理 Bug 生命周期；`dev` 修复实现，`qa` 管理可复现 Bug 与验收，`dp` 处理发布。
-
-## 图示对齐
-
-当审查目标涉及多组件影响链或风险传播时，可用 Mermaid 或 ASCII 字符图辅助界定范围；图示不替代审查证据、问题分级或退出条件。
 
 ## Goal 定义
 

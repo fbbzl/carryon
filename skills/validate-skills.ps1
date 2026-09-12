@@ -28,8 +28,6 @@ foreach ($skillFile in $skillFiles) {
     if (-not $description) { $errors.Add("${prefix}: missing description") }
     if (-not $version) { $errors.Add("${prefix}: invalid semantic version") }
     if (-not $author) { $errors.Add("${prefix}: author must be carryon") }
-    if ($content -notmatch 'Mermaid' -or $content -notmatch 'ASCII') { $errors.Add("${prefix}: missing portable diagram guidance") }
-
     foreach ($target in [regex]::Matches($content, '\]\((?<path>\.\.?/[^)]+)\)')) {
         $resolved = Join-Path $skillFile.Directory.FullName $target.Groups['path'].Value
         if (-not (Test-Path -LiteralPath $resolved)) { $errors.Add("${prefix}: broken link $($target.Groups['path'].Value)") }

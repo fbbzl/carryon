@@ -2,7 +2,7 @@
 name: dp
 description: "Use when code changes need branch synchronization, release preflight, recovery assessment, health observation, or delivery reporting."
 metadata:
-  version: 1.6.1
+  version: 1.6.2
   type: agent-skill
   scope: software-engineering
   tags: [dp, devops, git, sync, deployment, agent, workflow]
@@ -31,10 +31,6 @@ metadata:
 - `qa` 独占正式测试与验收；`dp` 只消费测试范围、结论和未测风险，不执行或改写测试结论。
 
 默认交付边界是 `dp` 完成预检并交给用户，由用户决定并执行部署；用户回传部署记录后，`dp` 再进行健康观察与交付判断。只有用户明确授权时，其他执行主体才可进入部署动作。
-
-## 图示对齐
-
-当分支同步、发布链路、健康门禁或回滚条件的关系影响交付判断时，可用 Mermaid 或 ASCII 字符图辅助说明；图示不替代版本、环境、授权或观测证据。
 
 ## 专属 Git 同步 Skill
 

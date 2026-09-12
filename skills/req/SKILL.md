@@ -2,7 +2,7 @@
 name: req
 description: "Use when user intent needs requirement clarification, business modeling, acceptance criteria, boundary definition, or change-impact analysis before implementation."
 metadata:
-  version: 1.4.1
+  version: 1.4.2
   type: agent-skill
   scope: software-engineering
   tags: [req, product, agent, workflow]
@@ -33,10 +33,6 @@ metadata:
 - 没有成功指标时，定义可观察的行为结果；没有确认的高风险事项不能作为确定契约交给 `dev`。
 - 已有明确来源的范围可以进入 `confirmed`；未解决的高风险事项只阻断受影响范围，无争议范围继续推进。
 - 需求或关键规则变化时，将受影响下游结论标记为 `needs_revalidation`，不得静默复用。
-
-## 图示对齐
-
-当业务边界、角色、流程、状态或规则依赖会影响需求确认时，可用 Mermaid 或 ASCII 字符图辅助对齐；图示不替代需求来源、验收标准或用户确认。
 
 ## 对齐策略与子技能
 

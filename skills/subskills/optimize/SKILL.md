@@ -2,7 +2,7 @@
 name: optimize
 description: "Use only when CR returns an explicit optimization review item to dev with evidence and acceptance conditions. Do not invoke for self-initiated tuning, general cleanup, or user-requested optimization before CR review."
 metadata:
-  version: 1.2.0
+  version: 1.2.1
   type: agent-skill
   scope: software-engineering
   tags: [optimize, performance, dev, workflow]
@@ -20,10 +20,6 @@ metadata:
 - 目标至少明确一个主指标及其测量口径，例如延迟、吞吐、错误率、CPU/内存、查询量、网络调用、存储占用或单位成本，并有当前基线或可取得基线的路径。
 - 明确负载模型、数据规模、环境、观测窗口、成功预算和不可接受的回归；无基线时先建立测量，再决定是否实施优化。
 - 若优化会改变业务优先级、数据一致性等级、可用性承诺、外部契约、计费语义、权限、缓存一致性或异步交付语义，回到 `dev` 常规流程并在适用时升级 `survey-corps`。
-
-## 图示对齐
-
-当瓶颈跨越组件、队列、缓存、数据库或外部服务时，可用 Mermaid 或 ASCII 字符图描述关键路径、等待点和容量边界；图示不替代剖析、压测或运行证据。
 
 ## 优化闭环
 
