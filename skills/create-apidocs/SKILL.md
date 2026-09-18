@@ -3,7 +3,7 @@ name: create-apidocs
 description: 从当前项目的路由、处理逻辑、类型和测试证据生成 API 文档；逐接口保留项目自己的请求、响应和分页契约，不套用固定字段结构。
 metadata:
   short-description: 从代码生成项目专属 API 文档
-  version: 1.0.0
+  version: 1.0.1
   type: agent-skill
   scope: software-engineering
   tags: [api, documentation, code-generation]
@@ -13,6 +13,24 @@ metadata:
 # 从代码生成 API 文档
 
 根据当前项目代码生成可供调用方使用的 Markdown API 文档。将用户提供的参考文档当作信息架构和呈现粒度的样例，不当作当前项目的字段、认证、分页、错误码或响应契约。
+
+## 必需依赖
+
+开始审阅或编辑文档前，先依次确认并读取以下依赖：
+
+1. `technical-writer-voice/SKILL.md`
+2. `humanizer/SKILL.md`
+
+若任一依赖不可用：
+
+1. 在编辑前停止，并报告确切缺失的 skill 名称。
+2. 询问用户是否安装；仅 `y` 表示同意，其他回答均视为拒绝。
+3. 获得同意后，读取并使用本地 `.system/skill-installer/SKILL.md`，仅从以下固定公开路径安装缺失项：
+   - `adrielkuek/Write-Like-A-Human`, `skills/technical-writer-voice`
+   - `adrielkuek/Write-Like-A-Human`, `skills/humanizer`
+4. 确认已安装的 `SKILL.md` 文件存在后，再从依赖读取继续。
+
+不得静默替换为通用写作流程，也不得未经用户明确同意安装任何依赖；安装失败时报告失败且不编辑文档。
 
 ## 不可变约束
 
