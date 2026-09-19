@@ -1,6 +1,6 @@
 ---
 name: survey-corps
-description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes or releases."
+description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes or releases. The shorthand `sc` starts this workflow."
 metadata:
   version: 2.4.1
   type: agent-skill
@@ -13,11 +13,24 @@ metadata:
 
 调查兵团用于跨角色工程协作：用最少的角色完成任务，并让结论能追溯到当前范围、版本、环境和证据。它协调 `req`、`dev`、`cr`、`qa`、`dp`，不替代专业判断；生产发布、风险接受和不可逆操作始终由用户或授权方决定。
 
+## 启动别名
+
+用户明确说“启动 `sc`”“运行 `sc`”或等价表达时，将其解释为启动调查兵团工作流，并继续遵守本技能的角色选择、subagent-only 和交接约束。`sc` 只是调查兵团的简称，不代表普通会话、独立任务或另一套工作流。
+
 ## 何时启动
 
 - 任务需要两个及以上角色、明确交接、公共契约评估、风险升级或发布准备时启动。
 - 单角色工作直接使用对应 Skill，不为形式而启动完整链路。
 - 先读取用户任务和必要的仓库上下文，再选择最小角色链。只有目标、权限、环境或风险会改变决策时才询问用户。
+
+## Subagent-only 执行约束
+
+调查兵团一旦被调用，所选择的每个角色都必须作为独立的真实 subagent 执行。调查兵团可以由当前代理负责编排、收集交接和汇总结果，但不得由当前会话直接代办角色工作，也不得用普通新会话、独立任务或文字模拟角色来替代 subagent。
+
+- 角色启动必须使用当前执行环境提供的真实 subagent/协作代理机制，不绑定 Codex、客户端或具体工具名称；只要目标环境具备等价的 subagent 能力即可启动。普通新会话、独立任务或其他创建会话的机制不算角色 subagent，除非平台明确将其标记为当前任务的 subagent。
+- 角色之间按本技能的交接协议传递工作单元和证据；子技能在所属角色的 subagent 内执行，不另行创建普通新会话。
+- subagent 能力不可用、启动失败、角色无法独立接收任务或交接证据无法回收时，立即将调查兵团标记为 `blocked`，说明阻断原因和恢复条件。
+- 禁止降级为当前代理内联执行、顺序模拟角色、仅输出角色口吻，或为了继续推进而自动创建普通新会话。
 
 ## 最小编排
 
