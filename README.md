@@ -80,6 +80,7 @@
 - `skills/humanity-tech-docs/SKILL.md` — 技术文档准确性审查与语言清理
 - `skills/subskills/align-with-visuals/SKILL.md` — 需求可视化对齐流程
 - `skills/subskills/bugfix/SKILL.md` — 已登记 Bug 的修复流程
+- `skills/subskills/bug-cause/SKILL.md` — 已登记 Bug 的证据化根因分析流程
 - `skills/subskills/grill-with-docs/SKILL.md` — 基于文档的高风险问题澄清
 - `skills/subskills/optimize/SKILL.md` — 已审查优化项的实现流程
 - `skills/subskills/refactor-with-goal/SKILL.md` — 高阶行为保持重构与等价证明流程
