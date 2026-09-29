@@ -2,7 +2,7 @@
 name: windows-system-optimization
 description: "Use after init/setup.ps1 restores the D-drive development environment to safely inspect and optimize a newly installed Windows system, including updates, built-in apps, startup items, notifications, Bluetooth audio, and multi-monitor behavior."
 metadata:
-  version: 1.0.0
+  version: 1.1.0
   type: agent-skill
   scope: windows-initialization
   tags: [windows, initialization, optimization, recovery]
@@ -30,6 +30,7 @@ metadata:
 - 检查 Windows 激活、待安装更新、待重启状态、设备管理器异常、安全防护和系统盘空间。
 - 驱动优先使用 Windows Update 或设备厂商官方渠道；不要使用第三方驱动聚合工具。
 - 确认 `init/setup.ps1` 已结束。只读核对脚本报告中的失败项、D 盘工具、环境变量和安装器注册状态；不要未经请求重复安装或覆盖开发环境。
+- 读取 `init/windows-state/policy.json` 和 `%ProgramData%\carryon\windows-state` 中的最近日志，核对固定 Win11Debloat 策略是否执行及 desired-state 验证结果；未经用户要求不要再次运行 Apply。
 
 ### 2. 软件与启动项
 

@@ -37,6 +37,14 @@ cd D:\workspace\carryon\carryon\init
 
 `-SkipExisting` 可跳过已有目录，`-SkipSystemOptimization` 可暂不启动最后的系统优化。若有工具安装失败，脚本会保留失败清单并暂不启动系统优化。
 
+完整恢复 D 盘工具并应用固定的 Windows 11 desired-state：
+
+```powershell
+.\setup.ps1 -Mode Restore -Tools current -ForceReinstall -WindowsStateMode Apply
+```
+
+`-WindowsStateMode Audit` 是默认值，只读检查 Windows 状态；`Apply` 才会执行 Win11Debloat；`Verify` 只验证目标状态；`Skip` 完全跳过。
+
 ## 工具清单
 
 | 分组 | 工具 | 当前参考版本 | 恢复目录 | 安装方式 |
@@ -71,3 +79,4 @@ JDK 目录名保持不变，以兼容现有 VS Code 配置；重新安装时会�
 - Clash 订阅、CC Switch provider/API Key、应用账号、聊天数据、IDE 登录和许可证不写入仓库，也不会自动恢复。
 - 安装器是否完整恢复注册表、服务、文件关联和开机启动，需要在重装后的 Windows 环境实际演练确认。
 - 系统优化 skill 只负责重装后的 Windows 检查与逐项优化，不会把“优化”当成批量删除授权。
+- `windows-state/policy.json` 固定 Win11Debloat 版本、校验值、保守 tweak 和必须保留的内置 App；完整说明见 `windows-state/README.md`。

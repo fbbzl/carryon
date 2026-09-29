@@ -16,6 +16,8 @@ param(
     [string]$Mode = "Restore",
     [switch]$SkipExisting,
     [switch]$ForceReinstall,
+    [ValidateSet("Audit", "Apply", "Verify", "Skip")]
+    [string]$WindowsStateMode = "Audit",
     [switch]$SkipSystemOptimization
 )
 
@@ -536,11 +538,35 @@ function Start-SystemOptimization {
     if ($LASTEXITCODE -ne 0) { Write-Warning "Codex 退出码: $LASTEXITCODE" }
 }
 
+function Invoke-WindowsDesiredState($stateMode) {
+    if ($stateMode -eq "Skip") {
+        Write-Status "已跳过 Windows desired-state"
+        return
+    }
+    $stateScript = Join-Path $scriptDir "windows-state\Invoke-WindowsState.ps1"
+    if (-not (Test-Path -LiteralPath $stateScript)) {
+        $failedTools.Add("windows-state")
+        Write-Failure "未找到 Windows desired-state 脚本: $stateScript"
+        return
+    }
+
+    Write-Status "执行 Windows desired-state: $stateMode"
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $stateScript -Mode $stateMode
+    if ($LASTEXITCODE -ne 0) {
+        $failedTools.Add("windows-state")
+        Write-Failure "Windows desired-state 失败，退出码: $LASTEXITCODE"
+    }
+}
+
 $toolKeys = Resolve-ToolKeys $Tools
 
 if ($Mode -eq "Audit") {
     Write-Host "D 盘恢复清单（只读）" -ForegroundColor Blue
     Show-Audit $toolKeys
+    if ($WindowsStateMode -ne "Skip") {
+        Invoke-WindowsDesiredState "Audit"
+    }
+    if ($failedTools.Count -gt 0) { exit 1 }
     exit 0
 }
 
@@ -561,9 +587,18 @@ if ($toolKeys -contains "maven" -and -not (Test-Path -LiteralPath "D:\Maven\repo
     Write-Success "创建 Maven 本地仓库: D:\Maven\repository"
 }
 
+Invoke-WindowsDesiredState $WindowsStateMode
 Start-SystemOptimization
 
 Write-Host ""
+if ($failedTools.Count -gt 0) {
+    Write-Host "========================================" -ForegroundColor Red
+    Write-Failure "初始化失败: $($failedTools -join ', ')"
+    Write-Host "========================================" -ForegroundColor Red
+    exit 1
+}
+
 Write-Host "========================================" -ForegroundColor Green
-Write-Host "初始化流程结束，请检查上方失败项并重启终端。" -ForegroundColor Green
+Write-Host "初始化流程成功结束，请重启终端。" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
+exit 0

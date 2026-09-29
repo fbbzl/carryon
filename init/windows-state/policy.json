@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "win11Debloat": {
+    "version": "2026.08.24",
+    "downloadUrl": "https://codeload.github.com/Raphire/Win11Debloat/zip/refs/tags/2026.08.24",
+    "sha256": "00d1487b2e9b9691653774cc781ed3844e4b2fd5b0d91c32f6f78aa8c7892bd4",
+    "useDefaultSafeAppRemoval": true,
+    "tweaks": [
+      "DisableTelemetry",
+      "DisableSuggestions",
+      "DisableEdgeAds",
+      "DisableLockscreenTips",
+      "DisableSettings365Ads",
+      "DisableBing",
+      "DisableStoreSearchSuggestions",
+      "DisableDeviceAutoAppDownload",
+      "PreventUpdateAutoReboot",
+      "ShowKnownFileExt"
+    ]
+  },
+  "requiredApps": [
+    {
+      "name": "App Installer",
+      "packageName": "Microsoft.DesktopAppInstaller",
+      "repair": "manual"
+    },
+    {
+      "name": "Windows Notepad",
+      "packageName": "Microsoft.WindowsNotepad",
+      "repair": "winget",
+      "wingetId": "9MSMLRH6LZF3",
+      "source": "msstore"
+    },
+    {
+      "name": "Windows Terminal",
+      "packageName": "Microsoft.WindowsTerminal",
+      "repair": "winget",
+      "wingetId": "Microsoft.WindowsTerminal",
+      "source": "winget"
+    }
+  ],
+  "protectedApps": [
+    "Microsoft.DesktopAppInstaller",
+    "Microsoft.Edge",
+    "XPFFTQ037JWMHS",
+    "Microsoft.MicrosoftEdge.Stable",
+    "Microsoft.SecHealthUI",
+    "Microsoft.WindowsStore",
+    "Microsoft.WindowsNotepad",
+    "Microsoft.WindowsTerminal"
+  ]
+}
