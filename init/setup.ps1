@@ -206,6 +206,7 @@ function Start-SystemOptimization {
 
 # 工具配置表
 # 小工具：脚本自动下载安装（动态获取最新版本）
+# 手动工具：检测现有安装，缺失时显示官方下载地址
 # 大工具：只记录下载地址，检测已安装后复制配置
 $toolConfig = @{
     "git" = @{
@@ -283,17 +284,12 @@ $toolConfig = @{
         }
         verify = { Test-Path "D:\JetBrains\IntelliJ IDEA *\bin\idea64.exe" }
     }
-    "dbeaver" = @{
-        name = "DBeaver"
-        # 固定 URL（自动重定向到最新版）
-        url = "https://dbeaver.io/files/dbeaver-ce-latest-win32.win32.x86_64.zip"
-        installDir = "D:\DBeaver"
-        installerType = "zip"
-        configFile = @{
-            source = "$scriptDir\dbeaver\dbeaver.ini"
-            target = "D:\DBeaver\dbeaver.ini"
-        }
-        verify = { Test-Path "D:\DBeaver\dbeaver.exe" }
+    "clash-verge" = @{
+        name = "Clash Verge"
+        manualPackage = $true
+        downloadPage = "https://github.com/clash-verge-rev/clash-verge-rev/releases/latest"
+        installDir = "D:\Clash Verge"
+        verify = { Test-Path "D:\Clash Verge\clash-verge.exe" }
     }
     "tabby" = @{
         name = "Tabby"
@@ -338,6 +334,24 @@ function Install-Tool($toolKey) {
     Write-Host "`n========================================" -ForegroundColor Blue
     Write-Host "处理: $($config.name)" -ForegroundColor Blue
     Write-Host "========================================" -ForegroundColor Blue
+
+    if ($config.manualPackage) {
+        $isInstalled = $false
+        try {
+            $isInstalled = [bool](& $config.verify)
+        } catch {
+            Write-Warning "检测 $($config.name) 时发生错误: $($_.Exception.Message)"
+        }
+
+        if ($isInstalled) {
+            Write-Success "检测到 $($config.name) 已安装: $($config.installDir)"
+        } else {
+            Write-Warning "$($config.name) 未安装，请从官方页面下载安装"
+            Write-Host "  下载页: $($config.downloadPage)" -ForegroundColor Cyan
+            Write-Host "  安装目录: $($config.installDir)" -ForegroundColor Cyan
+        }
+        return
+    }
 
     # 大安装包工具：检测已安装，只复制配置
     if ($config.largePackage) {

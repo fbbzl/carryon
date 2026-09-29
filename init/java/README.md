@@ -33,6 +33,7 @@
 
 ## 注意
 
-- 当前主要使用 **JDK 21**（VS Code 默认配置指向 `D:\java\oraclejdk\jdk21`）。
+- 所有 JDK 以 `D:\Java\openjdk` 下的实际目录为准。
+- 当前主要使用 **JDK 21**，`JAVA_HOME` 和 VS Code 默认配置指向 `D:\Java\openjdk\jdk-21`。
 - 多版本共存时，通过切换 `JAVA_HOME` 环境变量选择活跃版本。
 - 旧版本（Java 8）仅用于兼容旧项目。

@@ -56,47 +56,33 @@
         "JavaSE-1.8 LTS": {
             "overrideName": true,
             "env": {
-                "PATH": "C:\\Users\\fbb\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\8\\bin;${env:PATH}",
-                "JAVA_HOME": "C:\\Users\\fbb\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\8"
+                "PATH": "D:\\Java\\openjdk\\java-se-8u44-ri\\bin;${env:PATH}",
+                "JAVA_HOME": "D:\\Java\\openjdk\\java-se-8u44-ri"
             },
             "path": "cmd"
         },
         "JavaSE-11 LTS": {
             "overrideName": true,
             "env": {
-                "PATH": "C:\\Users\\fbb\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\11\\bin;${env:PATH}",
-                "JAVA_HOME": "C:\\Users\\fbb\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\11"
+                "PATH": "D:\\Java\\openjdk\\jdk-11.0.0.2\\bin;${env:PATH}",
+                "JAVA_HOME": "D:\\Java\\openjdk\\jdk-11.0.0.2"
             },
             "path": "cmd"
         },
         "JavaSE-17 LTS": {
             "overrideName": true,
             "env": {
-                "PATH": "C:\\Users\\fbb\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\17\\bin;${env:PATH}",
-                "JAVA_HOME": "C:\\Users\\fbb\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\17"
+                "PATH": "D:\\Java\\openjdk\\jdk-17.0.0.1\\bin;${env:PATH}",
+                "JAVA_HOME": "D:\\Java\\openjdk\\jdk-17.0.0.1"
             },
             "path": "cmd"
         },
         "JavaSE-21 LTS": {
             "overrideName": true,
             "env": {
-                "PATH": "D:\\java\\oraclejdk\\jdk21\\bin;${env:PATH}",
+                "PATH": "D:\\Java\\openjdk\\jdk-21\\bin;${env:PATH}",
                 "JAVA_TOOL_OPTIONS": "-Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8",
-                "JAVA_HOME": "D:\\java\\oraclejdk\\jdk21"
-            },
-            "path": "cmd",
-            "args": [
-                "/k",
-                "chcp",
-                "65001"
-            ]
-        },
-        "JavaSE-24": {
-            "overrideName": true,
-            "env": {
-                "PATH": "C:\\Users\\fbb\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest\\bin;${env:PATH}",
-                "JAVA_TOOL_OPTIONS": "-Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8",
-                "JAVA_HOME": "C:\\Users\\fbb\\AppData\\Roaming\\Code\\User\\globalStorage\\pleiades.java-extension-pack-jdk\\java\\latest"
+                "JAVA_HOME": "D:\\Java\\openjdk\\jdk-21"
             },
             "path": "cmd",
             "args": [
@@ -117,13 +103,13 @@
         ]
     },
     "terminal.integrated.env.windows": {
-        "JAVA_HOME": "D:\\java\\oraclejdk\\jdk21",
-        "PATH": "D:\\java\\oraclejdk\\jdk21\\bin;${env:PATH}"
+        "JAVA_HOME": "D:\\Java\\openjdk\\jdk-21",
+        "PATH": "D:\\Java\\openjdk\\jdk-21\\bin;${env:PATH}"
     },
     "maven.terminal.customEnv": [
         {
             "environmentVariable": "JAVA_HOME",
-            "value": "D:\\java\\oraclejdk\\jdk21"
+            "value": "D:\\Java\\openjdk\\jdk-21"
         }
     ],
     "git.openRepositoryInParentFolders": "always",
