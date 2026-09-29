@@ -8,6 +8,7 @@
 
 | 目录 | 用途 |
 |---|---|
+| `init/` | 重装后恢复 D 盘开发环境，并在末尾启动 Windows 系统优化 |
 | `std/` | 编码标准与工程规范，按语言、框架、领域分类 |
 | `skills/` | 本仓库自研的 AI 子代理协作剧本与流程 |
 
@@ -27,6 +28,21 @@
 - 做测试与验收：参考 `skills/qa/SKILL.md`
 - 需求分析：参考 `skills/req/SKILL.md`，完整流程见 `skills/survey-corps/SKILL.md`
 - 全流程协作：参考 `skills/survey-corps/SKILL.md`
+
+## Windows 重装后初始化
+
+以管理员身份运行：
+
+```powershell
+cd D:\workspace\carryon\init
+.\setup.ps1
+```
+
+脚本先恢复 D 盘开发工具与配置，再将 `init/windows-system-optimization/` 安装到 Codex skills 目录，并启动交互式 Codex 执行系统优化。系统修改会在会话中逐项确认。
+
+- 只安装指定工具：`.\setup.ps1 -Tools @("git", "java", "maven", "vscode")`
+- 跳过已有工具或 skill 更新：`.\setup.ps1 -SkipExisting`
+- 只恢复开发环境：`.\setup.ps1 -SkipSystemOptimization`
 
 ## std/ 文件索引
 

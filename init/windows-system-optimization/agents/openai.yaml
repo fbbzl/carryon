@@ -1,0 +1,4 @@
+interface:
+  display_name: "Windows 重装后优化"
+  short_description: "开发环境恢复后，安全整理并优化 Windows"
+  default_prompt: "使用 $windows-system-optimization 执行重装后的 Windows 系统优化，先只读盘点再逐项确认。"

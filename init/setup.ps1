@@ -6,10 +6,13 @@
 #   .\setup.ps1 -Tools @("git", "java", "maven", "vscode")
 # 跳过已安装的工具：
 #   .\setup.ps1 -SkipExisting
+# 只初始化开发环境，不启动 Windows 系统优化：
+#   .\setup.ps1 -SkipSystemOptimization
 
 param(
     [string[]]$Tools = @("all"),
-    [switch]$SkipExisting
+    [switch]$SkipExisting,
+    [switch]$SkipSystemOptimization
 )
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -123,6 +126,82 @@ function Find-InstalledDir($pattern) {
     $dirs = Get-ChildItem -Path $parent -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -like (Split-Path -Leaf $pattern) }
     if ($dirs.Count -gt 0) { return $dirs[0].FullName }
     return $null
+}
+
+function Get-CodexHome {
+    if ($env:CODEX_HOME) {
+        return $env:CODEX_HOME
+    }
+    return Join-Path $env:USERPROFILE ".codex"
+}
+
+function Install-SystemOptimizationSkill {
+    $skillName = "windows-system-optimization"
+    $source = Join-Path $scriptDir $skillName
+    $sourceSkill = Join-Path $source "SKILL.md"
+    if (-not (Test-Path $sourceSkill)) {
+        Write-Warning "未找到系统优化 skill: $sourceSkill"
+        return $false
+    }
+
+    $skillsRoot = Join-Path (Get-CodexHome) "skills"
+    $target = Join-Path $skillsRoot $skillName
+    if (-not (Test-Path $skillsRoot)) {
+        New-Item -ItemType Directory -Path $skillsRoot -Force | Out-Null
+    }
+
+    if (Test-Path $target) {
+        if ($SkipExisting) {
+            Write-Status "系统优化 skill 已存在，跳过更新: $target"
+            return (Test-Path (Join-Path $target "SKILL.md"))
+        }
+        Write-Warning "系统优化 skill 已存在: $target"
+        $confirm = Read-Host "是否更新? (y/n)"
+        if ($confirm -ne 'y') {
+            Write-Status "保留现有系统优化 skill"
+            return (Test-Path (Join-Path $target "SKILL.md"))
+        }
+    } else {
+        New-Item -ItemType Directory -Path $target -Force | Out-Null
+    }
+
+    Copy-Item -Path (Join-Path $source "*") -Destination $target -Recurse -Force
+    Write-Success "安装系统优化 skill: $target"
+    return (Test-Path (Join-Path $target "SKILL.md"))
+}
+
+function Start-SystemOptimization {
+    if ($SkipSystemOptimization) {
+        Write-Status "已跳过 Windows 系统优化"
+        return
+    }
+
+    if (-not (Install-SystemOptimizationSkill)) {
+        Write-Warning "系统优化 skill 安装失败，跳过执行"
+        return
+    }
+
+    $codex = Get-Command codex -ErrorAction SilentlyContinue
+    $prompt = '使用 $windows-system-optimization 执行重装后的 Windows 系统优化。D 盘开发环境已由 init/setup.ps1 处理，请先只读盘点并逐项征求确认。'
+    if (-not $codex) {
+        Write-Warning "未检测到 Codex CLI，无法自动启动系统优化"
+        Write-Host "安装并登录 Codex 后执行: codex `"$prompt`"" -ForegroundColor Cyan
+        return
+    }
+
+    Write-Host "`n========================================" -ForegroundColor Blue
+    Write-Host "启动 Windows 系统优化" -ForegroundColor Blue
+    Write-Host "========================================" -ForegroundColor Blue
+    Write-Status "系统改动将在交互式 Codex 会话中逐项确认"
+    try {
+        & $codex.Source -C $scriptDir $prompt
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Codex 退出码: $LASTEXITCODE"
+        }
+    } catch {
+        Write-Warning "无法启动 Codex: $($_.Exception.Message)"
+        Write-Host "可稍后手动执行: codex `"$prompt`"" -ForegroundColor Cyan
+    }
 }
 
 # 工具配置表
@@ -416,10 +495,6 @@ foreach ($tool in $toolsToInstall) {
     Install-Tool $tool
 }
 
-Write-Host "`n========================================" -ForegroundColor Green
-Write-Host "初始化完成！请重启终端使环境变量生效。" -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Green
-
 # 创建仓库目录（如果 Maven 安装了）
 if ($Tools -contains "all" -or $Tools -contains "maven") {
     if (-not (Test-Path "D:\maven\repository")) {
@@ -427,3 +502,9 @@ if ($Tools -contains "all" -or $Tools -contains "maven") {
         Write-Success "创建 Maven 本地仓库: D:\maven\repository"
     }
 }
+
+Start-SystemOptimization
+
+Write-Host "`n========================================" -ForegroundColor Green
+Write-Host "初始化完成！请重启终端使环境变量生效。" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Green
