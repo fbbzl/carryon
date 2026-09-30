@@ -2,7 +2,7 @@
 name: bugfix
 description: "Use only when QA hands a registered, reproducible Bug to dev for correction and expects implementation evidence back. Do not invoke directly for user-reported or dev-discovered defects before QA registration."
 metadata:
-  version: 1.2.1
+  version: 1.2.3
   type: agent-skill
   scope: software-engineering
   tags: [bugfix, dev, regression, workflow]
@@ -11,7 +11,7 @@ metadata:
 
 # bugfix
 
-仅在 `qa` 将已登记、可复现的 Bug 反馈给 `dev` 后，定位根因、实施最小修复并把开发证据交回 `qa`。`qa` 独占 Bug 的登记、定级、关闭与重开；`cr` 独占审查结论；`survey-corps` 处理跨角色的高风险裁决。
+仅在 `qa` 将已登记、可复现的 Bug 反馈给 `dev` 后，定位根因、实施最小修复并把开发证据交回审查与测试链路。`qa` 独占 Bug 的登记、定级、关闭与重开；`cr` 独占审查结论；`survey-corps` 处理跨角色的高风险裁决。
 
 ## 适用边界
 
@@ -35,5 +35,5 @@ metadata:
 - 修复证据必须能将复现失败与修复后结果对应到同一版本、环境和输入边界；仅“代码看起来正确”不构成证据。
 - 连续三个修复假设或补丁未解决问题时停止继续试错，重新检查边界与架构假设，并升级 `survey-corps` 对齐后再扩大改动。
 - 不得吞掉异常、放宽校验、删除权限控制、静默改写历史数据或以全局重试掩盖根因；必要的兼容或降级必须说明退出条件。
-- 将 Bug ID、根因、改动文件、保持不变的行为、复现/回归结果、未验证范围及恢复输入交给 `qa`；由 `qa` 复测并决定 Bug 状态。
-- 按 `survey-corps` 已选链路交接；选用 `cr` 时先交付修复重点、契约影响和开发验证，经审查后交给 `qa`；否则直接交给 `qa`。不得自行声明审查、测试或验收通过。
+- 将 Bug ID、根因、改动文件、保持不变的行为、复现/回归结果、未验证范围及恢复输入交给 `cr` 复审并供 `qa` 复测；由 `qa` 决定 Bug 状态。
+- 按 `survey-corps` 已选链路交接；修复后必须先交付修复重点、契约影响和开发验证给 `cr` 复审，再交给 `qa` 复测；不得绕过 `cr`，也不得自行声明审查、测试或验收通过。

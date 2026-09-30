@@ -2,7 +2,7 @@
 name: sync-with-rebase
 description: "Use when dp needs to rebase the current working branch onto a specified upstream baseline. Do not use to merge independent histories, move selected commits or uncommitted files, push directly to the baseline branch, or resolve conflicts automatically."
 metadata:
-  version: 1.2.2
+  version: 1.2.3
   type: agent-skill
   scope: software-engineering
   tags: [git, rebase, sync, dp, workflow]
@@ -23,7 +23,7 @@ metadata:
 
 1. 读取 `git status`、当前分支和远端配置；存在进行中的 merge/rebase/cherry-pick/bisect 时停止。当前分支为受保护分支时停止，除非用户明确要求且项目规则允许。
 2. 工作树有改动时，只在请求明确包含 commit 且全部改动属于授权范围时暂存精确文件，检查暂存差异、运行 `git diff --cached --check` 和相关开发验证后提交；否则停止。记录 rebase 前 `<before-sha>`。
-3. fetch 基线及本次涉及的已发布分支，解析最新 `<baseline-sha>`，用 `git merge-base <before-sha> <baseline-sha>` 记录 `<old-base>`；基线不存在、分叉点不唯一或待重放范围含 merge commit 时停止并交回 `dp` 选路。核对待重写提交的发布和依赖情况：已发布且他人依赖的历史禁止 rebase；无法确定依赖情况时停止确认，不把远端未包含当作无人依赖的证明。
+3. fetch 基线及本次涉及的已发布分支，解析最新 `<baseline-sha>`，用 `git merge-base --all <before-sha> <baseline-sha>` 获取共同祖先；必须得到恰好一个 `<old-base>`，无结果或多个结果都停止并交回 `dp` 重新选路。基线不存在或待重放范围含 merge commit 时也停止。核对待重写提交的发布和依赖情况：已发布且他人依赖的历史禁止 rebase；无法确定依赖情况时停止确认，不把远端未包含当作无人依赖的证明。
 4. 在当前工作分支执行 `git rebase <baseline-sha>`。基线只用于同步，不检出、不修改、不向其推送。
 5. 用 `git range-diff <old-base>..<before-sha> <baseline-sha>..HEAD` 核对重放提交，逐个检查新提交的父子差异并运行本地验证；提交丢失或意外变化时停止。请求包含 push 时才推送；历史重写需单独授权并记录预期远端 SHA，使用 `git push --force-with-lease=<ref>:<expected-sha>`；远端变化或验证失败时停止。
 

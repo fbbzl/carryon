@@ -1,41 +1,41 @@
 ---
 name: humanity-tech-docs
-description: "Refine existing technical documentation through accuracy-first review followed by controlled language cleanup. Use for API references, READMEs, design notes, and technical guides."
+description: "先以准确性为先审查，再进行受控的语言清理，完善现有技术文档。适用于 API 参考、README、设计说明和技术指南。"
 metadata:
-  version: 1.0.0
+  version: 1.0.2
   type: agent-skill
   scope: documentation
   tags: [technical-writing, documentation, editing]
   author: carryon
 ---
 
-# Humanity Tech Docs
+# 技术文档精修
 
-Use this skill to revise existing technical documentation in two ordered stages. It is a workflow wrapper around the two local skills below, not a replacement for them.
+使用本技能分两个有序阶段修订现有技术文档。本技能是下列两个本地 skill 的工作流封装，不替代它们。
 
-## Required dependencies
+## 必需依赖
 
-Resolve both dependencies to absolute paths using the current skill catalog, falling back to `$CODEX_HOME/skills` or `~/.codex/skills` when unset. Read them in order, record their paths and versions or content digests, and verify support for the technical voice and contract protections below. Stop and report incompatibility; recheck when dependencies change:
+使用当前 skill 清单将两个依赖解析为绝对路径；若未设置 `$CODEX_HOME`，回退到 `~/.codex/skills`。按顺序读取它们，记录路径及版本或内容摘要，并确认它们支持下述技术文风和契约保护要求。依赖不兼容时停止并报告；依赖发生变化时重新检查：
 
 1. `technical-writer-voice/SKILL.md`
 2. `humanizer/SKILL.md`
 
-If either dependency is unavailable:
+如果任一依赖不可用：
 
-1. Stop before editing the document and report the exact missing skill names.
-2. Ask the user whether to install the missing dependencies. Treat `y` as approval and any other answer as refusal.
-3. With approval, read and use the local `.system/skill-installer/SKILL.md`. Install only the missing skills from these fixed public paths:
+1. 在编辑文档前停止，并报告确切缺失的 skill 名称。
+2. 询问用户是否安装缺失依赖。`y` 表示同意，其他回答均表示拒绝。
+3. 用户同意后，读取并使用本地 `.system/skill-installer/SKILL.md`。仅从以下固定公共路径安装缺失的 skill：
    - `adrielkuek/Write-Like-A-Human`, `skills/technical-writer-voice`
    - `adrielkuek/Write-Like-A-Human`, `skills/humanizer`
-4. Verify the installed `SKILL.md` files exist, then resume this workflow from dependency loading.
+4. 确认已安装的 `SKILL.md` 文件存在，然后从加载依赖阶段继续本工作流。
 
-Do not silently substitute a generic writing workflow. Do not install anything without explicit user approval. If installation fails, report the failure and do not edit the document.
+不得静默替换为通用写作流程。没有用户明确同意，不得安装任何内容。安装失败时报告失败原因，不编辑文档。
 
-## Workflow
+## 工作流
 
-1. Apply `technical-writer-voice` first. Check document structure, terminology, request and response contracts, parameter combinations, constraints, errors, pagination, and the boundary between documented facts and unknown response shapes.
-2. Apply `humanizer` second, using the `technical` or `technical-writer` voice and `technical` purpose. Limit this stage to concise, precise surface-level cleanup.
+1. 先应用 `technical-writer-voice`。检查文档结构、术语、请求和响应契约、参数组合、约束、错误、分页，以及已记录事实和未知响应结构之间的边界。
+2. 再应用 `humanizer`，使用 `technical` 或 `technical-writer` 文风及 `technical` 目的。此阶段仅进行简洁、准确的表层清理。
 
-Preserve code identifiers, commands, configuration keys, measurements, links, constraints, examples, and documented behavior unless the user explicitly asks to change them. For API references, also preserve interface URLs, HTTP methods, header names, field names, types, requiredness, defaults, business codes, authentication rules, error conditions, and JSON examples. Do not invent undocumented fields, values, errors, performance claims, environment details, or technical conclusions.
+除非用户明确要求修改，否则保留代码标识符、命令、配置键、度量值、链接、约束、示例和已记录行为。对于 API 参考，还要保留接口 URL、HTTP 方法、请求头名称、字段名、类型、必填性、默认值、业务码、认证规则、错误条件和 JSON 示例。不得编造未记录的字段、值、错误、性能声明、环境细节或技术结论。
 
-Before editing, trace factual changes to current code, project specifications, verified tests, or supplied authoritative material. Record source locations; report conflicts and unsupported claims without inventing resolutions. After cleanup, recheck changed facts and preserved identifiers, values, examples, and qualifiers against those sources and the original diff; also verify paired code fences and parse JSON examples. Report unresolved facts and verification limits.
+编辑前，将事实性变更追溯到当前代码、项目规范、已验证测试或用户提供的权威材料。记录来源位置；发现冲突或不受支持的声明时报告，不自行编造解决方案。清理完成后，依据这些来源和原始 diff，重新核对变更事实，以及保留的标识符、值、示例和限定条件；同时检查代码围栏是否成对，并解析 JSON 示例。报告未解决事实和验证限制。

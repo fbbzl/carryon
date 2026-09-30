@@ -2,7 +2,7 @@
 name: dp
 description: "Use when code changes need branch synchronization, release preflight, recovery assessment, health observation, or delivery reporting."
 metadata:
-  version: 1.6.2
+  version: 1.6.4
   type: agent-skill
   scope: software-engineering
   tags: [dp, devops, git, sync, deployment, agent, workflow]
@@ -30,13 +30,13 @@ metadata:
 - `cr` 独占代码、契约、安全和数据审查；`dp` 只确认相应审查证据已作为预检输入，不重做审查。
 - `qa` 独占正式测试与验收；`dp` 只消费测试范围、结论和未测风险，不执行或改写测试结论。
 
-默认交付边界是 `dp` 完成预检并交给用户，由用户决定并执行部署；用户回传部署记录后，`dp` 再进行健康观察与交付判断。只有用户明确授权时，其他执行主体才可进入部署动作。
+交付场景的边界是 `dp` 完成预检并交给用户，由用户决定并执行部署；用户回传部署记录后，`dp` 再进行健康观察与交付判断。只有用户明确授权时，其他执行主体才可进入部署动作。
 
 ## 专属 Git 同步 Skill
 
 用户要求同步代码时，`dp` 按改动形态只选择一种专属子 Skill：把干净提交复制到另一分支用 [sync-with-cherrypick](../subskills/sync-with-cherrypick/SKILL.md)，把未提交文件搬到另一分支用 [sync-with-stash](../subskills/sync-with-stash/SKILL.md)，让当前工作分支追上同源基线用 [sync-with-rebase](../subskills/sync-with-rebase/SKILL.md)，两条独立分支线合流用 [sync-with-merge](../subskills/sync-with-merge/SKILL.md)。明确的同步请求覆盖必要的只读检查、本地切换、应用与验证，不逐步重复确认；额外 `git commit`、push、远端历史重写、受保护分支写入和删除仍需在用户请求中明确授权。冲突语义、目标分支或改动范围不清时停止并请用户决定。
 
-仅同步代码时使用 `survey-corps` 的同步状态并输出同步结果，不要求经过 CR、QA、发布状态或交付报告；同步后的代码是否可发布仍由相应审查、测试和发布门禁决定。
+同步代码时使用 `survey-corps` 的同步状态并输出同步结果。`synced` 只表示同步动作成功；只要该同步属于调查兵团，必须继续经过 `cr` 和 `qa`，通过后才能宣布工作流完成。只有独立、非调查兵团的纯 Git 搬运，才可在同步成功后结束；同步成功不表示审查、测试或发布通过。
 
 ## 决策流程
 
@@ -64,7 +64,7 @@ metadata:
 
 - 发布方案必须说明构建输入、环境变量、迁移处理、可观测性、风险、回滚路径和触发条件。
 - 缺少健康门禁、恢复路径或关键证据时输出 `no_go` 并阻断受影响发布。部署尚未实际开始时，最终授权 `not_requested|pending` 保持 `ready + preflight_pass`，`granted` 也保持 `ready` 直至首个部署动作开始，`rejected|expired` 保持 `ready + no_go` 并等待新授权；实际开始部署且没有有效的 `granted` 才进入 `blocked`。
-- 消费 `qa_conditional` 时，核对当前版本/环境、`degraded` 健康快照、风险接受证据、补偿控制和有效期；任一缺失或过期即 No-Go。仅发布侧补证时保持 `qa_conditional`，QA 证据、补偿控制、适用范围或上游基线失效时按 `survey-corps` 回到唯一重验证入口。
+- 在调查兵团的代码改动场景中，`qa_conditional` 一律为 `no_go`，必须返回 `dev -> cr -> qa` 闭环，直到 QA 达到 `conclusion=pass` 和 `qa_passed`；不得用风险接受、补偿控制或发布侧补证替代 QA 通过。独立、非调查兵团的发布场景如需消费 `qa_conditional`，仍须核对当前版本/环境、`degraded` 健康快照、风险接受证据、补偿控制和有效期；任一缺失或过期即 No-Go。
 - 活动 P0/P1、`unstable` 或例外过期时必须 `no_go`；紧急例外只授权恢复动作，不能跳过恢复验证和观察窗口。
 - 交付报告至少包含版本、环境、目标、变更模块、预检与验证证据、未验证范围、健康结果、已知风险、回滚条件和下一步。
 - 同步结果至少包含同步方式、来源、目标、执行前后版本、变更范围、验证结果、push 状态和未解决风险。

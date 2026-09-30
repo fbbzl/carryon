@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes or releases. The shorthand `sc` starts this workflow."
 metadata:
-  version: 2.5.0
+  version: 2.7.0
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, workflow]
@@ -34,19 +34,19 @@ metadata:
 
 ## 最小编排
 
-只读取和启动已选择角色的本体 Skill。调查兵团工作流必须包含 `cr` 和 `qa`；下表给出前置执行链，完成前统一执行下文的完成门禁。每个活跃角色仍按自身本体 Skill 的条件选择专属从属 Skill。
+只读取和启动已选择角色的本体 Skill。调查兵团的任何场景只要其范围包含代码改动，该场景的完整链路就必须包含 `cr` 和 `qa`，并在最终代码基线上完成审查与测试；无代码改动的场景不因此强制增加这两个角色。下表给出各个场景的工作流链路，完成前统一执行下文的完成门禁。每个活跃角色仍按自身本体 Skill 的条件选择专属从属 Skill。
 
-| 情形 | 默认链路 | 需要时使用的从属 Skill |
+| 情形 | 场景链路 | 需要时使用的从属 Skill |
 | --- | --- | --- |
 | 需求或影响不明 | `req -> 重新编排` | 文档冲突且高风险：`grill-with-docs`；视觉化能消除歧义：`align-with-visuals` |
 | 已确认的功能或行为变更 | `dev -> cr -> qa` | 无 |
 | 受控重构 | `dev -> cr -> qa` | `refactor-with-goal`、`test-with-goal` |
-| 缺陷修复 | `dev -> cr -> qa` | `test-with-goal` |
-| 高风险实现 | `dev -> cr -> qa`；需求/验收未确认时前置 `req` | 各角色按本体 Skill 选择 |
-| 发布预检或交付 | 在当前已验证链路后加入 `dp` | 无 |
+| 缺陷修复 | `dev -> cr -> qa` | `bugfix`、`test-with-goal` |
+| 高风险实现 | `req -> dev -> cr -> qa` | 各角色按本体 Skill 选择 |
+| 发布预检或交付 | `dp` 接在当前场景的 `qa` 通过之后 | 无 |
 | 代码或分支同步 | `dp -> cr -> qa` | 按改动形态选择一种 Git 同步 Skill |
 
-`req` 收敛需求后按当前范围重新编排，不能把 `req -> 重新编排` 当作实现链路。高风险包括公共 API、权限、数据库或迁移、金额/事务、生产环境和不可逆操作；任务包含代码同步、发布准备、交付或运行观察时使用 `dp`。单一职责工作直接使用对应角色 Skill，Git 同步一次只选择一种专属 Skill。
+不存在跨场景的默认链路或默认入口。每一行都是一个独立场景：按触发条件选择对应链路，不把其他场景的角色自动拼接进来，也不跳过该场景规定的角色。`req` 收敛需求后按当前范围重新编排，不能把 `req -> 重新编排` 当作实现链路。高风险包括公共 API、权限、数据库或迁移、金额/事务、生产环境和不可逆操作；发布准备、交付或运行观察属于具体场景时，按表中位置使用 `dp`。单一职责工作直接使用对应角色 Skill，Git 同步一次只选择一种专属 Skill。
 
 ## 共同约束
 
@@ -94,11 +94,11 @@ work_unit:
 
 ## 交接与状态
 
-正常链路是 `req -> dev -> cr -> qa -> dp -> 用户发布`，但只运行已选择的段。每次交接使用：
+场景链路由上表确定；只运行当前场景选择的角色。每次交接使用：
 
 开发与发布主线为 `confirmed -> planned -> dev_in_progress -> ready_for_cr -> ready_for_qa -> qa_passed -> ready -> deployed -> verified`；只有高风险事项尚待裁决时才前置 `needs_user_confirm`。CR 阻断走 `cr_blocked -> ready_for_cr`，QA 阻断走 `qa_failed -> ready_for_qa`；`qa_conditional` 保留为待处理状态，消除条件并经 QA 复测为 `qa_passed` 后才能进入 `ready`。已回滚记 `rolled_back`；P0/P1 或未授权执行进入 `blocked`。
 
-仅同步代码时不进入开发与发布主线，由 `dp` 使用 `sync_pending -> sync_in_progress -> synced | sync_blocked`，并记录同步方式、前后版本、验证和未解决风险。`synced` 只表示同步动作成功；同步结果仍须交给 `cr` 和 `qa` 验证后才可宣布工作流完成。
+代码同步场景由 `dp` 使用 `sync_pending -> sync_in_progress -> synced | sync_blocked`，并记录同步方式、前后版本、验证和未解决风险。`synced` 只表示同步动作成功；只要该同步属于调查兵团，就必须继续交给 `cr` 和 `qa` 验证，通过后才能宣布工作流完成。
 
 需求、实现、配置、依赖、迁移、契约、权限、安全、数据、测试证据或环境变化时进入 `needs_revalidation`，按最早失效环节计算 `resume_state`；仅同一基线下补材料使用 `needs_revision`，不改变工作流状态。
 
@@ -126,8 +126,8 @@ handoff:
 
 编排者负责核验完成门禁。只有以下条件全部满足，才能宣布“工作流完成”“任务完成”或同义结论：
 
-- `cr` 和 `qa` 均由独立真实 subagent 执行并回收结论；CR 明确通过，QA 的 `conclusion=pass` 且状态为 `qa_passed`。未运行、未返回、条件通过、证据不足或用户接受风险均不能替代通过。
-- 两者结论绑定同一最终 `work_unit_id`、`reference_version`、范围及适用环境，证据仍有效；最后一次相关修改后的受影响审查和测试已重新执行。
+- 本场景范围包含代码改动时，`cr` 和 `qa` 均须由独立真实 subagent 执行并回收结论；CR 明确通过，QA 的 `conclusion=pass` 且状态为 `qa_passed`。未运行、未返回、条件通过、证据不足或用户接受风险均不能替代通过。无代码改动时，按该场景链路完成所有选定角色及其适用门禁。
+- 本场景范围包含代码改动时，`cr` 与 `qa` 的结论必须绑定同一最终 `work_unit_id`、`reference_version`、范围及适用环境，证据仍有效；最后一次相关修改后的受影响审查和测试已重新执行。
 - 当前范围内未关闭的 CR 阻断项、高风险项、QA 阻断 Bug 及其他角色阻断项均为零，验收退出标准全部满足。
 - 已选角色的工作与交接已完成；部署或运行观察属于任务目标时，还须满足对应授权和验证要求。
 
@@ -135,7 +135,7 @@ CR 未通过时走 `cr -> dev 修复 -> cr 复审 -> qa`；QA 未通过时走 `q
 
 在已有授权和任务范围内持续推进上述闭环，不把“角色已执行一轮”“报告已生成”或“已列出待修问题”当作完成。无法继续时（例如缺少权限、环境、依赖或关键决策，或连续两轮修复后同一阻断仍无实质进展），停止重复尝试，保留实际阻断或待处理状态，报告阻断证据、已尝试动作和恢复条件；只能声明“工作流未完成”，不得宣布成功。用户暂停或取消也不算通过。
 
-最终完成报告必须列出最终基线、CR 通过证据、QA 通过证据以及未关闭阻断项数量（必须为 0）；非阻断建议可保留并说明范围，不扩大为无风险保证。
+本场景范围包含代码改动时，最终完成报告必须列出最终基线、CR 通过证据、QA 通过证据以及未关闭阻断项数量（必须为 0）；无代码改动时列出实际选定角色的完成证据和未关闭阻断项数量。非阻断建议可保留并说明范围，不扩大为无风险保证。
 
 ## 发布边界
 
