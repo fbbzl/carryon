@@ -16,7 +16,7 @@ metadata:
 
 ## 必需依赖
 
-开始审阅或编辑文档前，先依次确认并读取以下依赖：
+开始审阅或编辑文档前，按当前技能目录解析以下依赖的绝对路径；目录未提供时查找 `$CODEX_HOME/skills`（未设置则 `~/.codex/skills`）。依次读取，记录路径与版本或内容摘要，确认支持下文要求的技术语气及契约保护；不兼容时停止并报告，依赖变化后重新核验：
 
 1. `technical-writer-voice/SKILL.md`
 2. `humanizer/SKILL.md`

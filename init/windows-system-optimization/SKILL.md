@@ -13,6 +13,8 @@ metadata:
 
 本 skill 由 `init/setup.ps1` 在 D 盘工具重新下载安装完成后安装并启动。开发工具恢复由初始化脚本负责；本 skill 聚焦 Windows 系统状态、无用软件、内置功能、弹窗和设备体验问题。
 
+先从启动上下文定位项目根目录：当前目录含 `windows-state/policy.json` 时取其父目录，含 `init/windows-state/policy.json` 时取当前目录。下文 `init/` 路径均相对此根目录，不相对全局 skill 安装目录；无法定位时询问项目路径，独立的系统只读盘点可继续。
+
 ## 执行原则
 
 - 先只读盘点 Windows 版本、激活、更新、设备状态、已安装应用、启动项和当前异常，再提出分组建议。

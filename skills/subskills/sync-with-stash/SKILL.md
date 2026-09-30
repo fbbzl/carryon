@@ -26,7 +26,7 @@ metadata:
 3. 仅含 tracked 文件时执行 `git stash push -m "<规范 message>" -- <精确文件列表>`；包含已授权 untracked 文件时加 `-u`。两种情况都使用精确 pathspec，禁止 `stash pop`。
 4. 用 `git stash show -u --name-only '<stash>'` 核对文件数量与文件名；不一致时停止并保留 stash。
 5. 切到目标分支；请求包含更新且能 fast-forward 时再更新。需要 rebase、merge 或其他历史整合时停止并交回 `dp` 重新选路，本 Skill 不嵌套其他同步流程。
-6. 执行 `git stash apply '<stash>'`，随后对本次搬运文件运行 `git diff --check -- <精确文件列表>` 和与改动风险相称的本地验证，不把无关改动的结果归入本任务结论。
+6. 执行 `git stash apply '<stash>'`，对搬运的 tracked 文件运行 `git diff --check HEAD -- <精确文件列表>`；对 untracked 文件逐个使用 `git diff --no-index --check -- <空文件> <文件>`（空文件置于工作区外，区分差异与检查错误）。核对全部搬运内容并运行风险相称的本地验证，不把无关改动归入本任务结论。
 
 ## 冲突与退出条件
 

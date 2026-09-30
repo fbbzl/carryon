@@ -118,7 +118,7 @@ handoff:
   next_action:
 ```
 
-- 仅在职责或执行主体切换时记录交接；同一主体连续承担多个已选角色时可复用工作单元，但必须分别保留各角色结论。接收方填写 `handoff_result`；`needs_revision` 表示同一基线下材料不全，`rejected` 表示职责、授权或结论不可接受，并在 `decision` 中说明原因；基线失效进入 `needs_revalidation`，确认 P0/P1 进入 `blocked`。
+- 角色切换时由独立 subagent 记录交接；同一角色连续执行子技能可复用工作单元，不新增角色交接。接收方填写 `handoff_result`；`needs_revision` 表示同一基线下材料不全，`rejected` 表示职责、授权或结论不可接受，并在 `decision` 中说明原因；基线失效进入 `needs_revalidation`，确认 P0/P1 进入 `blocked`。
 - 审查或测试发现问题，返回 `dev` 修复并复核受影响范围；未解决的阻断项保持其来源状态（如 `cr_blocked` 或 `qa_failed`），达到 P0/P1 或发生未授权执行时才进入全局 `blocked`。
 - 角色边界：`req` 负责需求和验收标准；`dev` 负责实现、实现耦合的单元测试及恢复输入；`cr` 负责静态审查发现和复审；`qa` 负责独立正式测试、Bug 生命周期和验收结论；`dp` 负责代码同步、发布预检、观测和交付报告。
 

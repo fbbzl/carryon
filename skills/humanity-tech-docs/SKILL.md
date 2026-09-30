@@ -15,7 +15,7 @@ Use this skill to revise existing technical documentation in two ordered stages.
 
 ## Required dependencies
 
-Before reviewing or editing the document, verify both dependency files exist and read them in this order:
+Resolve both dependencies to absolute paths using the current skill catalog, falling back to `$CODEX_HOME/skills` or `~/.codex/skills` when unset. Read them in order, record their paths and versions or content digests, and verify support for the technical voice and contract protections below. Stop and report incompatibility; recheck when dependencies change:
 
 1. `technical-writer-voice/SKILL.md`
 2. `humanizer/SKILL.md`
@@ -38,4 +38,4 @@ Do not silently substitute a generic writing workflow. Do not install anything w
 
 Preserve code identifiers, commands, configuration keys, measurements, links, constraints, examples, and documented behavior unless the user explicitly asks to change them. For API references, also preserve interface URLs, HTTP methods, header names, field names, types, requiredness, defaults, business codes, authentication rules, error conditions, and JSON examples. Do not invent undocumented fields, values, errors, performance claims, environment details, or technical conclusions.
 
-After editing, verify that code fences are paired and that JSON examples still parse when the document contains JSON examples.
+Before editing, trace factual changes to current code, project specifications, verified tests, or supplied authoritative material. Record source locations; report conflicts and unsupported claims without inventing resolutions. After cleanup, recheck changed facts and preserved identifiers, values, examples, and qualifiers against those sources and the original diff; also verify paired code fences and parse JSON examples. Report unresolved facts and verification limits.
