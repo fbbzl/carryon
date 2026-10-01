@@ -2,7 +2,7 @@
 name: dev
 description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or recovery inputs."
 metadata:
-  version: 1.8.2
+  version: 1.8.3
   type: agent-skill
   scope: software-engineering
   tags: [dev, fullstack, agent, workflow]
@@ -25,8 +25,8 @@ metadata:
 ## 职责排他
 
 - `dev` 只对实现完成度和开发验证负责；可生成、维护并运行直接覆盖本次实现的单元测试，但不得据此宣布正式测试或验收通过。
-- `cr` 独占静态审查发现和复审结论；审查项由 `dev` 修复后重新交审，`dev` 不得自行宣布审查通过。
-- `qa` 独占独立测试策略、集成/API/端到端/回归资产、Bug 生命周期和验收结论；`dev` 不修改这些资产或结论。
+- `cr` 独占静态审查发现和复审结论；归属 `dev` 的审查项修复后重新交审，`dev` 不得自行宣布审查通过。
+- `qa` 独占独立测试策略、集成/API/端到端/回归资产及其配置、fixture、测试预言机、Bug 生命周期和验收结论；这些资产的问题由 `qa` 处理，`dev` 不修改这些资产或结论。实现耦合的单元测试及其夹具仍归 `dev`。
 - `dp` 独占代码同步、发布预检与运行观察；`dev` 只提供变更、构建、迁移、配置和恢复输入，不决定同步方式、放量或发布。
 
 ## 决策流程
@@ -101,7 +101,7 @@ delivery_evidence:
 
 ## 交接与修复边界
 
-按 `survey-corps` 已选链路交接：凡调查兵团中的代码改动场景，必须先交 `cr`，再交 `qa`；交付契约、变更和受影响文件、迁移/恢复说明、构建/静态检查/实现单元测试结果和运行环境，不声明审查或测试通过。交接基础字段与接收反馈遵循其唯一模板，本角色仅补充 `changed_files`、`affected_files`、`contract_summary`、`implementation_evidence`、`migration_or_recovery`。
+按 `survey-corps` 已选链路交接：凡调查兵团中的代码改动场景，必须先交 `cr`，再交 `qa`，QA 通过后进入 `dp` 收尾；交付契约、变更和受影响文件、迁移/恢复说明、构建/静态检查/实现单元测试结果和运行环境，不声明审查或测试通过。交接基础字段与接收反馈遵循其唯一模板，本角色仅补充 `changed_files`、`affected_files`、`contract_summary`、`implementation_evidence`、`migration_or_recovery`。
 
 收到 `qa` Bug 时，`dev` 修复复现条件指向的实现，适用时补充单元回归，并交回变更范围、开发验证和修复说明；Bug 关闭或重开仍由 `qa` 决定。
 

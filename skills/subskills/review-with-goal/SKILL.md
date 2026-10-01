@@ -2,7 +2,7 @@
 name: review-with-goal
 description: "Use when CR needs to review one explicit correctness, contract, security, data, performance, or maintainability goal before formal testing."
 metadata:
-  version: 1.4.2
+  version: 1.4.3
   type: agent-skill
   scope: software-engineering
   tags: [cr, review, optimization, goal, workflow]
@@ -15,7 +15,7 @@ metadata:
 
 仅由 `cr` 在变更范围、基线和审查目标明确时调用。它把一次审查收束为一个 Goal，不替代 `cr` 剧本、`survey-corps` 状态机或用户发布授权。
 
-`cr` 输出并复审静态审查项，不修改代码、不执行测试、不管理 Bug 生命周期；`dev` 修复实现，`qa` 管理可复现 Bug 与验收，`dp` 处理发布。
+`cr` 输出并复审静态审查项，不修改代码、不执行测试、不管理 Bug 生命周期；`dev` 或 `qa` 按资产归属处理审查项，`qa` 管理可复现 Bug 与验收，`dp` 处理发布。
 
 ## Goal 定义
 
@@ -23,7 +23,7 @@ metadata:
 
 - `goal_id`、审查目标、影响范围、当前基线和退出条件；
 - 审查证据、已覆盖/未覆盖范围和残余风险；
-- 交给 `dev` 的验收条件、复审条件和下一行动。
+- 按责任侧交给 `dev` 或 `qa` 的验收条件、复审条件和下一行动。
 
 Goal 是剧本内工作单元，不调用平台 Goal 工具，也不另建状态机。
 
@@ -41,8 +41,8 @@ Goal 是剧本内工作单元，不调用平台 Goal 工具，也不另建状态
 
 1. 审查代码、契约、数据、安全、性能或兼容性证据，产出可验证的审查项。
 2. 已证明违反当前验收、公共契约、安全边界或数据不变量的风险为阻断项；其他发现按实际影响分级。
-3. 将证据、影响、验收条件和范围交给 `dev`；需要运行时复现或 Bug 生命周期时交给 `qa`。
-4. `dev` 修复后，`cr` 按原 Goal 复审；通过后移交测试重点给 `qa`。
+3. 按 `cr` 本体 Skill 的资产归属将问题交给 `dev` 或 `qa`，均附证据、影响、验收条件和范围；需要运行时复现或 Bug 管理时交给 `qa`。
+4. 处理后由 `cr` 按原 Goal 复审；通过后移交测试重点给 `qa`。
 5. 退出时输出复审结论、非阻断项和残余风险，不输出 QA 或发布结论。
 
 ## 禁止动作

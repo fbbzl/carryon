@@ -2,7 +2,7 @@
 name: qa
 description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
 metadata:
-  version: 1.9.2
+  version: 1.9.3
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, agent, workflow]
@@ -33,7 +33,9 @@ metadata:
 
 当一个测试工作单元可表达为明确的行为或风险目标时，调用 [test-with-goal](../subskills/test-with-goal/SKILL.md)。Goal 绑定现有 `work_unit_id`、版本和环境，记录目标、范围、测试资产、证据、退出条件和残余风险；它不是 Codex 平台任务，也不创建独立状态机。
 
-测试发现缺陷时，先建立可重复失败复现，再由 `qa` 登记带有复现条件、预期/实际结果、影响范围和证据的 Bug，交给 `dev` 修复。`dev` 返回修复说明后，`qa` 复测原复现和受影响范围，独占决定关闭或重开 Bug。
+测试发现产品缺陷时，先建立可重复失败复现，再由 `qa` 登记带有复现条件、预期/实际结果、影响范围和证据的 Bug，交给 `dev` 修复。修复后先交 `cr` 复审，再由 `qa` 复测原复现和受影响范围，独占决定关闭或重开 Bug。
+
+独立测试资产及其配置、fixture、测试预言机问题由 `qa` 修复，测试环境或测试数据问题由 `qa` 处理或协调；涉及业务实现、配置或实现单元测试的改动仍交给 `dev`。新增或修改代码（含测试代码）、配置后先交 `cr` 复审，再执行正式测试；仅恢复测试环境或数据且 CR 证据仍有效时可直接复测。异常复现、Bug 登记和测试准备可在 CR 前执行，不构成正式验收。
 
 ## 决策流程
 
@@ -54,14 +56,14 @@ metadata:
 
 性能敏感或并发变化必须在目标环境或有对照证据的代表性环境中，预先定义规模、并发度、重复次数或持续时间、观察指标和判定阈值，再按风险选择基准、负载、竞争与调度的相称组合；不能用覆盖率或小样本绿灯扩大结论。并发正确性或数据不变量属于变更目标或关键风险时，代表性验证缺失必须进入阻断范围，不得降为条件通过。
 
-测试数据必须可重复、可清理、可审计。当前测试执行因环境漂移、数据污染或 flaky 无法形成有效结果时，结论为 `blocked`，非 P0/P1 状态进入 `qa_failed`；已有结论后来因环境、夹具或证据失效时才进入 `needs_revalidation`，并以 `resume_state=ready_for_qa` 复测。两种情况都不能用偶然通过替代验证。
+测试数据必须可重复、可清理、可审计。当前测试执行因环境漂移、数据污染或 flaky 无法形成有效结果时，结论为 `blocked`，非 P0/P1 状态进入 `qa_failed`；已有结论后来失效时进入 `needs_revalidation`，按最早失效环节恢复：代码或配置改变先回 `ready_for_cr`，仅测试环境或数据恢复且 CR 证据仍有效时回 `ready_for_qa`。两种情况都不能用偶然通过替代验证。
 
 ## 门禁
 
 Bug 按 `open -> assigned -> fixed -> retest -> closed` 流转，复测失败进入 `reopened -> assigned`；记录来源、严重级别、复现环境/步骤、预期/实际结果、责任侧、修复证据和关闭原因。
 
 - 当前范围内仍有阻断 Bug、达到阻断级别且未归档的反馈、关键风险无证据或退出标准未满足时，不能输出通过结论；无关或非阻断事项记录后不扩大结论范围。
-- 需求解释冲突转 `req`；契约、安全或影响范围问题走 `qa -> dev -> cr -> qa`。
+- 需求解释冲突转 `req`；契约、安全或影响范围问题走 `qa -> dev -> cr -> qa`。代码（含测试代码）或配置发生变化时不得从 `qa` 直接跳到 `dp`，必须先经 `cr` 再复测。
 - 测试资产必须可运行且实际执行；安全、权限、金额和数据一致性测试需要与风险相称的独立证据。
 
 用例必须标注需求或风险来源，并包含前置条件、步骤、预期结果和优先级；测试代码必须实际运行，不能以空壳覆盖率作为证据。
@@ -104,4 +106,4 @@ test_report:
 
 ## 输出与交接
 
-测试计划、需求-用例追踪、测试用例与结果、反馈/Bug/复测记录、功能测试报告、验收结论、未测风险和给 `dp` 的发布测试输入；交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `test_scope`、`test_results`、`bug_retest`、`acceptance_conclusion`、`untested_risks`、`release_test_input`。
+测试计划、需求-用例追踪、测试用例与结果、反馈/Bug/复测记录、功能测试报告、验收结论和未测风险；在调查兵团的代码改动场景中，同一最终基线的 CR 证据有效、`conclusion=pass` 且 QA 交接状态为 `qa_passed` 后只交给 `dp` 收尾。独立发布场景按实际选定链路交付，发布场景适用时补充给 `dp` 的 `release_test_input`。交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `test_scope`、`test_results`、`bug_retest`、`acceptance_conclusion`、`untested_risks`、`release_test_input`（发布场景适用）。

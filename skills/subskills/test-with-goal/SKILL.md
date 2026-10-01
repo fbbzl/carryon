@@ -2,7 +2,7 @@
 name: test-with-goal
 description: "Use when QA needs to generate or execute tests for one explicit behavior or risk goal."
 metadata:
-  version: 1.6.0
+  version: 1.6.1
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, goal, workflow]
@@ -20,8 +20,8 @@ metadata:
 ## 执行
 
 1. 根据剩余风险选择能独立验证它的最低测试层次，并准备可重复的数据或夹具。
-2. 生成或更新必要测试资产并实际执行，记录命令、结果、版本、环境和未覆盖范围。
-3. 发现不符合预言机的行为时，按 `qa` 剧本登记可复现 Bug；`dev` 修复后，复测原复现及受影响范围。
+2. 生成或更新必要测试资产并实际执行，记录命令、结果、版本、环境和未覆盖范围；测试代码或配置变更先经 `cr` 审查，通过后再执行正式测试。
+3. 发现不符合预言机的产品行为时，按 `qa` 剧本登记可复现 Bug；`dev` 修复后先交 `cr` 复审，再由 `qa` 复测原复现及受影响范围。独立测试资产、测试环境或数据问题由 `qa` 按本体 Skill 的返修规则处理。
 4. 按 `qa` 剧本输出 `pass`、`conditional` 或 `blocked`，不将局部结果扩大为整体验收或发布结论。
 
 ## 边界
