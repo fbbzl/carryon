@@ -36,7 +36,7 @@ metadata:
 
 用户要求同步代码时，`dp` 按改动形态只选择一种专属子 Skill：把干净提交复制到另一分支用 [sync-with-cherrypick](../subskills/sync-with-cherrypick/SKILL.md)，把未提交文件搬到另一分支用 [sync-with-stash](../subskills/sync-with-stash/SKILL.md)，让当前工作分支追上同源基线用 [sync-with-rebase](../subskills/sync-with-rebase/SKILL.md)，两条独立分支线合流用 [sync-with-merge](../subskills/sync-with-merge/SKILL.md)。明确的同步请求覆盖必要的只读检查、本地切换、应用与验证，不逐步重复确认；额外 `git commit`、push、远端历史重写、受保护分支写入和删除仍需在用户请求中明确授权。冲突语义、目标分支或改动范围不清时停止并请用户决定。
 
-同步代码时使用 `survey-corps` 的同步状态并输出同步结果。`synced` 只表示同步动作成功；调查兵团中的同步必须把最终代码基线交给 `cr -> qa`，通过后再由 `dp` 收尾。独立、非调查兵团的纯 Git 搬运可在同步成功后结束；同步成功不表示审查、测试或发布通过。
+同步代码时使用 `survey-corps` 的同步状态并输出同步结果。`synced` 只表示同步动作成功；调查兵团中的同步必须把最终代码基线交给 `cr -> qa`，通过后再由 `dp` 收尾。独立、非调查兵团且不涉及代码改动的纯 Git 搬运可在同步成功后结束；同步成功不表示审查、测试或发布通过。
 
 ## 决策流程
 
