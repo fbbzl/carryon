@@ -92,6 +92,7 @@ cd D:\workspace\carryon\init
 - `skills/cr/SKILL.md` — 代码审查代理剧本（含 AI 辅助审查）
 - `skills/qa/SKILL.md` — 测试代理剧本（含 AI 辅助测试生成）
 - `skills/dp/SKILL.md` — 代码同步、发布预检、恢复建议与交付报告剧本（最终发布由用户或授权方执行）
+- `skills/skill-eval/SKILL.md` — 按 B/E/C/S/V 标准对其他 skill 进行证据化评分
 - `skills/create-apidocs/SKILL.md` — 从代码生成项目专属 API 文档
 - `skills/humanity-tech-docs/SKILL.md` — 技术文档准确性审查与语言清理
 - `skills/subskills/align-with-visuals/SKILL.md` — 需求可视化对齐流程
