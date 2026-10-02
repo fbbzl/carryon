@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes or releases. The shorthand `sc` starts this workflow."
 metadata:
-  version: 2.9.0
+  version: 2.9.1
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, workflow]
@@ -47,7 +47,7 @@ metadata:
 | 发布预检或交付 | `dp`；包含代码改动时先完成相应场景的 `cr -> qa` | 无 |
 | 代码或分支同步 | `dp（同步） -> cr -> qa -> dp（收尾）` | 按改动形态选择一种 Git 同步 Skill |
 
-需求或影响不明时先由 `req` 收敛，再选择主场景。代码变更同时符合多行时，按缺陷修复、量化优化、受控重构、功能变更的顺序选择；未登记异常先由 `qa` 复现登记，已登记缺陷从 `dev` 开始。优化先由 `cr` 形成审查项；已有有效审查项时直接交 `dev`，实施后仍须复审。
+需求或影响不明时先由 `req` 收敛，再选择主场景。代码变更同时符合多行时，按缺陷修复、量化优化、受控重构、功能变更选择主链路；混合目标拆分工作单元并保留各自门禁。未登记异常先由 `qa` 复现登记，已登记缺陷从 `dev` 开始。优化先由 `cr` 建项，实施后复审。
 
 高风险包括公共 API、权限、数据库或迁移、金额/事务、生产环境和不可逆操作，是所有主场景的叠加门槛：需求或验收未确认时前置 `req`，实施前确认方案协议，不因风险等级替换缺陷、优化等主链路。纯同步或发布预检按各自场景执行；同时包含实现时，将不同目标拆为工作单元按依赖衔接，不跳过各场景角色。单一职责工作直接使用对应角色 Skill，Git 同步一次只选择一种专属 Skill。
 
@@ -99,7 +99,7 @@ work_unit:
 
 场景链路由上表确定；只运行当前场景选择的角色。每次交接使用：
 
-开发场景状态为 `confirmed -> planned -> dev_in_progress -> ready_for_cr -> ready_for_qa -> qa_passed -> workflow_ready`；QA 通过后以 `qa_passed` 交给 `dp`，收尾完成后整体状态记 `workflow_ready`。仅任务包含部署或运行观察时继续 `workflow_ready -> deployed -> verified`。高风险事项尚待裁决时前置 `needs_user_confirm`；CR 阻断走 `cr_blocked -> ready_for_cr`，`qa_failed` 或 `qa_conditional` 按下文返修闭环处理，不能进入收尾或工作流完成。已回滚记 `rolled_back`；P0/P1 或未授权执行进入 `blocked`。
+开发场景状态为 `confirmed -> planned -> dev_in_progress -> ready_for_cr -> ready_for_qa -> qa_passed -> workflow_ready`；优化先由 `planned -> ready_for_cr` 建项，再进入 `dev_in_progress`，实施后复用 `ready_for_cr` 复审。QA 通过后以 `qa_passed` 交给 `dp`，收尾完成后整体状态记 `workflow_ready`。仅任务包含部署或运行观察时继续 `workflow_ready -> deployed -> verified`。高风险事项尚待裁决时前置 `needs_user_confirm`；CR 阻断走 `cr_blocked -> ready_for_cr`，`qa_failed` 或 `qa_conditional` 按下文返修闭环处理，不能进入收尾或工作流完成。已回滚记 `rolled_back`；P0/P1 或未授权执行进入 `blocked`。
 
 代码同步场景由 `dp` 使用 `sync_pending -> sync_in_progress -> synced | sync_blocked`，并记录同步方式、前后版本、验证和未解决风险；`synced` 后转入 `ready_for_cr`。`synced` 只表示同步动作成功，不表示审查或测试通过；最终代码基线必须经过 `cr -> qa`，通过后再由 `dp` 收尾。
 

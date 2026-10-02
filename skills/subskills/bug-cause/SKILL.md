@@ -2,7 +2,7 @@
 name: bug-cause
 description: "Use when dev needs an evidence-based root-cause analysis for a QA-registered, reproducible Bug before or alongside implementation repair. Do not use to register, close, or retest Bugs."
 metadata:
-  version: 1.0.0
+  version: 1.0.1
   type: agent-skill
   scope: software-engineering
   tags: [bug-cause, dev, root-cause, diagnosis]
@@ -22,7 +22,7 @@ metadata:
 
 ## 分析流程
 
-1. 固定基线：记录 Bug、需求或契约 ID，提交版本，环境，输入数据，复现步骤，预期/实际行为和观察时间。
+1. 固定基线：记录 Bug、需求或契约 ID，提交版本、环境、输入数据、复现步骤和预期/实际行为。
 2. 还原因果链：从失败现象沿调用、状态、数据和配置边界反向追踪，定位首次偏离预期的位置；区分直接原因、促成条件和触发条件。
 3. 建立可证伪假设：每个假设写明证据、反证条件和最小验证动作；一次只改变一个变量，不用连续猜测叠加补丁。
 4. 验证根因：使用日志、Trace、断点、最小复现或回归测试验证因果链。无法稳定复现或证据不足时，输出未确认假设和下一步观测，不得宣称根因已确定。

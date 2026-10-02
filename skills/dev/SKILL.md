@@ -2,7 +2,7 @@
 name: dev
 description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or recovery inputs."
 metadata:
-  version: 1.8.3
+  version: 1.8.4
   type: agent-skill
   scope: software-engineering
   tags: [dev, fullstack, agent, workflow]
@@ -17,7 +17,7 @@ metadata:
 
 核心任务：
 
-1. 读取当前场景上游交接的已确认任务；该场景包含 `req` 时读取其需求、图表和验收标准，并拆解工作单元。
+1. 读取上游已确认的需求/验收项；未确认项不进入实现，并拆解工作单元。
 2. 设计并实现页面、路由、状态、API 契约、权限、领域模型和持久化。
 3. 说明兼容性、事务、缓存/MQ、迁移、回滚/降级/补偿与可观测性。
 4. 交付变更文件、实现单元测试、验证结果、影响范围、运行说明和已知风险。

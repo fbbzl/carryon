@@ -2,7 +2,7 @@
 name: cr
 description: "Use when code or design changes need evidence-based review of correctness, contracts, security, data, performance, or maintainability before formal testing."
 metadata:
-  version: 1.11.0
+  version: 1.11.1
   type: agent-skill
   scope: software-engineering
   tags: [cr, code-review, agent, workflow]
@@ -86,6 +86,6 @@ metadata:
 
 代码/设计/数据库/API 审查报告、影响链、审查项、复审记录、提测输入和剩余风险。
 
-审查项交给所属的 `dev` 或 `qa`；处理后均交回 `cr` 复审。通过后交给 `qa`：审查结论、证据、测试重点和非阻断风险；交接基础字段遵循 `survey-corps`，本角色补充 `review_decision`、`blocking_findings`、`review_evidence`、`test_focus`、`non_blocking_risks`。
+审查项交给所属的 `dev` 或 `qa`；处理后均交回 `cr` 复审。通过后交给 `qa`：审查结论、证据、测试重点和非阻断风险；交接基础字段遵循 `survey-corps`，本角色补充 `blocking_findings`、`review_evidence`、`test_focus`、`non_blocking_risks`。
 
 P0/P1 或确有运行影响的审查项关联 `event_id`、`health_effect` 和发布限制；普通高风险项至少保留复审记录及退出条件。

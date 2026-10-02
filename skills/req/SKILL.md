@@ -2,7 +2,7 @@
 name: req
 description: "Use when user intent needs requirement clarification, business modeling, acceptance criteria, boundary definition, or change-impact analysis before implementation."
 metadata:
-  version: 1.4.4
+  version: 1.4.5
   type: agent-skill
   scope: software-engineering
   tags: [req, product, agent, workflow]
@@ -31,7 +31,7 @@ metadata:
 
 - 每条需求和验收标准有稳定 ID，可追踪到代码、测试和发布产物。
 - 没有成功指标时，定义可观察的行为结果；没有确认的高风险事项不能作为确定契约交给 `dev`。
-- 已有明确来源的范围可以进入 `confirmed`；未解决的高风险事项只阻断受影响范围，无争议范围继续推进。
+- 下游只接收已确认的需求/验收项；未决高风险项只阻断受影响范围。
 - 需求或关键规则变化时，将受影响下游结论标记为 `needs_revalidation`，不得静默复用。
 
 ## 对齐策略与子技能

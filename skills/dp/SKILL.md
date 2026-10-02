@@ -2,7 +2,7 @@
 name: dp
 description: "Use when code changes need branch synchronization, release preflight, recovery assessment, health observation, or delivery reporting."
 metadata:
-  version: 1.7.1
+  version: 1.7.2
   type: agent-skill
   scope: software-engineering
   tags: [dp, devops, git, sync, deployment, agent, workflow]
@@ -30,7 +30,7 @@ metadata:
 - `cr` 独占代码、契约、安全和数据审查；`dp` 只确认相应审查证据已作为预检输入，不重做审查。
 - `qa` 独占正式测试与验收；`dp` 只消费测试范围、结论和未测风险，不执行或改写测试结论。
 
-交付场景的边界是 `dp` 完成预检并交给用户，由用户决定并执行部署；用户回传部署记录后，`dp` 再进行健康观察与交付判断。只有用户明确授权时，其他执行主体才可进入部署动作。
+交付场景由 `dp` 完成预检并交给用户决定部署；用户回传部署记录后，`dp` 再进行健康观察与交付判断。生产部署由用户或其明确指定的非 AI 执行者操作。
 
 ## 专属 Git 同步 Skill
 
@@ -66,7 +66,7 @@ metadata:
 普通收尾只需核心任务中的收尾记录，不要求发布方案、健康窗口或发布授权。发布预检、恢复或运行观察的门禁与报告只按任务实际范围启用。
 
 - 涉及发布或运行观察时，发布方案必须说明构建输入、环境变量、迁移处理、可观测性、风险、回滚路径和触发条件。
-- 发布预检先判质量与运行门禁：缺少健康门禁、恢复路径或关键证据即 `no_go`，授权不得覆盖预检失败。仅预检通过且部署未开始时，授权 `not_requested|pending|granted` 保持 `preflight_ready + preflight_pass`，`rejected|expired` 为 `preflight_ready + no_go`；实际开始部署且没有有效的 `granted` 才进入 `blocked`。
+- 发布预检先判质量与运行门禁：缺少健康门禁、恢复路径或关键证据即 `no_go`，授权不得覆盖预检失败。仅预检通过且部署未开始时，授权 `not_requested|pending|granted` 对应 `conclusion=preflight_pass`，`rejected|expired` 对应 `conclusion=no_go`；实际开始部署且没有有效的 `granted` 才进入 `blocked`。
 - 调查兵团的代码改动场景只有在同一最终基线的 CR 明确通过且 QA 达到 `conclusion=pass`、交接状态为 `qa_passed` 后才进入 `dp` 收尾；`qa_conditional` 或 `qa_failed` 交回上游按 `survey-corps` 规则处理。收尾不新增质量门禁；用户尚未 push 或未开始部署不影响代码工作流完成。同步产生新代码基线时须重新经过 `cr -> qa`，其他证据失效按最早失效环节恢复。
 - 涉及发布或运行观察时，活动 P0/P1、`unstable` 或例外过期必须 `no_go`；紧急例外只授权恢复动作，不能跳过恢复验证和观察窗口。
 - 独立、非调查兵团的发布场景如需消费 `qa_conditional`，仍须核对当前版本/环境、`degraded` 健康快照、风险接受证据、补偿控制和有效期；任一缺失或过期即 `no_go`。
