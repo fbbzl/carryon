@@ -97,7 +97,7 @@ work_unit:
 
 场景链路由上表确定；只运行当前场景选择的角色。每次交接使用：
 
-开发场景状态为 `confirmed -> planned -> dev_in_progress -> ready_for_cr -> ready_for_qa -> qa_passed -> ready`；QA 通过后以 `qa_passed` 交给 `dp`，收尾完成后整体状态记 `ready`。仅任务包含部署或运行观察时继续 `ready -> deployed -> verified`。高风险事项尚待裁决时前置 `needs_user_confirm`；CR 阻断走 `cr_blocked -> ready_for_cr`，`qa_failed` 或 `qa_conditional` 按下文返修闭环处理，不能进入收尾或工作流完成。已回滚记 `rolled_back`；P0/P1 或未授权执行进入 `blocked`。
+开发场景状态为 `confirmed -> planned -> dev_in_progress -> ready_for_cr -> ready_for_qa -> qa_passed -> workflow_ready`；QA 通过后以 `qa_passed` 交给 `dp`，收尾完成后整体状态记 `workflow_ready`。仅任务包含部署或运行观察时继续 `workflow_ready -> deployed -> verified`。高风险事项尚待裁决时前置 `needs_user_confirm`；CR 阻断走 `cr_blocked -> ready_for_cr`，`qa_failed` 或 `qa_conditional` 按下文返修闭环处理，不能进入收尾或工作流完成。已回滚记 `rolled_back`；P0/P1 或未授权执行进入 `blocked`。
 
 代码同步场景由 `dp` 使用 `sync_pending -> sync_in_progress -> synced | sync_blocked`，并记录同步方式、前后版本、验证和未解决风险；`synced` 后转入 `ready_for_cr`。`synced` 只表示同步动作成功，不表示审查或测试通过；最终代码基线必须经过 `cr -> qa`，通过后再由 `dp` 收尾。
 
