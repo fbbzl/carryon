@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes or releases. The shorthand `sc` starts this workflow."
 metadata:
-  version: 2.8.0
+  version: 2.9.0
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, dp, workflow]
@@ -38,16 +38,18 @@ metadata:
 
 | 情形 | 场景链路 | 需要时使用的从属 Skill |
 | --- | --- | --- |
-| 需求或影响不明 | `req`；需求收敛后按当前场景选择后续链路 | 文档冲突且高风险：`grill-with-docs`；视觉化能消除歧义：`align-with-visuals` |
+| 需求或影响不明 | `req`；需求收敛后按当前场景选择后续链路 | 有文档且存在高风险歧义：`grill-with-docs`；视觉化能消除歧义：`align-with-visuals` |
 | 已确认的功能或行为变更 | `dev -> cr -> qa -> dp` | 无 |
 | 受控重构 | `dev -> cr -> qa -> dp` | `refactor-with-goal`、`test-with-goal` |
 | 未登记异常 | `qa -> dev -> cr -> qa -> dp` | `bugfix`、`test-with-goal` |
 | 已登记缺陷 | `dev -> cr -> qa -> dp` | `bugfix`、`test-with-goal` |
-| 高风险实现 | `req -> dev -> cr -> qa -> dp` | 各角色按本体 Skill 选择 |
+| 性能、容量、成本或资源效率优化 | `cr（建项） -> dev -> cr（复审） -> qa -> dp` | `optimize` |
 | 发布预检或交付 | `dp`；包含代码改动时先完成相应场景的 `cr -> qa` | 无 |
 | 代码或分支同步 | `dp（同步） -> cr -> qa -> dp（收尾）` | 按改动形态选择一种 Git 同步 Skill |
 
-不存在跨场景的默认链路或默认入口。每一行都是一个独立场景：按触发条件选择对应链路，不把其他场景的角色自动拼接进来，也不跳过该场景规定的角色。需求或影响不明时先由 `req` 收敛需求；`req` 完成后必须按当前场景选择具体后续链路，不得把 `req` 当作实现链路入口。未登记异常必须先由 `qa` 复现并登记，登记后的实现修复才可进入 `dev`；已登记缺陷直接从 `dev` 开始。高风险包括公共 API、权限、数据库或迁移、金额/事务、生产环境和不可逆操作；发布准备、交付或运行观察属于具体场景时，按表中位置使用 `dp`。代码同步场景中，`dp` 先执行同步动作，最终代码基线仍须经过 `cr -> qa`，通过后由 `dp` 收尾。单一职责工作直接使用对应角色 Skill，Git 同步一次只选择一种专属 Skill。
+需求或影响不明时先由 `req` 收敛，再选择主场景。代码变更同时符合多行时，按缺陷修复、量化优化、受控重构、功能变更的顺序选择；未登记异常先由 `qa` 复现登记，已登记缺陷从 `dev` 开始。优化先由 `cr` 形成审查项；已有有效审查项时直接交 `dev`，实施后仍须复审。
+
+高风险包括公共 API、权限、数据库或迁移、金额/事务、生产环境和不可逆操作，是所有主场景的叠加门槛：需求或验收未确认时前置 `req`，实施前确认方案协议，不因风险等级替换缺陷、优化等主链路。纯同步或发布预检按各自场景执行；同时包含实现时，将不同目标拆为工作单元按依赖衔接，不跳过各场景角色。单一职责工作直接使用对应角色 Skill，Git 同步一次只选择一种专属 Skill。
 
 ## 共同约束
 
