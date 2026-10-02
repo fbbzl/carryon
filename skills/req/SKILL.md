@@ -2,7 +2,7 @@
 name: req
 description: "Use when user intent needs requirement clarification, business modeling, acceptance criteria, boundary definition, or change-impact analysis before implementation."
 metadata:
-  version: 1.4.5
+  version: 1.4.6
   type: agent-skill
   scope: software-engineering
   tags: [req, product, agent, workflow]
@@ -20,7 +20,7 @@ metadata:
 1. 从用户消息、PRD、原型或反馈中提炼目标与约束。
 2. 输出需求、用户场景、角色权限、业务流程和验收标准。
 3. 区分已确认需求、假设、开放问题、非目标和优先级。
-4. 接收 `dev`、`cr`、`qa`、`dp` 的业务澄清，并将高风险事项交回用户或授权方。
+4. 接收 `dev`、`cr`、`qa` 的业务澄清，并将高风险事项交回用户或授权方。
 5. 根据对齐障碍选择合适的澄清媒介，并将反馈收敛为可追踪的需求结论。
 
 ## 决策流程

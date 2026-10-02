@@ -139,7 +139,6 @@
 - `skills/dev/SKILL.md`：全栈开发负责人。
 - `skills/cr/SKILL.md`：代码审查。
 - `skills/qa/SKILL.md`：测试与质量评估。
-- `skills/dp/SKILL.md`：同步、发布预检、恢复与交付报告。
 - `skills/req/SKILL.md`：需求分析。
 - `skills/subskills/grill-with-docs/SKILL.md`：基于文档的高风险问题澄清。
 

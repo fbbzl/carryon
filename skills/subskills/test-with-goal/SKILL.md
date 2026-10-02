@@ -2,7 +2,7 @@
 name: test-with-goal
 description: "Use when QA needs to generate or execute tests for one explicit behavior or risk goal."
 metadata:
-  version: 1.6.1
+  version: 1.6.2
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, goal, workflow]
@@ -27,4 +27,4 @@ metadata:
 ## 边界
 
 - 覆盖率、性能、时限或其他指标只在验收条件或风险需要时度量，使用项目适用的工具；不得仅为采集指标改动构建配置。
-- 不修改业务实现，不替代 `cr` 的审查、`dp` 的预检或用户的风险接受。
+- 不修改业务实现，不替代 `cr` 的审查或用户的风险接受与发布决策。

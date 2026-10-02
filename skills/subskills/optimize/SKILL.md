@@ -2,7 +2,7 @@
 name: optimize
 description: "Use only when CR returns an explicit optimization review item to dev with evidence and acceptance conditions. Do not invoke for self-initiated tuning, general cleanup, or user-requested optimization before CR review."
 metadata:
-  version: 1.2.1
+  version: 1.2.2
   type: agent-skill
   scope: software-engineering
   tags: [optimize, performance, dev, workflow]
@@ -11,7 +11,7 @@ metadata:
 
 # optimize
 
-仅在 `cr` 将明确的优化审查项反馈给 `dev` 后，以其目标和验收条件为边界完成性能、容量、成本或资源效率优化。`dev` 负责实现与开发验证；`cr` 复审原审查项，`qa` 独立验证行为与回归，`dp` 负责发布预检和运行观察；用户或授权方决定发布。
+仅在 `cr` 将明确的优化审查项反馈给 `dev` 后，以其目标和验收条件为边界完成性能、容量、成本或资源效率优化。`dev` 负责实现与开发验证；`cr` 复审原审查项，`qa` 独立验证行为与回归；用户或授权方负责发布预检、发布和运行观察。
 
 ## 适用边界
 
@@ -34,4 +34,4 @@ metadata:
 
 - 只有达到预算且没有超出已声明的行为、正确性、安全、容量或成本回归，才可声明开发目标完成；样本不足、方差失控或无法同口径对比的结果只作为观察，不作为优化结论。
 - 缓存、并发、批处理、降级和重试必须说明失效、背压、幂等性、超时和失败影响面；不得把压低错误率建立在吞错或丢数据上。
-- 交回 `cr`：原审查项 ID、基线/后测数据、负载模型、策略、契约不变量、变更和复审证据；交给 `qa`：关键行为、性能回归场景和未验证范围；交给 `dp`：可观测性、容量假设、开关及回退输入。
+- 交回 `cr`：原审查项 ID、基线/后测数据、负载模型、策略、契约不变量、变更和复审证据；交给 `qa`：关键行为、性能回归场景和未验证范围；将可观测性、容量假设、开关及回退输入交给用户或授权方。

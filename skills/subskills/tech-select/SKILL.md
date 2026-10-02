@@ -2,7 +2,7 @@
 name: tech-select
 description: "Use only while dev and the user are actively aligning an implementation approach that requires choosing among technologies, libraries, components, or integration patterns. Do not invoke after the approach is confirmed or for routine internal choices."
 metadata:
-  version: 1.2.1
+  version: 1.2.2
   type: agent-skill
   scope: software-engineering
   tags: [tech-select, architecture, dependencies, dev, workflow]
@@ -33,4 +33,4 @@ metadata:
 - 选型结论必须说明为什么当前推荐满足硬约束、哪些证据可复核、何时需要复审；没有足够证据时输出待决选项，不伪造确定性。
 - 评分矩阵仅在指标口径和权重有来源时使用；不得用任意权重或小数分数掩盖证据不确定性。
 - 新依赖必须说明版本兼容、许可、安全更新责任、构建/部署影响和移除路径；不得绕过项目依赖管理或本地技术规范。
-- 将推荐、备选、风险和待确认事项呈现给用户；用户确认后才写入方案协议并转入 `dev` 常规实现。需要跨角色裁决的结论交给 `survey-corps`，并将依赖和契约影响交给 `cr`、验证重点交给 `qa`、运行与回退输入交给 `dp`。
+- 将推荐、备选、风险和待确认事项呈现给用户；用户确认后才写入方案协议并转入 `dev` 常规实现。需要跨角色裁决的结论交给 `survey-corps`，并将依赖和契约影响交给 `cr`、验证重点交给 `qa`；运行与回退输入交给用户或授权方。

@@ -2,7 +2,7 @@
 name: qa
 description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
 metadata:
-  version: 1.9.3
+  version: 1.9.5
   type: agent-skill
   scope: software-engineering
   tags: [qa, testing, agent, workflow]
@@ -24,10 +24,10 @@ metadata:
 
 ## 职责排他
 
-- `qa` 的唯一结论是“测试与验收是否通过、条件通过或阻断”；该结论不等同于 `dp` 的发布预检或用户的最终发布授权。
+- `qa` 的唯一结论是“测试与验收是否通过、条件通过或阻断”；该结论不等同于用户的风险接受或发布授权。
 - `dev` 独占业务实现及实现单元测试；`qa` 可复跑其交付命令核验证据，但不维护这些单元测试。
 - `cr` 独占静态审查与复审；`qa` 按测试重点验证运行行为并管理可复现 Bug，不改写审查结论。
-- `dp` 独占代码同步、发布预检和运行观察；`qa` 只提供当前版本、环境和风险的测试输入，不决定同步方式、Go/No-Go 或部署策略。
+- 代码同步、发布预检和运行观察由用户或授权方负责；`qa` 只提供当前版本、环境和风险的测试结论，不决定 Go/No-Go 或部署策略。
 
 ## Goal 驱动测试
 
@@ -63,7 +63,7 @@ metadata:
 Bug 按 `open -> assigned -> fixed -> retest -> closed` 流转，复测失败进入 `reopened -> assigned`；记录来源、严重级别、复现环境/步骤、预期/实际结果、责任侧、修复证据和关闭原因。
 
 - 当前范围内仍有阻断 Bug、达到阻断级别且未归档的反馈、关键风险无证据或退出标准未满足时，不能输出通过结论；无关或非阻断事项记录后不扩大结论范围。
-- 需求解释冲突转 `req`；契约、安全或影响范围问题走 `qa -> dev -> cr -> qa`。代码（含测试代码）或配置发生变化时不得从 `qa` 直接跳到 `dp`，必须先经 `cr` 再复测。
+- 需求解释冲突转 `req`；契约、安全或影响范围问题走 `qa -> dev -> cr -> qa`。代码（含测试代码）或配置发生变化时，必须先经 `cr` 再复测。
 - 测试资产必须可运行且实际执行；安全、权限、金额和数据一致性测试需要与风险相称的独立证据。
 
 用例必须标注需求或风险来源，并包含前置条件、步骤、预期结果和优先级；测试代码必须实际运行，不能以空壳覆盖率作为证据。
@@ -77,7 +77,6 @@ test_report:
   observed_at:
   valid_until:
   environment:
-  health_state: healthy | degraded | unstable | recovering
   tested_scope: []
   untested_scope: []
   blocked_scope: []
@@ -89,21 +88,21 @@ test_report:
   next_action:
 ```
 
-结论与交接状态必须一一对应；健康状态仍由全局证据决定：
+结论与交接状态必须一一对应，并绑定当前版本和环境：
 
-| 测试结论 | 工作流状态 | 健康状态 | 最低条件 |
-| --- | --- | --- | --- |
-| `pass` | `qa_passed` | 不单独改变；无条件发布要求 `healthy` | 当前版本与环境的测试退出标准全部满足 |
-| `conditional` | `qa_conditional` | `degraded` | 已知非阻断风险、接受人及证据、补偿控制、有效期和复查条件完整 |
-| `blocked`（非 P0/P1） | `qa_failed` | 按影响为 `degraded` / `unstable` | 明确阻断范围、禁止动作和复测退出条件 |
-| `blocked`（P0/P1） | `blocked` | `unstable` | 关联事件、`blocked_from=ready_for_qa`、影响范围、冻结动作和恢复退出条件 |
+| 测试结论 | 工作流状态 | 最低条件 |
+| --- | --- | --- |
+| `pass` | `qa_passed` | 当前版本与环境的测试退出标准全部满足 |
+| `conditional` | `qa_conditional` | 已知非阻断风险、接受人及证据、补偿控制、有效期和复查条件完整 |
+| `blocked`（非 P0/P1） | `qa_failed` | 明确阻断范围、禁止动作和复测退出条件 |
+| `blocked`（P0/P1） | `blocked` | 关联事件、`blocked_from=ready_for_qa`、影响范围、冻结动作和恢复退出条件 |
 
 同一测试结论只选择一个工作流状态；确认 P0/P1 时由全局 `blocked` 规则优先，不再同时保留 `qa_failed`。
 
-“通过”必须写明适用版本、环境和观察窗口，不能由局部测试推出系统整体 `healthy`。`qa` 只记录条件风险，不能代替用户或授权方接受风险；条件结论过期、控制失效或范围变化时进入 `needs_revalidation`，不得沿用。
+“通过”必须写明适用版本、环境和已验证范围，不能由局部测试扩大为系统整体结论。`qa` 只记录条件风险，不能代替用户或授权方接受风险；条件结论过期、控制失效或范围变化时进入 `needs_revalidation`，不得沿用。
 
-发现已发生或迫近且影响达到 `survey-corps` 定义的生产中断、重大安全、数据损坏或关键流程失效时，`qa` 创建或关联 P0/P1 事件。普通测试或发布门禁失败保持 `qa_failed` 或 `no_go`，不自动升级为事故。
+发现已发生或迫近且影响达到 `survey-corps` 定义的生产中断、重大安全、数据损坏或关键流程失效时，`qa` 创建或关联 P0/P1 事件。普通测试失败保持 `qa_failed`，不自动升级为事故。
 
 ## 输出与交接
 
-测试计划、需求-用例追踪、测试用例与结果、反馈/Bug/复测记录、功能测试报告、验收结论和未测风险；在调查兵团的代码改动场景中，同一最终基线的 CR 证据有效、`conclusion=pass` 且 QA 交接状态为 `qa_passed` 后只交给 `dp` 收尾。独立发布场景按实际选定链路交付，发布场景适用时补充给 `dp` 的 `release_test_input`。交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `test_scope`、`test_results`、`bug_retest`、`acceptance_conclusion`、`untested_risks`、`release_test_input`（发布场景适用）。
+测试计划、需求-用例追踪、测试用例与结果、反馈/Bug/复测记录、功能测试报告、验收结论和未测风险；在调查兵团的代码改动场景中，同一最终基线的 CR 证据有效、`conclusion=pass` 且 QA 交接状态为 `qa_passed` 后交给编排者核验完成门禁。测试结论和未测风险交付给用户或授权方；本角色仅补充 `test_scope`、`test_results`、`bug_retest`、`acceptance_conclusion`、`untested_risks`。
