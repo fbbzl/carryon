@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes. The shorthand `sc` starts this workflow."
 metadata:
-  version: 3.0.0
+  version: 3.0.6
   type: agent-skill
   scope: software-engineering
   tags: [survey-corps, req, dev, cr, qa, workflow]
@@ -16,6 +16,46 @@ metadata:
 ## 启动别名
 
 用户明确说“启动 `sc`”“运行 `sc`”或等价表达时，无论任务看起来需要几个角色，都启动调查兵团，并继续遵守本技能的最小角色链、subagent-only 和交接约束。`sc` 只是调查兵团的简称，不代表普通会话、独立任务或另一套工作流。
+
+显式启动 `sc` 后，编排者必须立即为**当前 Codex 任务**创建并展示一个任务范围内的 SC 总任务视图。每个 `work_unit_id` 的稳定 `view_id` 及文件名片段按以下规则生成：仅当 ID 匹配 `^[A-Za-z0-9_-]{1,80}$` 时使用 `sc-task-view--<work_unit_id>`；其他合法任务 ID 使用其 UTF-8 字节的 SHA-256 全量小写十六进制摘要，即 `sc-task-view--sha256-<64-hex>`。原始 ID 只作为页面文本展示，绝不作为路径片段。产物位置为当前任务由宿主提供的可视化产物目录中的 `<view_id>.html`；不得为同一工作单元另起视图 ID。优先使用当前环境能够内嵌展示 HTML 的可视化能力；视图源模板为同目录的 `sc-task-view.html`，由编排者复制后以当前 `work_unit`、角色进度与 `handoff` 快照填充。`req`、`dev`、`cr`、`qa` 不是独立总视图入口，而是该总视图内可展开的成员子视图。
+
+- 已注册 `survey-corps-task-view` MCP Apps server 的环境中，启动顺序固定为 `show_sc_task_view(snapshot) -> show`；每次角色启动、交接、状态变化、风险或证据变化时再次调用同一 tool，并由其 `ui://survey-corps/task-view` 面板接收 `structuredContent.snapshot`。不得把 `sc-task-view.html` 源码标签当作展示。未注册或客户端不支持 MCP Apps 时，才执行 `create(view_id) -> show(view_id)` 的安全 HTML 内嵌；若仍不能渲染则文本降级。视图仅随这些明确的编排动作刷新，不声明自动事件订阅、后台轮询或平台原生实时同步。
+- 每次 `create` 或 `update` 前，宿主必须解析可视化目录和候选产物的最终绝对路径，并确认候选路径仍位于该目录之内；解析失败、目录不可用、路径越界或无法证明包含关系时，停止 HTML 创建/写入，改用文本降级。不得尝试写入任务可视化目录外的任何路径。此检查的前置条件是目录由宿主私有控制、目录及其既有祖先不是重解析点，且调用期间不受不可信主体并发替换；纯字符串路径检查不能防御恶意并发 junction/symlink 置换。
+- 本地宿主可调用 `pwsh -File Prepare-ScTaskView.ps1 -WorkUnitId <id> -VisualizationDirectory <绝对目录>` 准备视图产物（要求 PowerShell 7+）。该 helper 复用上述 ID 映射、检查可视化目录与其既有祖先、拒绝缺失目录/模板、重解析点或越界路径，并仅在验证通过后复制 `sc-task-view.html` 到同一 `view_id` 的 HTML 文件；标准输出包含 `view_id`、绝对 `path` 及 `action=create|update`，可作为随后 `show(view_id)` 的输入。前置条件不满足时必须文本降级。用 `-WhatIf` 仅验证路径和动作，不写入。
+- 模板展示不是权威记录，也不能改变状态机、角色交接、完成门禁或 subagent-only 约束。权威记录仍是当前任务中的工作单元、交接和角色结论。
+- 当前平台完全不能渲染 HTML，或 HTML 无法安全执行并完成渲染时，降级为可访问的文本概览；概览至少包含 `view_id`、工作单元 ID、目标、基线、环境、当前状态、四角色、风险、证据、未验证范围与下一步。恢复渲染后仍对同一 `view_id` 执行 `update -> show`，不得创建替代视图。
+
+### 任务视图数据契约
+
+`sc-task-view.html` 的渲染函数接收一个根元素和一个快照对象：`window.renderSurveyCorpsTaskView(root, snapshot)`。快照沿用现有权威字段，最小结构如下；可省略字段将显示“未提供”或“未知”，不得由视图猜测完成、通过或风险关闭。
+
+```yaml
+work_unit:
+  work_unit_id:
+  target:
+  roles: []
+  reference_version:
+  environment:
+  verified_scope: []
+  unverified_scope: []
+  acceptance: []
+  risks: []
+  evidence: []
+  next_action:
+view_id:                 # 必填；按启动契约安全映射，不能由原始 ID 直接拼接
+state:                   # 必填；编排者计算的唯一当前状态，不由 handoffs 数组推断
+resume_state:            # state=needs_revalidation 时必填，表示从何处恢复复验
+role_details:            # 可选，以 req/dev/cr/qa 为键
+  req:
+    status:              # 可选；角色自身快照，交接记录不能替代它
+    summary:
+    evidence: []
+    risks: []
+    next_action:
+handoffs: []             # 可使用现有 handoff 模板字段；每条均展示其自身基线、范围、证据和风险
+```
+
+模板展示既有状态机的全部状态：`confirmed`、`planned`、`dev_in_progress`、`ready_for_cr`、`cr_blocked`、`ready_for_qa`、`qa_failed`、`qa_conditional`、`qa_passed`、`workflow_ready`、`needs_user_confirm`、`needs_revalidation`、`needs_revision`、`blocked`。这些状态是参考集合，不是已走过的线性路径；当前状态只由 `snapshot.state` 标记。`needs_revalidation` 时必须展示 `resume_state` 作为复验入口。全部外部值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
 
 ## 何时启动
 

@@ -1,0 +1,12 @@
+{
+  "name": "carryon-local",
+  "plugins": [
+    {
+      "name": "survey-corps-task-view",
+      "source": {
+        "source": "local",
+        "path": "./skills/survey-corps/mcp-app"
+      }
+    }
+  ]
+}

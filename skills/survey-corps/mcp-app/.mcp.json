@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "survey-corps-task-view": {
+      "command": "node",
+      "args": ["server.js"],
+      "cwd": "."
+    }
+  }
+}
