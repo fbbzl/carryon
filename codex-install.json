@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "name": "carryon",
+  "repository": "https://github.com/fbbzl/carryon",
+  "description": "Carryon engineering skills and the Survey Corps task-view MCP App.",
+  "skills": {
+    "root": "skills",
+    "entrypoint": "SKILL.md",
+    "include": ["skills/**/SKILL.md"]
+  },
+  "mcpApps": {
+    "marketplace": ".agents/plugins/marketplace.json",
+    "plugins": [
+      {
+        "id": "survey-corps-task-view@carryon-local",
+        "name": "survey-corps-task-view",
+        "manifest": "skills/survey-corps/mcp-app/.codex-plugin/plugin.json",
+        "server": "survey-corps-task-view",
+        "resourceUri": "ui://survey-corps/task-view"
+      }
+    ]
+  },
+  "installation": {
+    "requiresUserAuthorization": true,
+    "order": ["skills", "mcpApps"],
+    "postInstall": ["restart_codex_if_required"]
+  }
+}

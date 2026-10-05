@@ -29,6 +29,12 @@
 - 需求分析：参考 `skills/req/SKILL.md`，完整流程见 `skills/survey-corps/SKILL.md`
 - 全流程协作：参考 `skills/survey-corps/SKILL.md`
 
+## Codex 安装入口
+
+将本仓库的 GitHub URL 交给支持仓库安装的 Codex 安装器，并要求：`安装 codex-install.json 中声明的所有 skills 和 MCP Apps`。安装器应按 `codex-install.json` 发现 `skills/**/SKILL.md`，再从 `.agents/plugins/marketplace.json` 安装 `survey-corps-task-view@carryon-local`。两步都需要用户授权；安装完成后重启 Codex（如客户端要求）。
+
+清单路径：`codex-install.json`。它是本仓库的唯一安装入口，不依赖固定的本机绝对路径。无法读取该清单的客户端，可回退到从 `.agents/plugins/marketplace.json` 手动安装本地插件。
+
 ## Windows 重装后初始化
 
 以管理员身份运行：
