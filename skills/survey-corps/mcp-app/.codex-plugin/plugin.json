@@ -1,6 +1,6 @@
 {
   "name": "survey-corps-task-view",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Read-only Survey Corps task-view MCP App.",
   "mcpServers": "./.mcp.json"
 }

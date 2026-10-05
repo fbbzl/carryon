@@ -7,6 +7,7 @@ const plugin = JSON.parse(fs.readFileSync(path.join(root, ".codex-plugin", "plug
 const mcp = JSON.parse(fs.readFileSync(path.join(root, ".mcp.json"), "utf8"));
 const market = JSON.parse(fs.readFileSync(path.join(root, "..", "..", "..", ".agents", "plugins", "marketplace.json"), "utf8"));
 assert.equal(plugin.name, "survey-corps-task-view");
+assert.equal(plugin.version, "0.1.1");
 assert.equal(mcp.mcpServers[plugin.name].command, "node");
 assert.deepEqual(mcp.mcpServers[plugin.name].args, ["server.js"]);
 assert.equal(mcp.mcpServers[plugin.name].cwd, ".");
@@ -15,5 +16,7 @@ assert.equal(fs.existsSync(path.resolve(root, plugin.mcpServers)), true, "manife
 assert.equal(fs.readFileSync(path.join(root, "assets", "sc-task-view.html"), "utf8"), fs.readFileSync(path.join(root, "..", "sc-task-view.html"), "utf8"));
 const entry=market.plugins.find(item => item.name === plugin.name);
 assert.deepEqual(entry.source, { source: "local", path: "./skills/survey-corps/mcp-app" });
+assert.deepEqual(entry.policy, { installation: "AVAILABLE", authentication: "ON_INSTALL" });
+assert.equal(entry.category, "Productivity");
 assert.equal(fs.existsSync(path.resolve(path.join(root, "..", "..", ".."), entry.source.path)), true, "marketplace source does not resolve from marketplace root to plugin");
 console.log("MCP plugin structure and template asset test passed.");

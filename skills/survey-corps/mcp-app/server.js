@@ -10,7 +10,7 @@ const APP_MIME = "text/html;profile=mcp-app";
 const TEMPLATE_PATH = path.join(__dirname, "assets", "sc-task-view.html");
 const MAX_FRAME_BYTES = 256 * 1024;
 const MAX_SNAPSHOT_BYTES = 200 * 1024;
-const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26"]);
+const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", "2025-11-25"]);
 
 function send(message) { const line=`${JSON.stringify(message)}\n`; if (Buffer.byteLength(line,"utf8") > MAX_FRAME_BYTES) return process.stdout.write(`${JSON.stringify({jsonrpc:"2.0",id:message.id??null,error:{code:-32603,message:"Response exceeds 256 KiB"}})}\n`); process.stdout.write(line); }
 function failure(id, code, message) { send({ jsonrpc: "2.0", id, error: { code, message } }); }
@@ -21,16 +21,16 @@ function appHtml() {
 function isObject(value) { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function resource(text) { return { uri: APP_URI, mimeType: APP_MIME, text }; }
 function handle(id, method, params) {
-  if (method === "initialize") { if (!SUPPORTED_PROTOCOL_VERSIONS.has(params?.protocolVersion)) return failure(id, -32602, "Unsupported protocol version"); return send({ jsonrpc: "2.0", id, result: { protocolVersion: "2025-03-26", capabilities: { tools: {}, resources: {} }, serverInfo: { name: "survey-corps-task-view", version: "0.1.0" } } }); }
+  if (method === "initialize") { const protocolVersion=params?.protocolVersion; if (!SUPPORTED_PROTOCOL_VERSIONS.has(protocolVersion)) return failure(id, -32602, "Unsupported protocol version"); return send({ jsonrpc: "2.0", id, result: { protocolVersion, capabilities: { tools: {}, resources: {} }, serverInfo: { name: "survey-corps-task-view", version: "0.1.1" } } }); }
   if (method === "notifications/initialized") return;
   if (method === "resources/list") return send({ jsonrpc: "2.0", id, result: { resources: [{ uri: APP_URI, name: "SC Agent Tree", description: "Survey Corps task view MCP App", mimeType: APP_MIME }] } });
   if (method === "resources/read") { if (params?.uri !== APP_URI) return failure(id, -32602, "Unknown resource URI"); return send({ jsonrpc: "2.0", id, result: { contents: [resource(appHtml())] } }); }
-  if (method === "tools/list") return send({ jsonrpc: "2.0", id, result: { tools: [{ name: "show_sc_task_view", description: "Render a read-only Survey Corps task view from a supplied snapshot.", inputSchema: { type: "object", additionalProperties: false, required: ["snapshot"], properties: { snapshot: { type: "object", description: "SC work-unit snapshot; rendered as text only." } } }, _meta: { ui: { resourceUri: APP_URI } } }] } });
+  if (method === "tools/list") return send({ jsonrpc: "2.0", id, result: { tools: [{ name: "show_sc_task_view", description: "Render a read-only Survey Corps task view from a supplied snapshot.", inputSchema: { type: "object", additionalProperties: false, required: ["snapshot"], properties: { snapshot: { type: "object", description: "SC work-unit snapshot; rendered as text only." } } }, outputSchema: { type: "object", additionalProperties: false, required: ["snapshot"], properties: { snapshot: { type: "object", description: "The accepted SC work-unit snapshot." } } }, _meta: { ui: { resourceUri: APP_URI } } }] } });
   if (method === "tools/call") {
     if (params?.name !== "show_sc_task_view" || !isObject(params?.arguments?.snapshot)) return failure(id, -32602, "show_sc_task_view requires an object snapshot");
     const snapshot = params.arguments.snapshot;
     if (Buffer.byteLength(JSON.stringify(snapshot), "utf8") > MAX_SNAPSHOT_BYTES) return failure(id, -32602, "snapshot exceeds 256 KiB");
-    return send({ jsonrpc: "2.0", id, result: { content: [], structuredContent: { snapshot } } });
+    return send({ jsonrpc: "2.0", id, result: { content: [{ type: "text", text: "SC Agent Tree 已更新。" }], structuredContent: { snapshot } } });
   }
   failure(id, -32601, `Method not found: ${method}`);
 }
