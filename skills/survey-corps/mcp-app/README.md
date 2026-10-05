@@ -2,12 +2,16 @@
 
 这是项目内、零依赖的 Node stdio MCP server。它不是常驻服务：宿主在需要时启动 `server.js`，并通过 `show_sc_task_view` 传入当前 SC snapshot。工具以 `_meta.ui.resourceUri` 绑定静态 `text/html;profile=mcp-app` resource，并返回 `structuredContent.snapshot`；UI 通过 MCP Apps 的 `ui/notifications/tool-result` bridge 渲染该快照。
 
+这是 SC 任务视图的唯一渲染路径。项目不生成或打开本地 `visualizations` HTML，也不提供文本或其他替代视图。若 MCP tool 不可用或调用失败，SC 工作单元将进入 `blocked`，直到插件和 MCP Apps 能力恢复。
+
 ## 本地验证
 
 ```powershell
 node .\skills\survey-corps\mcp-app\test-server.js
 node .\skills\survey-corps\mcp-app\test-cr-contract.js
 node .\skills\survey-corps\mcp-app\test-plugin-structure.js
+node .\skills\survey-corps\mcp-app\test-motion-contract.js
+node .\skills\survey-corps\mcp-app\test-ui-contract.js
 ```
 
 ## 注册（需用户自行授权）
@@ -16,7 +20,7 @@ node .\skills\survey-corps\mcp-app\test-plugin-structure.js
 
 marketplace 将该插件标为 `AVAILABLE`、`ON_INSTALL` 和 `Productivity`；这些字段控制客户端的发现与安装流程，不构成运行时隔离保证。
 
-注册的具体配置键由客户端版本决定；完成注册后调用 `show_sc_task_view`，参数为 `{ "snapshot": <当前 SC 快照> }`。资源 URI 为 `ui://survey-corps/task-view`。
+注册的具体配置键由客户端版本决定；完成注册后调用 `show_sc_task_view`，参数为 `{ "snapshot": <当前 SC 快照> }`。`snapshot.view_id` 必填，对同一工作单元固定为 `sc-task-view:<work_unit_id>`；它仅用于文本展示，不是路径或资源 URI。MCP App 资源 URI 为 `ui://survey-corps/task-view`。
 
 ## 安全与边界
 
