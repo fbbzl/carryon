@@ -13,6 +13,8 @@ assert.match(appTemplate, /details\.is-active \{[^}]*animation:sc-active-role/, 
 assert.match(appTemplate, /details\.sc-task-view__node\.is-manual-replay \{[^}]*animation:sc-manual-role/, "manual replay must outrank active role animation by selector specificity");
 assert.match(appTemplate, /@media \(prefers-reduced-motion:reduce\).*animation:none !important; transition:none !important;/, "reduced motion must disable animation and transitions");
 assert.match(appTemplate, /is-connection-entering \.sc-task-view__connector \{ animation:sc-connection-enter/, "fixed-flow connectors must animate on entrance");
+assert.match(appTemplate, /\.sc-task-view__connector::before[^}]*background:currentColor/, "connector stem must follow the flow color");
+assert.match(appTemplate, /\.sc-task-view__connector::after[^}]*transform:rotate\(45deg\)/, "connector arrowhead must point down");
 assert.match(appTemplate, /data-sc-play-animation[^>]*aria-label="播放任务视图动画"/, "task view must expose an accessible animation replay button");
 assert.match(appTemplate, /button\.addEventListener\("click",onClick\)/, "animation replay button must have a click handler");
 assert.match(appTemplate, /prefersReducedMotion\(\)\) return;.*playEntranceEffects\(root,cleanups\).*is-manual-replay/s, "manual replay must respect reduced motion and replay the flow plus active role effect");

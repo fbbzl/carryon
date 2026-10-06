@@ -9,7 +9,7 @@ const stateRoleLiteral = appTemplate.match(/const stateRole=\{([^}]*)\}/)?.[1] |
 
 assert.match(appTemplate, /const roles=\["req","dev","cr","qa"\]/, "task flow must keep the fixed REQ -> DEV -> CR -> QA order");
 assert.doesNotMatch(appTemplate, /data-sc-exit|sc-task-view__exit|QA · 唯一任务出口/, "QA exit must not render a separate node or retain its styles");
-assert.match(appTemplate, /roleName\.textContent=role==="qa"\?`\$\{roleLabels\[role\]\} · 任务出口`:roleLabels\[role\]/, "only QA must identify the task exit in its role title");
+assert.match(appTemplate, /roleName\.textContent=roleLabels\[role\]/, "role titles must use the plain role label without a QA exit suffix");
 assert.match(appTemplate, /data-sc-task-summary>暂无总结</, "task summary must default to no supplied summary");
 assert.match(appTemplate, /data-sc-context hidden/, "secondary task context must initially be collapsed and hidden when empty");
 assert.match(appTemplate, /data-sc-selected-roles>尚未选择</, "the view must not infer all roles as selected");
@@ -34,5 +34,10 @@ assert.match(skill, /不展示状态机、状态参考集、复验入口或 `res
 assert.doesNotMatch(skill, /needs_revalidation` 时必须展示 `resume_state`/, "skill must not require resume_state rendering");
 assert.match(skill, /handoffs: \[\].*权威交接记录.*仅用于状态或 handoff 更新动画 fingerprint.*不逐条展示/, "skill must keep handoffs authoritative but out of the minimal UI");
 assert.doesNotMatch(skill, /handoffs: \[\].*每条均展示|handoffs?.*(session log|Session log|逐条展示其自身)/, "skill must not require handoff or session-log rendering");
+
+for (const tone of ["pending", "active", "completed", "passed", "danger", "waiting", "revision", "unknown"]) assert.match(appTemplate, new RegExp(`sc-task-view__state--${tone} \\{[^}]*color:`), `${tone} must define a semantic status color`);
+assert.match(appTemplate, /sc-task-view__connector::before/, "role connectors must retain an explicit vertical stem");
+assert.match(appTemplate, /sc-task-view__connector::after/, "role connectors must render a downward arrowhead");
+assert.match(appTemplate, /transform:rotate\(45deg\)/, "connector arrowhead must point downward");
 
 console.log("SC minimal task-flow UI contract passed.");

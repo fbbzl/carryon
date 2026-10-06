@@ -33,8 +33,8 @@ const openRoles=()=>[...root.querySelectorAll("details[data-sc-role][open]")].ma
 const progressFor=role=>{const bar=root.querySelector('details[data-sc-role="'+role+'"] [role="progressbar"]');return bar?{name:bar.getAttribute("aria-label"),min:bar.getAttribute("aria-valuemin"),max:bar.getAttribute("aria-valuemax"),now:bar.getAttribute("aria-valuenow")}:null};
 window.renderSurveyCorpsTaskView(root,snapshot);
 const initial=openRoles(),progress={req:progressFor("req"),dev:progressFor("dev"),cr:progressFor("cr"),qa:progressFor("qa")};
-const flow={roles:[...root.querySelectorAll("details[data-sc-role]")].map(node=>node.dataset.scRole),titles:[...root.querySelectorAll("details[data-sc-role] summary .sc-task-view__role-name > span:first-child")].map(node=>node.textContent),lastRole:root.querySelector("[data-sc-roles]").lastElementChild?.dataset.scRole,extraExitNodes:root.querySelectorAll("[data-sc-exit], .sc-task-view__exit").length,exitTextCount:root.querySelector("[data-sc-roles]").textContent.split("任务出口").length-1};
-const defaults={summary:root.querySelector('[data-sc-task-summary]').textContent,selected:root.querySelector('[data-sc-selected-roles]').textContent,contextHidden:root.querySelector('[data-sc-context]').hidden,debugHidden:root.querySelector('[data-sc-play-animation]').hidden,agentCount:root.querySelectorAll('[data-sc-agent-name]').length,autoMotion:root.querySelector('.sc-task-view').classList.contains('is-entering')};
+const flow={roles:[...root.querySelectorAll("details[data-sc-role]")].map(node=>node.dataset.scRole),titles:[...root.querySelectorAll("details[data-sc-role] summary .sc-task-view__role-name > span:first-child")].map(node=>node.textContent),lastRole:root.querySelector("[data-sc-roles]").lastElementChild?.dataset.scRole,extraExitNodes:root.querySelectorAll("[data-sc-exit], .sc-task-view__exit").length,exitTextCount:root.querySelector("[data-sc-roles]").textContent.split("任务出口").length-1,connectorCount:root.querySelectorAll("[data-sc-connector], .sc-task-view__connector").length};
+const defaults={summary:root.querySelector('[data-sc-task-summary]').textContent,selected:root.querySelector('[data-sc-selected-roles]').textContent,contextHidden:root.querySelector('[data-sc-context]').hidden,debugHidden:root.querySelector('[data-sc-play-animation]').hidden,agentCount:root.querySelectorAll('[data-sc-agent-name]').length,autoMotion:root.querySelector('.sc-task-view').classList.contains('is-entering'),connectorGeometry:[...root.querySelectorAll('.sc-task-view__connector')].map(node=>({before:getComputedStyle(node,"::before").content,after:getComputedStyle(node,"::after").content,afterTransform:getComputedStyle(node,"::after").transform}))};
 root.querySelector('details[data-sc-role="cr"]').open=false;
 root.querySelector('details[data-sc-role="req"]').open=true;
 window.renderSurveyCorpsTaskView(root,snapshot);
@@ -67,9 +67,9 @@ const agentUpdated=root.querySelector('[data-sc-role=qa] [data-sc-agent-name]').
 delete supplied.role_details.qa.agent_name;delete supplied.work_unit.summary;window.renderSurveyCorpsTaskView(root,supplied);
 const removed={agentCount:root.querySelectorAll('[data-sc-agent-name]').length,summary:root.querySelector('[data-sc-task-summary]').textContent};
 const roleCases={pending:'待开始',not_started:'待开始',running:'进行中',preparing:'准备中',in_progress:'进行中',working:'进行中',active:'进行中',started:'进行中',started_working:'进行中',completed:'已完成',done:'已完成',passed:'已通过',failed:'失败',blocked:'已阻断',paused:'已暂停',cancelled:'已取消',canceled:'已取消',skipped:'已跳过',waiting:'等待中'};
-const roleStatuses={};for(const status of Object.keys(roleCases)){supplied.role_details.qa.status=status;window.renderSurveyCorpsTaskView(root,supplied);roleStatuses[status]=root.querySelector('[data-sc-role=qa] .sc-task-view__role-state').textContent;}
+const roleStatuses={};const roleStatusClasses={};for(const status of Object.keys(roleCases)){supplied.role_details.qa.status=status;window.renderSurveyCorpsTaskView(root,supplied);const node=root.querySelector('[data-sc-role=qa] .sc-task-view__role-state');roleStatuses[status]=node.textContent;roleStatusClasses[status]=node.className;}
 const globalCases={confirmed:'已确认',planned:'计划',dev_in_progress:'开发中',ready_for_cr:'等待审查',cr_blocked:'审查阻断',ready_for_qa:'等待测试',qa_failed:'测试失败',qa_conditional:'测试条件通过',qa_passed:'测试通过',workflow_ready:'工作流就绪',needs_user_confirm:'等待用户确认',needs_revalidation:'需要重新验证',needs_revision:'需要修订',blocked:'已阻断'};
-const globalStatuses={};for(const state of Object.keys(globalCases)){supplied.state=state;window.renderSurveyCorpsTaskView(root,supplied);globalStatuses[state]=root.querySelector('[data-sc-field=state]').textContent;}
+const globalStatuses={};const globalStatusClasses={};for(const state of Object.keys(globalCases)){supplied.state=state;window.renderSurveyCorpsTaskView(root,supplied);const node=root.querySelector('[data-sc-field=state]');globalStatuses[state]=node.textContent;globalStatusClasses[state]=node.className;}
 supplied.state=payload;supplied.role_details.qa.status=payload;window.renderSurveyCorpsTaskView(root,supplied);
 const unknown={global:root.querySelector('[data-sc-field=state]').textContent,role:root.querySelector('[data-sc-role=qa] .sc-task-view__role-state').textContent,img:root.querySelectorAll('img').length};
 const prototypeFallbacks=[];for(const status of ['constructor','__proto__','toString']){supplied.role_details.qa.status=status;window.renderSurveyCorpsTaskView(root,supplied);prototypeFallbacks.push(root.querySelector('[data-sc-role=qa] .sc-task-view__role-state').textContent);}
@@ -100,9 +100,34 @@ invalidFields.role_details.dev.subskills[0]={name:'tech-select',question:'选择
 const validListFiltering={options:[...root.querySelectorAll('[data-sc-subskill-field=options] li')].map(node=>node.textContent),evidence:[...root.querySelectorAll('[data-sc-subskill-field=evidence] li')].map(node=>node.textContent)};
 const subskillUnknown=[];for(const status of ['constructor','__proto__','unknown']){invalidFields.role_details.dev.subskills[0].status=status;window.renderSurveyCorpsTaskView(root,invalidFields);subskillUnknown.push(root.querySelector('[data-sc-subskill] > summary').textContent.includes('未知状态'));}
 delete invalidFields.role_details.dev.subskills;window.renderSurveyCorpsTaskView(root,invalidFields);const subskillsRemoved=root.querySelectorAll('[data-sc-subskills]').length;
-const result={initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,progress,flow,defaults,debugTrue,debugString,debugDefault,debugFalse,debugInSnapshot,provided,payload,agentUpdated,removed,roleCases,roleStatuses,globalCases,globalStatuses,unknown,prototypeFallbacks,legacySubskills,skills,skillFields,skillSafety,nestedOpen,outerAfterNested,skillUpdated,invalidSkills,fieldFiltering,validListFiltering,subskillUnknown,subskillsRemoved,toggleAdds,toggleRemoves,activeToggleListeners};
+const result={initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,progress,flow,defaults,debugTrue,debugString,debugDefault,debugFalse,debugInSnapshot,provided,payload,agentUpdated,removed,roleCases,roleStatuses,roleStatusClasses,globalCases,globalStatuses,globalStatusClasses,unknown,prototypeFallbacks,legacySubskills,skills,skillFields,skillSafety,nestedOpen,outerAfterNested,skillUpdated,invalidSkills,fieldFiltering,validListFiltering,subskillUnknown,subskillsRemoved,toggleAdds,toggleRemoves,activeToggleListeners};
 document.body.dataset.scTestResult=JSON.stringify(result);
 </script></body></html>`;
+
+const visualHarness = `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main id="root">${template}</main><script>
+const root=document.getElementById('root'),snapshot=${JSON.stringify(snapshot)};
+const roleTones={pending:'pending',not_started:'pending',running:'active',preparing:'active',in_progress:'active',working:'active',active:'active',started:'active',started_working:'active',completed:'completed',done:'completed',passed:'passed',failed:'danger',blocked:'danger',paused:'waiting',cancelled:'pending',canceled:'pending',skipped:'pending',waiting:'waiting',needs_user_confirm:'waiting',needs_revision:'revision',constructor:'unknown',['__proto__']:'unknown',toString:'unknown',unrecognized:'unknown'};
+const globalTones={confirmed:'completed',planned:'pending',dev_in_progress:'active',ready_for_cr:'waiting',cr_blocked:'danger',ready_for_qa:'waiting',qa_failed:'danger',qa_conditional:'revision',qa_passed:'passed',workflow_ready:'passed',needs_user_confirm:'waiting',needs_revalidation:'revision',needs_revision:'revision',blocked:'danger'};
+const sample=node=>({className:node.className,color:getComputedStyle(node).color});
+const roleColors=Object.create(null),globalColors=Object.create(null),subskillColors=Object.create(null);
+for(const status of Object.keys(roleTones)){snapshot.role_details.qa={status,subskills:[{name:'test-with-goal',status,summary:'QA 记录'}]};window.renderSurveyCorpsTaskView(root,snapshot);roleColors[status]=sample(root.querySelector('[data-sc-role=qa] > summary .sc-task-view__role-state'));subskillColors[status]=sample(root.querySelector('[data-sc-role=qa] [data-sc-subskill] > summary .sc-task-view__role-state'));}
+for(const state of Object.keys(globalTones)){snapshot.state=state;window.renderSurveyCorpsTaskView(root,snapshot);globalColors[state]=sample(root.querySelector('[data-sc-field=state]'));}
+snapshot.state='ready_for_qa';snapshot.role_details.qa.status='running';window.renderSurveyCorpsTaskView(root,snapshot,{debug:true});root.querySelector('[data-sc-play-animation]').click();
+const connectors=[...root.querySelectorAll('.sc-task-view__connector')].map(node=>{const stem=getComputedStyle(node,'::before'),head=getComputedStyle(node,'::after');return {width:node.offsetWidth,height:node.offsetHeight,stemWidth:stem.width,stemHeight:stem.height,headWidth:head.width,headHeight:head.height,headTransform:head.transform,right:head.borderRightWidth,bottom:head.borderBottomWidth,hidden:node.getAttribute('aria-hidden'),next:node.nextElementSibling.dataset.scRole,animation:getComputedStyle(node).animationName};});
+const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches,view=root.querySelector('.sc-task-view'),active=root.querySelector('details.is-active');
+const result={roleTones,globalTones,roleColors,subskillColors,globalColors,connectors,reduced,viewAnimation:getComputedStyle(view).animationName,activeAnimation:getComputedStyle(active).animationName,replay:active.classList.contains('is-manual-replay'),viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};parent.postMessage({scVisualResult:result},'*');
+</script></body></html>`;
+
+function readChromeResult(pagePath, profilePath, width, reduced = false) {
+  const args = ["--headless=new", "--disable-gpu", "--no-sandbox", `--user-data-dir=${profilePath}`, `--window-size=${Math.max(width,600)},900`, "--virtual-time-budget=2000", "--dump-dom"];
+  if (reduced) args.push("--force-prefers-reduced-motion");
+  args.push(new URL(`file:///${pagePath.replaceAll("\\", "/")}`).href);
+  const run = spawnSync(chrome, args, { encoding: "utf8", timeout: 30000 });
+  assert.equal(run.status, 0, run.stderr || "Chrome visual-state test failed");
+  const encoded = run.stdout.match(/data-sc-test-result="([^"]+)"/)?.[1];
+  assert.ok(encoded, "Chrome did not emit the visual-state result");
+  return JSON.parse(encoded.replaceAll("&quot;", '"').replaceAll("&amp;", "&"));
+}
 
 try {
   fs.writeFileSync(page, harness, "utf8");
@@ -111,8 +136,11 @@ try {
   const encoded = run.stdout.match(/data-sc-test-result="([^"]+)"/)?.[1];
   assert.ok(encoded, "Chrome did not emit the SC behavior result");
   const result = JSON.parse(encoded.replaceAll("&quot;", '"').replaceAll("&amp;", "&"));
-  assert.deepEqual(result.flow, { roles: ["req", "dev", "cr", "qa"], titles: ["REQ", "DEV", "CR", "QA · 任务出口"], lastRole: "qa", extraExitNodes: 0, exitTextCount: 1 }, "four role cards must end at QA with one inline exit label");
-  assert.deepEqual(result.defaults, { summary: "暂无总结", selected: "尚未选择", contextHidden: true, debugHidden: true, agentCount: 0, autoMotion: true }, "missing metadata must not imply completion or selected roles; automatic motion remains enabled");
+  assert.deepEqual(result.flow, { roles: ["req", "dev", "cr", "qa"], titles: ["REQ", "DEV", "CR", "QA"], lastRole: "qa", extraExitNodes: 0, exitTextCount: 0, connectorCount: 4 }, "four role cards must end at QA without a separate exit label");
+  assert.equal(result.defaults.connectorGeometry.length, 4, "every role card must have a connector");
+  assert.ok(result.defaults.connectorGeometry.every(({before,after,afterTransform})=>before!=="none"&&after!=="none"&&afterTransform!=="none"), "connectors must expose a visible stem and arrowhead in the browser");
+  const {connectorGeometry,...defaultValues}=result.defaults;
+  assert.deepEqual(defaultValues, { summary: "暂无总结", selected: "尚未选择", contextHidden: true, debugHidden: true, agentCount: 0, autoMotion: true }, "missing metadata must not imply completion or selected roles; automatic motion remains enabled");
   assert.deepEqual(result.debugTrue, { hidden: false, replay: true }, "strict debug true must expose and enable replay");
   for (const mode of [result.debugString, result.debugDefault, result.debugFalse, result.debugInSnapshot]) assert.deepEqual(mode, { hidden: true, replay: false }, "only options.debug true may enable replay; nondebug programmatic clicks must not replay");
   assert.equal(result.provided.taskType, "界面调整");
@@ -131,7 +159,10 @@ try {
   assert.equal(result.agentUpdated, "新代理名称", "agent names must update on the next snapshot");
   assert.deepEqual(result.removed, { agentCount: 0, summary: "暂无总结" }, "removing optional metadata must remove stale UI");
   assert.deepEqual(result.roleStatuses, result.roleCases, "all supported role statuses must display Chinese");
+  assert.notEqual(result.roleStatusClasses.running, result.roleStatusClasses.completed, "running and completed roles must use different semantic color classes");
+  assert.notEqual(result.roleStatusClasses.completed, result.roleStatusClasses.failed, "completed and failed roles must use different semantic color classes");
   assert.deepEqual(result.globalStatuses, result.globalCases, "all supported global statuses must display Chinese without codes");
+  assert.notEqual(result.globalStatusClasses.qa_passed, result.globalStatusClasses.qa_failed, "passed and failed workflow states must use different semantic color classes");
   assert.deepEqual(result.unknown, { global: "未知状态", role: "未知状态", img: 0 }, "unknown statuses must use a safe Chinese fallback");
   assert.deepEqual(result.prototypeFallbacks, ["未知状态", "未知状态", "未知状态"], "prototype property names must not bypass the unknown-status fallback");
   assert.equal(result.legacySubskills, 0, "old snapshots must not list unused subskills");
@@ -157,6 +188,38 @@ try {
   assert.equal(result.progress.dev, null, "missing progress must not render");
   assert.deepEqual(result.progress.cr, { name: "CR 任务进度：100%", min: "0", max: "100", now: "100" }, "progress above 100 must clamp with accessible values");
   assert.deepEqual(result.progress.qa, { name: "QA 任务进度：0%", min: "0", max: "100", now: "0" }, "progress below 0 must clamp with accessible values");
+  const toneColors={pending:"rgb(176, 188, 203)",active:"rgb(125, 211, 252)",completed:"rgb(94, 234, 212)",passed:"rgb(134, 239, 172)",danger:"rgb(253, 164, 175)",waiting:"rgb(253, 230, 138)",revision:"rgb(253, 186, 116)",unknown:"rgb(216, 180, 254)"};
+  for(const mode of [{width:360,reduced:false},{width:960,reduced:false},{width:360,reduced:true}]) {
+    const srcdoc=visualHarness.replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    // A fixed iframe viewport avoids Chrome's desktop-window minimum width.
+    const wrapper=`<!doctype html><html><body><script>window.addEventListener('message',event=>{if(event.source===document.querySelector('iframe').contentWindow&&event.data.scVisualResult)document.body.dataset.scTestResult=JSON.stringify(event.data.scVisualResult)});</script><iframe style="border:0;width:${mode.width}px;height:900px" srcdoc="${srcdoc}"></iframe></body></html>`;
+    fs.writeFileSync(page,wrapper,"utf8");
+    const observed=readChromeResult(page,path.join(temp,`visual-${mode.width}-${mode.reduced}`),mode.width,mode.reduced);
+    assert.equal(observed.viewport,mode.width,"responsive cases must run at the exact requested iframe viewport");
+    assert.ok(Object.hasOwn(observed.roleColors,"__proto__")&&Object.hasOwn(observed.subskillColors,"__proto__"),"prototype-name color cases must be executed and retained");
+    for(const [status,tone] of Object.entries(observed.roleTones)) {
+      for(const item of [observed.roleColors[status],observed.subskillColors[status]]) {
+        assert.ok(item.className.includes(`sc-task-view__state--${tone}`), `${status} must carry the ${tone} semantic class`);
+        assert.equal(item.color,toneColors[tone],`${status} must render the ${tone} color in roles and subskills`);
+      }
+    }
+    for(const [state,tone] of Object.entries(observed.globalTones)) assert.equal(observed.globalColors[state].color,toneColors[tone],`${state} must render the ${tone} workflow color`);
+    assert.deepEqual(observed.connectors.map(item=>item.next),["req","dev","cr","qa"],"every downward connector must lead to the next role without adding a node after QA");
+    for(const item of observed.connectors) {
+      assert.ok(item.width>=8&&item.height>=22,"arrowheads must fit inside visible connectors");
+      assert.equal(item.stemWidth,"2px");assert.ok(parseFloat(item.stemHeight)>0);
+      assert.equal(item.headWidth,"8px");assert.equal(item.headHeight,"8px");
+      assert.equal(item.right,"2px");assert.equal(item.bottom,"2px");
+      assert.match(item.headTransform,/matrix\(0\.707107, 0\.707107, -0\.707107, 0\.707107/,"right and bottom borders rotated 45 degrees must point down");
+      assert.equal(item.hidden,"true","decorative arrows must remain hidden from assistive technologies");
+      assert.equal(item.animation,mode.reduced?"none":"sc-connection-enter");
+    }
+    assert.equal(observed.reduced,mode.reduced,"reduced-motion test must use the intended browser preference");
+    assert.equal(observed.replay,!mode.reduced,"manual replay must respect reduced motion");
+    assert.equal(observed.viewAnimation,mode.reduced?"none":"sc-view-enter");
+    assert.equal(observed.activeAnimation,mode.reduced?"none":"sc-manual-role");
+    assert.ok(observed.scrollWidth<=observed.viewport,"role states and arrow connectors must not cause horizontal overflow");
+  }
   console.log("SC task view Chrome behavior regression passed.");
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });

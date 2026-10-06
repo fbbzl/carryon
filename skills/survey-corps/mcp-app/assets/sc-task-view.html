@@ -4,7 +4,7 @@
 -->
 <section class="sc-task-view" aria-labelledby="sc-task-view-title">
   <style>
-    .sc-task-view { --bg:#080b10; --panel:#0d1219; --panel-active:#101923; --line:#4b5869; --text:#e8edf3; --muted:#9ba8b8; --focus:#b9e2ff; --ok:#86efac; --warn:#fde68a; --danger:#fda4af; box-sizing:border-box; width:min(680px,100%); margin:0 auto; padding:20px; border:1px solid var(--line); background:var(--bg); color:var(--text); font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; }
+    .sc-task-view { --bg:#080b10; --panel:#0d1219; --panel-active:#101923; --line:#4b5869; --text:#e8edf3; --muted:#9ba8b8; --focus:#b9e2ff; --pending:#b0bccb; --active:#7dd3fc; --completed:#5eead4; --ok:#86efac; --warn:#fde68a; --revision:#fdba74; --danger:#fda4af; --unknown:#d8b4fe; box-sizing:border-box; width:min(680px,100%); margin:0 auto; padding:20px; border:1px solid var(--line); background:var(--bg); color:var(--text); font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; }
     .sc-task-view *, .sc-task-view *::before, .sc-task-view *::after { box-sizing:inherit; }
     .sc-task-view h2, .sc-task-view h3, .sc-task-view p { margin:0; }
     .sc-task-view h2 { font-size:24px; }
@@ -12,9 +12,7 @@
     .sc-task-view__header { display:flex; align-items:start; justify-content:space-between; gap:12px; padding-bottom:14px; border-bottom:1px solid var(--line); }
     .sc-task-view__header-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
     .sc-task-view__eyebrow, .sc-task-view__muted { color:var(--muted); }
-    .sc-task-view__status { flex:none; padding:4px 8px; border:1px solid var(--line); color:var(--warn); font-weight:700; }
-    .sc-task-view__status--ok { color:var(--ok); }
-    .sc-task-view__status--danger { color:var(--danger); }
+    .sc-task-view__status { flex:none; padding:4px 8px; border:1px solid var(--line); color:var(--muted); font-weight:700; }
     .sc-task-view__flow { display:flex; flex-direction:column; align-items:stretch; margin-top:18px; }
     .sc-task-view__node { min-width:0; border:1px solid var(--line); background:var(--panel); }
     .sc-task-view__root { padding:14px; text-align:center; }
@@ -31,13 +29,23 @@
     .sc-task-view__task-summary { margin-top:18px; overflow-wrap:anywhere; }
     .sc-task-view__task-summary p { margin-top:4px; }
     .sc-task-view [hidden] { display:none !important; }
-    .sc-task-view__connector { width:2px; height:22px; margin:0 auto; background:var(--line); transform-origin:top; }
+    .sc-task-view__connector { position:relative; flex:none; width:12px; height:24px; margin:0 auto; color:var(--muted); transform-origin:top; }
+    .sc-task-view__connector::before { content:""; position:absolute; top:0; left:5px; width:2px; height:17px; background:currentColor; }
+    .sc-task-view__connector::after { content:""; position:absolute; left:2px; bottom:4px; width:8px; height:8px; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(45deg); }
     .sc-task-view__roles { display:flex; flex-direction:column; align-items:stretch; }
     .sc-task-view details { min-width:0; border:1px solid var(--line); background:var(--panel); }
     .sc-task-view details.is-active { border-color:var(--focus); background:var(--panel-active); animation:sc-active-role 2.2s ease-in-out infinite; }
     .sc-task-view summary { display:flex; justify-content:space-between; gap:12px; padding:11px 12px; cursor:pointer; font-weight:700; list-style-position:inside; overflow-wrap:anywhere; }
     .sc-task-view summary:focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
     .sc-task-view__role-state { color:var(--muted); font-weight:400; text-align:right; }
+    .sc-task-view .sc-task-view__state--pending { color:var(--pending); }
+    .sc-task-view .sc-task-view__state--active { color:var(--active); }
+    .sc-task-view .sc-task-view__state--completed { color:var(--completed); }
+    .sc-task-view .sc-task-view__state--passed { color:var(--ok); }
+    .sc-task-view .sc-task-view__state--danger { color:var(--danger); }
+    .sc-task-view .sc-task-view__state--waiting { color:var(--warn); }
+    .sc-task-view .sc-task-view__state--revision { color:var(--revision); }
+    .sc-task-view .sc-task-view__state--unknown { color:var(--unknown); }
     .sc-task-view__progress { display:flex; align-items:center; gap:8px; padding:0 12px 10px; }
     .sc-task-view__progress-track { flex:1; height:6px; overflow:hidden; border:1px solid #273241; background:#070a0e; }
     .sc-task-view__progress-value { display:block; width:var(--progress,0%); height:100%; background:var(--focus); transition:width .45s ease-out; }
@@ -65,7 +73,7 @@
     @keyframes sc-view-enter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
     @keyframes sc-node-enter { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
     @keyframes sc-connection-enter { from { opacity:.2; transform:scaleY(0); } to { opacity:1; transform:scaleY(1); } }
-    @keyframes sc-handoff-flow { 0%,100% { background:var(--line); } 50% { background:var(--focus); } }
+    @keyframes sc-handoff-flow { 0%,100% { color:var(--muted); } 50% { color:var(--focus); } }
     @keyframes sc-active-role { 0%,100% { box-shadow:0 0 0 0 transparent; } 50% { box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 16%,transparent); } }
     @keyframes sc-manual-role { 0%,100% { box-shadow:0 0 0 0 transparent; } 50% { box-shadow:0 0 0 6px color-mix(in srgb,var(--focus) 32%,transparent); } }
     @keyframes sc-progress-pulse { 0%,100% { opacity:.72; } 50% { opacity:1; } }
@@ -104,10 +112,14 @@
       const asList=value=>Array.isArray(value)?value:value===undefined||value===null||value===""?[]:[value];
       const safeText=value=>value===undefined||value===null||value===""?"未提供":typeof value==="object"?JSON.stringify(value):String(value);
       const stateText=value=>states.includes(value)?labels[value]:"未知状态";
-      const stateClass=value=>["qa_passed","workflow_ready"].includes(value)?"sc-task-view__status--ok":["cr_blocked","qa_failed","blocked"].includes(value)?"sc-task-view__status--danger":"";
+      const stateTones={confirmed:"completed",planned:"pending",dev_in_progress:"active",ready_for_cr:"waiting",cr_blocked:"danger",ready_for_qa:"waiting",qa_failed:"danger",qa_conditional:"revision",qa_passed:"passed",workflow_ready:"passed",needs_user_confirm:"waiting",needs_revalidation:"revision",needs_revision:"revision",blocked:"danger"};
+      const toneClass=(tones,value)=>`sc-task-view__state--${Object.hasOwn(tones,value)?tones[value]:"unknown"}`;
+      const stateClass=value=>toneClass(stateTones,value);
       const normalizedStatus=value=>safeText(value).trim().toLowerCase().replace(/[ -]+/g,"_");
-      const roleStatusLabels={pending:"待开始",not_started:"待开始",running:"进行中",preparing:"准备中",in_progress:"进行中",working:"进行中",active:"进行中",started:"进行中",started_working:"进行中",completed:"已完成",done:"已完成",passed:"已通过",failed:"失败",blocked:"已阻断",paused:"已暂停",cancelled:"已取消",canceled:"已取消",skipped:"已跳过",waiting:"等待中"};
+      const roleStatusLabels={pending:"待开始",not_started:"待开始",running:"进行中",preparing:"准备中",in_progress:"进行中",working:"进行中",active:"进行中",started:"进行中",started_working:"进行中",completed:"已完成",done:"已完成",passed:"已通过",failed:"失败",blocked:"已阻断",paused:"已暂停",cancelled:"已取消",canceled:"已取消",skipped:"已跳过",waiting:"等待中",needs_user_confirm:"等待用户确认",needs_revision:"需要修订"};
       const roleStatusText=value=>value===undefined||value===null||value===""?"状态未提供":Object.hasOwn(roleStatusLabels,normalizedStatus(value))?roleStatusLabels[normalizedStatus(value)]:"未知状态";
+      const roleStatusTones={pending:"pending",not_started:"pending",running:"active",preparing:"active",in_progress:"active",working:"active",active:"active",started:"active",started_working:"active",completed:"completed",done:"completed",passed:"passed",failed:"danger",blocked:"danger",paused:"waiting",cancelled:"pending",canceled:"pending",skipped:"pending",waiting:"waiting",needs_user_confirm:"waiting",needs_revision:"revision"};
+      const roleStatusClass=value=>toneClass(roleStatusTones,normalizedStatus(value));
       const optionalText=value=>typeof value==="string"?value.trim():"";
       function renderWorkContext(root,work) {
         const selected=[...new Set(asList(work.roles).filter(value=>typeof value==="string").map(value=>value.trim().toLowerCase()).filter(value=>roles.includes(value)))];
@@ -145,8 +157,8 @@
         node.className="sc-task-view__subskill";
         node.dataset.scSubskill=name;
         title.textContent=name;
-        status.className="sc-task-view__role-state";
-        status.textContent=item.status==="needs_user_confirm"?"等待用户确认":item.status==="needs_revision"?"需要修订":roleStatusText(item.status);
+        status.className=`sc-task-view__role-state ${roleStatusClass(item.status)}`;
+        status.textContent=roleStatusText(item.status);
         summary.append(title,status);
         subskillField(body,"goal","目标",fields.goal);
         subskillField(body,"summary","摘要",fields.summary);
@@ -177,7 +189,7 @@
         body.append(box);
       }
       function normalizedProgress(value) { return typeof value==="number"&&Number.isFinite(value)?Math.min(100,Math.max(0,value)):null; }
-      function roleNode(role,detail,activeRole,openRole) { const node=document.createElement("details"),summary=document.createElement("summary"),name=document.createElement("span"),status=document.createElement("span"),body=document.createElement("div"); const active=role===activeRole; node.className=`sc-task-view__node${active?" is-active":""}`; node.open=role===openRole; node.dataset.scRole=role; if (active) node.setAttribute("aria-current","step"); name.className="sc-task-view__role-name"; const roleName=document.createElement("span"); roleName.textContent=role==="qa"?`${roleLabels[role]} · 任务出口`:roleLabels[role]; name.append(roleName); const agentName=optionalText(detail.agent_name); if (agentName) { const agent=document.createElement("span"); agent.className="sc-task-view__agent-name"; agent.dataset.scAgentName=""; agent.textContent=agentName; name.append(agent); } status.className="sc-task-view__role-state"; status.textContent=roleStatusText(detail.status); summary.append(name,status); const progress=normalizedProgress(detail.progress); if (progress!==null) { const progressRow=document.createElement("div"),track=document.createElement("div"),value=document.createElement("span"),label=document.createElement("span"); progressRow.className="sc-task-view__progress"; track.className="sc-task-view__progress-track"; track.setAttribute("role","progressbar"); track.setAttribute("aria-label",`${roleLabels[role]} 任务进度：${progress}%`); track.setAttribute("aria-valuemin","0"); track.setAttribute("aria-valuemax","100"); track.setAttribute("aria-valuenow",String(progress)); value.className="sc-task-view__progress-value"; value.style.setProperty("--progress",`${progress}%`); value.setAttribute("aria-hidden","true"); label.className="sc-task-view__progress-label"; label.setAttribute("aria-hidden","true"); label.textContent=`${progress}%`; track.append(value); progressRow.append(track,label); node.append(summary,progressRow); } else node.append(summary); body.className="sc-task-view__detail"; detailField(body,"摘要",detail.summary); detailField(body,"必要证据",detail.evidence); detailField(body,"风险",detail.risks); detailField(body,"下一步",detail.next_action); renderSubskills(body,role,detail.subskills); node.append(body); return node; }
+      function roleNode(role,detail,activeRole,openRole) { const node=document.createElement("details"),summary=document.createElement("summary"),name=document.createElement("span"),status=document.createElement("span"),body=document.createElement("div"); const active=role===activeRole; node.className=`sc-task-view__node${active?" is-active":""}`; node.open=role===openRole; node.dataset.scRole=role; if (active) node.setAttribute("aria-current","step"); name.className="sc-task-view__role-name"; const roleName=document.createElement("span"); roleName.textContent=roleLabels[role]; name.append(roleName); const agentName=optionalText(detail.agent_name); if (agentName) { const agent=document.createElement("span"); agent.className="sc-task-view__agent-name"; agent.dataset.scAgentName=""; agent.textContent=agentName; name.append(agent); } status.className=`sc-task-view__role-state ${roleStatusClass(detail.status)}`; status.textContent=roleStatusText(detail.status); summary.append(name,status); const progress=normalizedProgress(detail.progress); if (progress!==null) { const progressRow=document.createElement("div"),track=document.createElement("div"),value=document.createElement("span"),label=document.createElement("span"); progressRow.className="sc-task-view__progress"; track.className="sc-task-view__progress-track"; track.setAttribute("role","progressbar"); track.setAttribute("aria-label",`${roleLabels[role]} 任务进度：${progress}%`); track.setAttribute("aria-valuemin","0"); track.setAttribute("aria-valuemax","100"); track.setAttribute("aria-valuenow",String(progress)); value.className="sc-task-view__progress-value"; value.style.setProperty("--progress",`${progress}%`); value.setAttribute("aria-hidden","true"); label.className="sc-task-view__progress-label"; label.setAttribute("aria-hidden","true"); label.textContent=`${progress}%`; track.append(value); progressRow.append(track,label); node.append(summary,progressRow); } else node.append(summary); body.className="sc-task-view__detail"; detailField(body,"摘要",detail.summary); detailField(body,"必要证据",detail.evidence); detailField(body,"风险",detail.risks); detailField(body,"下一步",detail.next_action); renderSubskills(body,role,detail.subskills); node.append(body); return node; }
       function renderRoles(root,details,activeRole,openRole) { const box=root.querySelector("[data-sc-roles]"),fragment=document.createDocumentFragment(); roles.forEach(role=>{ const connector=document.createElement("span"); connector.className="sc-task-view__connector"; connector.setAttribute("aria-hidden","true"); fragment.append(connector,roleNode(role,asObject(details[role]),activeRole,openRole)); }); box.replaceChildren(fragment); }
       function enforceSingleOpen(root) { root.__scAccordionCleanup?.(); const onToggle=event=>{ const opened=event.target; if (!opened.matches?.("details[data-sc-role]")||!opened.open) return; root.querySelectorAll("details[data-sc-role][open]").forEach(node=>{ if (node!==opened) node.open=false; }); }; root.addEventListener("toggle",onToggle,true); root.__scAccordionCleanup=()=>root.removeEventListener("toggle",onToggle,true); }
       const prefersReducedMotion=()=>matchMedia("(prefers-reduced-motion:reduce)").matches;
