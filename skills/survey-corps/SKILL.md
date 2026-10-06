@@ -28,13 +28,17 @@ metadata:
 
 ### 任务视图数据契约
 
-MCP App 资源 `mcp-app/assets/sc-task-view.html` 的渲染函数接收一个根元素和一个快照对象：`window.renderSurveyCorpsTaskView(root, snapshot)`。快照沿用现有权威字段，最小结构如下；可省略字段将显示“未提供”或“未知”，不得由视图猜测完成、通过或风险关闭。
+MCP App 资源 `mcp-app/assets/sc-task-view.html` 的渲染函数接收根元素、快照和可选调试选项：`window.renderSurveyCorpsTaskView(root, snapshot, options)`。正式调用不传第三参数。只有 `options.debug === true` 才显示并启用“播放动画”；`snapshot.debug` 和字符串 `"true"` 均不能开启调试。自动动画保持启用。可省略字段使用明确缺省提示，不得由视图猜测完成、通过或风险关闭。
 
 ```yaml
 work_unit:
   work_unit_id:
   target:
+  task_type:             # 可选；当前任务类型文本
   roles: []
+  role_selection_reason: # 可选；编排者选择参与角色的原因
+  scope: []              # 可选；文本或列表，与验收、环境一起折叠展示
+  summary:               # 可选；只读任务总结文本，缺省“暂无总结”
   reference_version:
   environment:
   verified_scope: []
@@ -49,14 +53,22 @@ resume_state:            # state=needs_revalidation 时必填，表示从何处�
 role_details:            # 可选，以 req/dev/cr/qa 为键
   req:
     status:              # 可选；角色自身快照，交接记录不能替代它
+    agent_name:          # 可选；该角色真实 Codex subagent 的名字，缺失时不显示
     summary:
     evidence: []
     risks: []
     next_action:
+    subskills: []        # 可选；所属角色实际调用的子技能记录，格式见下文
 handoffs: []             # 权威交接记录；视图仅用于状态或 handoff 更新动画 fingerprint，不逐条展示
 ```
 
-任务视图可将当前 `snapshot.state` 显示为单一状态标签，但不展示状态机、状态参考集、复验入口或 `resume_state`。`resume_state` 仍是 `state=needs_revalidation` 时的必填权威工作流字段，只是不进入该极简 UI。全部外部展示值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
+编排者每次构建快照时，按当前任务填写 `task_type`、实际参与的 `roles` 和 `role_selection_reason`；已启动角色的 `agent_name` 取自真实协作工具返回的名字，未启动或未取得名字时省略，不能编造。顶部参与角色只展示 `work_unit.roles` 中规范化、去重后的 req/dev/cr/qa，未提供有效角色时显示“尚未选择”，不根据状态猜测参与链。`scope`、`acceptance`、`environment` 有值时才展示可折叠的任务上下文；它不属于角色卡的互斥展开组。主流程仍止于 QA 卡，QA 下方的无边框任务总结只读展示 `work_unit.summary`，不是额外角色或完成门禁。
+
+任务视图将当前 `snapshot.state` 和角色 `status` 映射为中文标签，不显示英文状态值；未知值显示“未知状态”，缺失角色状态显示“状态未提供”，权威快照值不变。不展示状态机、状态参考集、复验入口或 `resume_state`。`resume_state` 仍是 `state=needs_revalidation` 时的必填权威工作流字段，只是不进入该极简 UI。全部外部展示值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
+
+`role_details.<role>.subskills` 是可选数组，每项包含 `name`、`status` 及可选字符串 `goal`、`summary`、`question`、`result`，`options` 和 `evidence` 只接收字符串数组。只记录该角色实际调用的子技能：REQ 支持 `align-with-visuals`、`grill-with-docs`；DEV 支持 `tech-select`；CR 支持 `review-with-goal`；QA 支持 `test-with-goal`。非法名称、角色不匹配、错误类型和空白内容不展示；只有名称或状态、没有任务内容的项也不展示。候选选项仅随有效问题展示。
+
+子技能区嵌在所属角色的详情内；每项默认折叠，只有提供有效内容时才出现，不生成完整技能目录或流程节点。子技能折叠不参与角色互斥组，也不自动展开其他角色。状态使用中文标签，另支持 `needs_user_confirm`（等待用户确认）和 `needs_revision`（需要修订）。问题与选项只读，用户通过当前会话答复；视图不回传选择、不启动技能、不执行审批或改变权威状态。
 
 `view_id` 不是文件名、路径或资源 URI。编排者对同一工作单元始终使用 `sc-task-view:<work_unit_id>`；MCP server 仅校验它是非空字符串，UI 仅通过 `textContent` 展示，不将其解析或用于定位本地产物。
 

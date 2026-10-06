@@ -8,7 +8,14 @@ const skill = fs.readFileSync(path.join(__dirname, "..", "SKILL.md"), "utf8");
 const stateRoleLiteral = appTemplate.match(/const stateRole=\{([^}]*)\}/)?.[1] || "";
 
 assert.match(appTemplate, /const roles=\["req","dev","cr","qa"\]/, "task flow must keep the fixed REQ -> DEV -> CR -> QA order");
-assert.match(appTemplate, /data-sc-exit>QA · 唯一任务出口</, "QA must be the unique task exit");
+assert.doesNotMatch(appTemplate, /data-sc-exit|sc-task-view__exit|QA · 唯一任务出口/, "QA exit must not render a separate node or retain its styles");
+assert.match(appTemplate, /roleName\.textContent=role==="qa"\?`\$\{roleLabels\[role\]\} · 任务出口`:roleLabels\[role\]/, "only QA must identify the task exit in its role title");
+assert.match(appTemplate, /data-sc-task-summary>暂无总结</, "task summary must default to no supplied summary");
+assert.match(appTemplate, /data-sc-context hidden/, "secondary task context must initially be collapsed and hidden when empty");
+assert.match(appTemplate, /data-sc-selected-roles>尚未选择</, "the view must not infer all roles as selected");
+assert.match(appTemplate, /data-sc-play-animation hidden/, "animation replay is a hidden debug control by default");
+assert.match(appTemplate, /data-sc-subskill-field|dataset\.scSubskillField/, "called subskills must expose their read-only fields");
+assert.doesNotMatch(appTemplate, /data-sc-subskill-submit|data-sc-subskill-approve|data-sc-subskill-choice/, "subskill records must not imply a reply or approval channel");
 assert.doesNotMatch(appTemplate, /data-sc-tree-gate|回到 SC|data-sc-state-reference|sc-task-view__console|data-sc-events|Session log/, "nonessential or post-QA views must not be rendered");
 assert.match(appTemplate, /const explicit=roles\.filter\(role=>isActiveRoleStatus\(asObject\(details\[role\]\)\.status\)\); return explicit\.length\?explicit\.at\(-1\):\(stateRole\[state\]\|\|null\)/, "active role status must take precedence over the state mapping");
 assert.match(appTemplate, /node\.open=role===openRole/, "role expansion must follow the preserved or newly resolved open role");
