@@ -12,6 +12,7 @@ node .\skills\survey-corps\mcp-app\test-cr-contract.js
 node .\skills\survey-corps\mcp-app\test-plugin-structure.js
 node .\skills\survey-corps\mcp-app\test-motion-contract.js
 node .\skills\survey-corps\mcp-app\test-ui-contract.js
+node .\skills\survey-corps\mcp-app\test-ui-behavior.js
 ```
 
 ## 注册（需用户自行授权）

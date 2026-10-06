@@ -8,7 +8,7 @@ const mcp = JSON.parse(fs.readFileSync(path.join(root, ".mcp.json"), "utf8"));
 const market = JSON.parse(fs.readFileSync(path.join(root, "..", "..", "..", ".agents", "plugins", "marketplace.json"), "utf8"));
 const skill = fs.readFileSync(path.join(root, "..", "SKILL.md"), "utf8");
 assert.equal(plugin.name, "survey-corps-task-view");
-assert.equal(plugin.version, "0.1.3");
+assert.equal(plugin.version, "0.1.4");
 assert.equal(mcp.mcpServers[plugin.name].command, "node");
 assert.deepEqual(mcp.mcpServers[plugin.name].args, ["server.js"]);
 assert.equal(mcp.mcpServers[plugin.name].cwd, ".");

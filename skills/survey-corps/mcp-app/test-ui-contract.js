@@ -11,9 +11,12 @@ assert.match(appTemplate, /const roles=\["req","dev","cr","qa"\]/, "task flow mu
 assert.match(appTemplate, /data-sc-exit>QA · 唯一任务出口</, "QA must be the unique task exit");
 assert.doesNotMatch(appTemplate, /data-sc-tree-gate|回到 SC|data-sc-state-reference|sc-task-view__console|data-sc-events|Session log/, "nonessential or post-QA views must not be rendered");
 assert.match(appTemplate, /const explicit=roles\.filter\(role=>isActiveRoleStatus\(asObject\(details\[role\]\)\.status\)\); return explicit\.length\?explicit\.at\(-1\):\(stateRole\[state\]\|\|null\)/, "active role status must take precedence over the state mapping");
-assert.match(appTemplate, /node\.open=active/, "only the resolved active role may be auto-expanded");
+assert.match(appTemplate, /node\.open=role===openRole/, "role expansion must follow the preserved or newly resolved open role");
 assert.match(appTemplate, /const active=role===activeRole/, "role cards must compare against one resolved active role");
 assert.match(appTemplate, /querySelectorAll\("details\[data-sc-role\]\[open\]"\).*if \(node!==opened\) node\.open=false/, "opening one role must close every other role");
+assert.match(appTemplate, /userOpenRole=root\.querySelector\("details\[data-sc-role\]\[open\]"\)\?\.dataset\.scRole/, "rerender must capture the user's currently open role before replacing nodes");
+assert.match(appTemplate, /root\.__scResolvedActiveRole===activeRole\?userOpenRole:activeRole/, "same active role must preserve the user's selection while a changed active role must follow the new snapshot");
+assert.match(appTemplate, /root\.__scResolvedActiveRole=activeRole/, "rerender must remember the resolved active role for the next snapshot");
 assert.match(appTemplate, /stateRole=\{dev_in_progress:"dev",ready_for_cr:"cr",ready_for_qa:"qa"\}/, "only uniquely attributable workflow states may map to an active role");
 for (const state of ["confirmed", "planned", "cr_blocked", "qa_failed", "qa_conditional", "qa_passed", "workflow_ready", "needs_user_confirm", "needs_revalidation", "needs_revision", "blocked"]) {
   assert.doesNotMatch(stateRoleLiteral, new RegExp(`(?:^|,)${state}:`), `${state} must not guess an active role`);
