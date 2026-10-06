@@ -19,7 +19,7 @@ const snapshot = {
   view_id: "sc-task-view:QA-SC-MOTION-001",
   state: "ready_for_cr",
   work_unit: { work_unit_id: "QA-SC-MOTION-001", target: "accordion rerender", reference_version: "748c46b" },
-  role_details: { req: { status: "completed" }, cr: { status: "running" }, qa: { status: "not_started" } },
+  role_details: { req: { status: "completed", progress: "25" }, cr: { status: "running", progress: 120 }, qa: { status: "not_started", progress: -25 } },
   handoffs: [],
 };
 const harness = `<!doctype html><html><body><main id="root">${template}</main><script>
@@ -30,8 +30,9 @@ root.addEventListener=(type,listener,options)=>{if(type==="toggle")toggleAdds++;
 root.removeEventListener=(type,listener,options)=>{if(type==="toggle")toggleRemoves++;return remove(type,listener,options)};
 const snapshot=${JSON.stringify(snapshot)};
 const openRoles=()=>[...root.querySelectorAll("details[data-sc-role][open]")].map(node=>node.dataset.scRole);
+const progressFor=role=>{const bar=root.querySelector('details[data-sc-role="'+role+'"] [role="progressbar"]');return bar?{name:bar.getAttribute("aria-label"),min:bar.getAttribute("aria-valuemin"),max:bar.getAttribute("aria-valuemax"),now:bar.getAttribute("aria-valuenow")}:null};
 window.renderSurveyCorpsTaskView(root,snapshot);
-const initial=openRoles();
+const initial=openRoles(),progress={req:progressFor("req"),dev:progressFor("dev"),cr:progressFor("cr"),qa:progressFor("qa")};
 root.querySelector('details[data-sc-role="cr"]').open=false;
 root.querySelector('details[data-sc-role="req"]').open=true;
 window.renderSurveyCorpsTaskView(root,snapshot);
@@ -41,7 +42,7 @@ window.renderSurveyCorpsTaskView(root,next);
 const changedActive=openRoles(),stateBefore=root.querySelector('[data-sc-field="state"]').textContent;
 root.querySelector("[data-sc-play-animation]").click();
 const afterReplay=openRoles(),stateAfter=root.querySelector('[data-sc-field="state"]').textContent;
-const result={initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,toggleAdds,toggleRemoves,activeToggleListeners:toggleAdds-toggleRemoves};
+const result={initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,progress,toggleAdds,toggleRemoves,activeToggleListeners:toggleAdds-toggleRemoves};
 document.body.dataset.scTestResult=JSON.stringify(result);
 </script></body></html>`;
 
@@ -58,6 +59,10 @@ try {
   assert.deepEqual(result.afterReplay, ["qa"], "animation replay must not change the accordion");
   assert.equal(result.stateAfter, result.stateBefore, "animation replay must not change task state");
   assert.equal(result.activeToggleListeners, 1, "rerender must leave exactly one accordion toggle listener");
+  assert.equal(result.progress.req, null, "non-number progress must not render");
+  assert.equal(result.progress.dev, null, "missing progress must not render");
+  assert.deepEqual(result.progress.cr, { name: "CR 任务进度：100%", min: "0", max: "100", now: "100" }, "progress above 100 must clamp with accessible values");
+  assert.deepEqual(result.progress.qa, { name: "QA 任务进度：0%", min: "0", max: "100", now: "0" }, "progress below 0 must clamp with accessible values");
   console.log("SC task view Chrome behavior regression passed.");
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
