@@ -23,7 +23,7 @@ node .\skills\survey-corps\mcp-app\test-ui-behavior.js
 
 marketplace 将该插件标为 `AVAILABLE`、`ON_INSTALL` 和 `Productivity`；这些字段控制客户端的发现与安装流程，不构成运行时隔离保证。
 
-注册的具体配置键由客户端版本决定；状态更新时调用 `show_sc_task_view`，参数为 `{ "snapshot": <当前 SC 快照> }`。`snapshot.view_id` 必填，对同一工作单元固定为 `sc-task-view:<work_unit_id>`；它仅用于文本展示，不是路径或资源 URI。入口空参调用 `{}` 始终返回 `sc-task-view:empty` 空视图，不读取其他调用、进程或线程的状态，也不代表真实任务状态；只有显式传入 snapshot 才会渲染该快照。MCP App 资源 URI 为 `ui://survey-corps/task-view`。标准 `ui.resourceUri` 负责关联 HTML resource；Codex 专用的 `openai/ui.thread` entrypoint 负责让宿主把该 App 暴露为当前任务的侧栏入口。该入口仅声明可供用户在任务内容 tab 手动打开，不保证更新工具调用后自动展开右侧面板。
+注册的具体配置键由客户端版本决定；状态更新时调用 `show_sc_task_view`，参数为 `{ "snapshot": <当前 SC 快照> }`。`snapshot.view_id` 必填，对同一工作单元固定为 `sc-task-view:<work_unit_id>`；它是逻辑标识，不是路径或资源 URI，也不在 UI 中展示。入口空参调用 `{}` 始终返回 `sc-task-view:empty` 空视图，不读取其他调用、进程或线程的状态，也不代表真实任务状态；只有显式传入 snapshot 才会渲染该快照。MCP App 资源 URI 为 `ui://survey-corps/task-view`。标准 `ui.resourceUri` 负责关联 HTML resource；Codex 专用的 `openai/ui.thread` entrypoint 负责让宿主把该 App 暴露为当前任务的侧栏入口。该入口仅声明可供用户在任务内容 tab 手动打开，不保证更新工具调用后自动展开右侧面板。
 
 ## 安全与边界
 

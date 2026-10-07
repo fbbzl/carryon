@@ -13,9 +13,8 @@ assert.match(appTemplate, /roleName\.textContent=roleLabels\[role\]/, "role titl
 assert.match(appTemplate, /data-sc-task-summary>暂无总结</, "task summary must default to no supplied summary");
 assert.match(appTemplate, /data-sc-context hidden/, "secondary task context must initially be collapsed and hidden when empty");
 assert.match(appTemplate, /data-sc-selected-roles>尚未选择</, "the view must not infer all roles as selected");
-assert.match(appTemplate, /data-sc-field="project_name">未提供</, "project name must have an explicit safe fallback");
-assert.match(appTemplate, /values=\{project_name:optionalText\(work\.project_name\),view_id:input\.view_id/, "project name must come from work_unit.project_name");
-assert.match(skill, /project_name:\s+# 可选；当前 Codex 会话所属项目名称/, "skill must define the project name snapshot field");
+assert.doesNotMatch(appTemplate, /sc-task-view__eyebrow|data-sc-field="project_name"|data-sc-field="view_id"|SURVEY CORPS \/|view_id:input\.view_id/, "the top metadata row and its project/view identifiers must not render");
+assert.match(skill, /project_name:\s+# 可选；当前 Codex 会话所属项目名称，UI 不展示，不得猜测/, "the optional project name must remain in the snapshot contract without rendering");
 assert.match(skill, /agent_name:\s+# 可选；该角色真实 Codex subagent 的名字/, "skill must require real subagent names");
 assert.match(appTemplate, /data-sc-play-animation hidden/, "animation replay is a hidden debug control by default");
 assert.match(appTemplate, /data-sc-subskill-field|dataset\.scSubskillField/, "called subskills must expose their read-only fields");

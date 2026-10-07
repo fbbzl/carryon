@@ -23,7 +23,7 @@ assert.match(skill, /show_sc_task_view.*工具缺失.*blocked/s, "skill must blo
 assert.doesNotMatch(skill, /Prepare-ScTaskView|create\(view_id\)|文本降级/, "skill must not retain a fallback rendering path");
 assert.match(skill, /全局 `blocked` 的合法来源包括.*P0\/P1.*未授权执行.*任务视图 MCP.*subagent/s, "skill must declare every global blocked source");
 assert.doesNotMatch(skill, /P0\/P1 或未授权执行进入 `blocked`|达到 P0\/P1 或发生未授权执行时才进入全局 `blocked`/, "skill retains the obsolete restricted blocked semantics");
-assert.match(skill, /sc-task-view:<work_unit_id>.*仅作为文本展示/, "skill must define view_id as a stable non-path logical identifier");
+assert.match(skill, /sc-task-view:<work_unit_id>.*UI 不展示/, "skill must define view_id as a stable non-path logical identifier hidden from the UI");
 const entry=market.plugins.find(item => item.name === plugin.name);
 assert.deepEqual(entry.source, { source: "local", path: "./skills/survey-corps/mcp-app" });
 assert.deepEqual(entry.policy, { installation: "AVAILABLE", authentication: "ON_INSTALL" });

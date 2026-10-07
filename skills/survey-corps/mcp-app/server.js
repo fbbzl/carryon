@@ -11,7 +11,7 @@ const TEMPLATE_PATH = path.join(__dirname, "assets", "sc-task-view.html");
 const MAX_FRAME_BYTES = 256 * 1024;
 const MAX_SNAPSHOT_BYTES = 200 * 1024;
 const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", "2025-11-25"]);
-const SNAPSHOT_SCHEMA = { type: "object", required: ["view_id"], properties: { view_id: { type: "string", minLength: 1, description: "Stable logical view identifier; displayed as text and never used as a path or resource URI." } } };
+const SNAPSHOT_SCHEMA = { type: "object", required: ["view_id"], properties: { view_id: { type: "string", minLength: 1, description: "Stable logical view identifier; not displayed in the UI or used as a path or resource URI." } } };
 const EMPTY_SNAPSHOT = Object.freeze({ view_id: "sc-task-view:empty", state: "unknown" });
 
 function send(message) { const line=`${JSON.stringify(message)}\n`; if (Buffer.byteLength(line,"utf8") > MAX_FRAME_BYTES) return process.stdout.write(`${JSON.stringify({jsonrpc:"2.0",id:message.id??null,error:{code:-32603,message:"Response exceeds 256 KiB"}})}\n`); process.stdout.write(line); }
