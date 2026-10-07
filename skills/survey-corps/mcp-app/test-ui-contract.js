@@ -7,7 +7,8 @@ const appTemplate = fs.readFileSync(path.join(__dirname, "assets", "sc-task-view
 const skill = fs.readFileSync(path.join(__dirname, "..", "SKILL.md"), "utf8");
 const stateRoleLiteral = appTemplate.match(/const stateRole=\{([^}]*)\}/)?.[1] || "";
 
-assert.match(appTemplate, /const roles=\["req","dev","cr","qa"\]/, "task flow must keep the fixed REQ -> DEV -> CR -> QA order");
+assert.match(appTemplate, /const roles=\["req","dev","cr","qa"\]/, "task flow must retain the canonical role set");
+assert.match(appTemplate, /selectedRoles\.length\?selectedRoles:roles/, "task flow must render selected roles in declared order");
 assert.doesNotMatch(appTemplate, /data-sc-exit|sc-task-view__exit|QA · 唯一任务出口/, "QA exit must not render a separate node or retain its styles");
 assert.match(appTemplate, /roleName\.textContent=roleLabels\[role\]/, "role titles must use the plain role label without a QA exit suffix");
 assert.match(appTemplate, /data-sc-task-summary>暂无总结</, "task summary must default to no supplied summary");
