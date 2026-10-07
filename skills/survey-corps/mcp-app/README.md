@@ -1,6 +1,6 @@
 # SC Agent Tree MCP App
 
-这是项目内、零依赖的 Node stdio MCP server。它不是常驻服务：宿主在需要时启动 `server.js`，并通过 `show_sc_task_view` 传入当前 SC snapshot。工具以 `_meta.ui.resourceUri` 绑定静态 `text/html;profile=mcp-app` resource，并以 `openai/ui` 的 `thread` entrypoint 声明 Codex 任务内入口。工具返回 `structuredContent.snapshot`，UI 通过 MCP Apps 的 `ui/notifications/tool-result` bridge 渲染该快照。
+这是项目内、零依赖的 Node stdio MCP server。它不是常驻服务：宿主在需要时启动 `server.js`，SC 状态更新通过 `show_sc_task_view` 传入当前 snapshot；Codex `thread` entrypoint 则以空参数调用同一工具。工具以 `_meta.ui.resourceUri` 绑定静态 `text/html;profile=mcp-app` resource，并以 `openai/ui` 的 `thread` entrypoint 声明 Codex 任务内入口。工具返回 `structuredContent.snapshot`，UI 通过 MCP Apps 的 `ui/notifications/tool-result` bridge 渲染该快照。
 
 这是 SC 任务视图的唯一渲染路径。项目不生成或打开本地 `visualizations` HTML，也不提供文本或其他替代视图。若 MCP tool 不可用或调用失败，SC 工作单元将进入 `blocked`，直到插件和 MCP Apps 能力恢复。
 
@@ -9,6 +9,8 @@
 ```powershell
 node .\skills\survey-corps\mcp-app\test-server.js
 node .\skills\survey-corps\mcp-app\test-cr-contract.js
+node .\skills\survey-corps\mcp-app\test-app-bridge-contract.js
+node .\skills\survey-corps\mcp-app\test-thread-entrypoint-contract.js
 node .\skills\survey-corps\mcp-app\test-plugin-structure.js
 node .\skills\survey-corps\mcp-app\test-motion-contract.js
 node .\skills\survey-corps\mcp-app\test-ui-contract.js
@@ -21,11 +23,11 @@ node .\skills\survey-corps\mcp-app\test-ui-behavior.js
 
 marketplace 将该插件标为 `AVAILABLE`、`ON_INSTALL` 和 `Productivity`；这些字段控制客户端的发现与安装流程，不构成运行时隔离保证。
 
-注册的具体配置键由客户端版本决定；完成注册后调用 `show_sc_task_view`，参数为 `{ "snapshot": <当前 SC 快照> }`。`snapshot.view_id` 必填，对同一工作单元固定为 `sc-task-view:<work_unit_id>`；它仅用于文本展示，不是路径或资源 URI。MCP App 资源 URI 为 `ui://survey-corps/task-view`。标准 `ui.resourceUri` 负责关联 HTML resource；Codex 专用的 `openai/ui.thread` entrypoint 负责让宿主把该 App 暴露为当前任务的侧栏入口。
+注册的具体配置键由客户端版本决定；状态更新时调用 `show_sc_task_view`，参数为 `{ "snapshot": <当前 SC 快照> }`。`snapshot.view_id` 必填，对同一工作单元固定为 `sc-task-view:<work_unit_id>`；它仅用于文本展示，不是路径或资源 URI。入口空参调用 `{}` 始终返回 `sc-task-view:empty` 空视图，不读取其他调用、进程或线程的状态，也不代表真实任务状态；只有显式传入 snapshot 才会渲染该快照。MCP App 资源 URI 为 `ui://survey-corps/task-view`。标准 `ui.resourceUri` 负责关联 HTML resource；Codex 专用的 `openai/ui.thread` entrypoint 负责让宿主把该 App 暴露为当前任务的侧栏入口。该入口仅声明可供用户在任务内容 tab 手动打开，不保证更新工具调用后自动展开右侧面板。
 
 ## 安全与边界
 
 - 输入仅接受 JSON object，限制为 256 KiB；所有快照值由原模板以 `textContent` 输出。
-- server 本身不联网、不写入、不保存快照、无轮询或后台服务；marketplace 元数据不是运行时隔离保证。
+- server 本身不联网、不写入磁盘、不缓存快照、无轮询或后台服务；每次入口调用只使用本次请求显式传入的 snapshot。marketplace 元数据不是运行时隔离保证。
 - 工具展示不改变 SC 权威状态、交接或完成门禁。
 - 已在当前验证环境完成 MCP App 注册与工具调用验收；`show_sc_task_view` 状态更新调用成功并返回 `structuredContent.snapshot`。不同 Codex Desktop 版本仍需单独确认宿主面板的视觉渲染。

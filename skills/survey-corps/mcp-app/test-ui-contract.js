@@ -13,6 +13,10 @@ assert.match(appTemplate, /roleName\.textContent=roleLabels\[role\]/, "role titl
 assert.match(appTemplate, /data-sc-task-summary>暂无总结</, "task summary must default to no supplied summary");
 assert.match(appTemplate, /data-sc-context hidden/, "secondary task context must initially be collapsed and hidden when empty");
 assert.match(appTemplate, /data-sc-selected-roles>尚未选择</, "the view must not infer all roles as selected");
+assert.match(appTemplate, /data-sc-field="project_name">未提供</, "project name must have an explicit safe fallback");
+assert.match(appTemplate, /values=\{project_name:optionalText\(work\.project_name\),view_id:input\.view_id/, "project name must come from work_unit.project_name");
+assert.match(skill, /project_name:\s+# 可选；当前 Codex 会话所属项目名称/, "skill must define the project name snapshot field");
+assert.match(skill, /agent_name:\s+# 可选；该角色真实 Codex subagent 的名字/, "skill must require real subagent names");
 assert.match(appTemplate, /data-sc-play-animation hidden/, "animation replay is a hidden debug control by default");
 assert.match(appTemplate, /data-sc-subskill-field|dataset\.scSubskillField/, "called subskills must expose their read-only fields");
 assert.doesNotMatch(appTemplate, /data-sc-subskill-submit|data-sc-subskill-approve|data-sc-subskill-choice/, "subskill records must not imply a reply or approval channel");
@@ -36,6 +40,9 @@ assert.match(skill, /handoffs: \[\].*权威交接记录.*仅用于状态或 hand
 assert.doesNotMatch(skill, /handoffs: \[\].*每条均展示|handoffs?.*(session log|Session log|逐条展示其自身)/, "skill must not require handoff or session-log rendering");
 
 for (const tone of ["pending", "active", "completed", "passed", "danger", "waiting", "revision", "unknown"]) assert.match(appTemplate, new RegExp(`sc-task-view__state--${tone} \\{[^}]*color:`), `${tone} must define a semantic status color`);
+assert.match(appTemplate, /--unknown:#fff/, "unknown and missing status text must be white");
+assert.match(appTemplate, /\.sc-task-view__empty \{ color:#fff/, "empty placeholders must be white");
+assert.match(appTemplate, /\.sc-task-view__placeholder \{ color:#fff/, "all missing metadata must be white");
 assert.match(appTemplate, /sc-task-view__connector::before/, "role connectors must retain an explicit vertical stem");
 assert.match(appTemplate, /sc-task-view__connector::after/, "role connectors must render a downward arrowhead");
 assert.match(appTemplate, /transform:rotate\(45deg\)/, "connector arrowhead must point downward");

@@ -33,6 +33,7 @@ MCP App 资源 `mcp-app/assets/sc-task-view.html` 的渲染函数接收根元素
 ```yaml
 work_unit:
   work_unit_id:
+  project_name:          # 可选；当前 Codex 会话所属项目名称，缺失时显示“未提供”，不得猜测
   target:
   task_type:             # 可选；当前任务类型文本
   roles: []
@@ -53,7 +54,7 @@ resume_state:            # state=needs_revalidation 时必填，表示从何处�
 role_details:            # 可选，以 req/dev/cr/qa 为键
   req:
     status:              # 可选；角色自身快照，交接记录不能替代它
-    agent_name:          # 可选；该角色真实 Codex subagent 的名字，缺失时不显示
+    agent_name:          # 可选；该角色真实 Codex subagent 的名字，缺失时不显示；不得用角色名或猜测值代替
     summary:
     evidence: []
     risks: []
@@ -62,7 +63,7 @@ role_details:            # 可选，以 req/dev/cr/qa 为键
 handoffs: []             # 权威交接记录；视图仅用于状态或 handoff 更新动画 fingerprint，不逐条展示
 ```
 
-编排者每次构建快照时，按当前任务填写 `task_type`、实际参与的 `roles` 和 `role_selection_reason`；已启动角色的 `agent_name` 取自真实协作工具返回的名字，未启动或未取得名字时省略，不能编造。顶部参与角色只展示 `work_unit.roles` 中规范化、去重后的 req/dev/cr/qa，未提供有效角色时显示“尚未选择”，不根据状态猜测参与链。`scope`、`acceptance`、`environment` 有值时才展示可折叠的任务上下文；它不属于角色卡的互斥展开组。主流程仍止于 QA 卡，QA 下方的无边框任务总结只读展示 `work_unit.summary`，不是额外角色或完成门禁。
+编排者每次构建快照时，按当前任务填写 `task_type`、实际参与的 `roles` 和 `role_selection_reason`；`project_name` 只取当前 Codex 会话实际所属项目名称，无法确认时省略；已启动角色的 `agent_name` 取自真实协作工具返回的名字，未启动或未取得名字时省略，不能编造。顶部参与角色只展示 `work_unit.roles` 中规范化、去重后的 req/dev/cr/qa，未提供有效角色时显示“尚未选择”，不根据状态猜测参与链。`scope`、`acceptance`、`environment` 有值时才展示可折叠的任务上下文；它不属于角色卡的互斥展开组。主流程仍止于 QA 卡，QA 下方的无边框任务总结只读展示 `work_unit.summary`，不是额外角色或完成门禁。
 
 任务视图将当前 `snapshot.state` 和角色 `status` 映射为中文标签，不显示英文状态值；未知值显示“未知状态”，缺失角色状态显示“状态未提供”，权威快照值不变。不展示状态机、状态参考集、复验入口或 `resume_state`。`resume_state` 仍是 `state=needs_revalidation` 时的必填权威工作流字段，只是不进入该极简 UI。全部外部展示值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
 

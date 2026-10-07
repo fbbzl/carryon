@@ -57,15 +57,16 @@ const debugFalse={hidden:root.querySelector('[data-sc-play-animation]').hidden,r
 const snapshotDebug=structuredClone(next);snapshotDebug.debug=true;window.renderSurveyCorpsTaskView(root,snapshotDebug);root.querySelector('[data-sc-play-animation]').click();
 const debugInSnapshot={hidden:root.querySelector('[data-sc-play-animation]').hidden,replay:!!root.querySelector('.is-manual-replay')};
 const supplied=structuredClone(next),payload='<img src=x onerror="window.qaInjected=true">';
-supplied.work_unit={target:'明确目标',task_type:'界面调整',roles:['dev','qa'],role_selection_reason:'仅实现和验收',summary:payload,scope:['当前任务视图'],acceptance:['QA 唯一出口'],environment:'Windows Chrome'};
+supplied.work_unit={project_name:'carryon',target:'明确目标',task_type:'界面调整',roles:['dev','qa'],role_selection_reason:'仅实现和验收',summary:payload,scope:['当前任务视图'],acceptance:['QA 唯一出口'],environment:'Windows Chrome'};
+supplied.role_details.req.agent_name='req-agent';supplied.role_details.dev={agent_name:'dev-agent'};supplied.role_details.cr.agent_name='cr-agent';
 supplied.role_details.qa.agent_name=payload;
 window.renderSurveyCorpsTaskView(root,supplied);
 const context=root.querySelector('[data-sc-context]'),summary=root.querySelector('[data-sc-task-summary]'),agent=root.querySelector('[data-sc-role=qa] [data-sc-agent-name]');
-const provided={taskType:root.querySelector('[data-sc-field=task_type]').textContent,selected:root.querySelector('[data-sc-selected-roles]').textContent,reason:root.querySelector('[data-sc-field=role_selection_reason]').textContent,summary:summary.textContent,summaryOutsideFlow:!summary.closest('[data-sc-flow]'),summaryAfterQA:!!(root.querySelector('[data-sc-role=qa]').compareDocumentPosition(summary)&Node.DOCUMENT_POSITION_FOLLOWING),roleCount:root.querySelectorAll('details[data-sc-role]').length,contextHidden:context.hidden,contextOpen:context.open,contextText:context.textContent,agent:agent.textContent,agentInTitle:agent.parentElement.classList.contains('sc-task-view__role-name'),injectedElements:root.querySelectorAll('img').length};
+const provided={project:root.querySelector('[data-sc-field=project_name]').textContent,taskType:root.querySelector('[data-sc-field=task_type]').textContent,selected:root.querySelector('[data-sc-selected-roles]').textContent,reason:root.querySelector('[data-sc-field=role_selection_reason]').textContent,summary:summary.textContent,summaryOutsideFlow:!summary.closest('[data-sc-flow]'),summaryAfterQA:!!(root.querySelector('[data-sc-role=qa]').compareDocumentPosition(summary)&Node.DOCUMENT_POSITION_FOLLOWING),roleCount:root.querySelectorAll('details[data-sc-role]').length,contextHidden:context.hidden,contextOpen:context.open,contextText:context.textContent,agent:agent.textContent,agentInTitle:agent.parentElement.classList.contains('sc-task-view__role-name'),agents:Object.fromEntries(['req','dev','cr','qa'].map(role=>[role,root.querySelector('[data-sc-role='+role+'] [data-sc-agent-name]')?.textContent||null])),injectedElements:root.querySelectorAll('img').length};
 supplied.role_details.qa.agent_name='新代理名称';window.renderSurveyCorpsTaskView(root,supplied);
 const agentUpdated=root.querySelector('[data-sc-role=qa] [data-sc-agent-name]').textContent;
-delete supplied.role_details.qa.agent_name;delete supplied.work_unit.summary;window.renderSurveyCorpsTaskView(root,supplied);
-const removed={agentCount:root.querySelectorAll('[data-sc-agent-name]').length,summary:root.querySelector('[data-sc-task-summary]').textContent};
+delete supplied.role_details.qa.agent_name;delete supplied.work_unit.project_name;delete supplied.work_unit.summary;window.renderSurveyCorpsTaskView(root,supplied);
+const removed={project:root.querySelector('[data-sc-field=project_name]').textContent,projectClass:root.querySelector('[data-sc-field=project_name]').className,agentCount:root.querySelectorAll('[data-sc-agent-name]').length,summary:root.querySelector('[data-sc-task-summary]').textContent,summaryClass:root.querySelector('[data-sc-task-summary]').className};
 const roleCases={pending:'待开始',not_started:'待开始',running:'进行中',preparing:'准备中',in_progress:'进行中',working:'进行中',active:'进行中',started:'进行中',started_working:'进行中',completed:'已完成',done:'已完成',passed:'已通过',failed:'失败',blocked:'已阻断',paused:'已暂停',cancelled:'已取消',canceled:'已取消',skipped:'已跳过',waiting:'等待中'};
 const roleStatuses={};const roleStatusClasses={};for(const status of Object.keys(roleCases)){supplied.role_details.qa.status=status;window.renderSurveyCorpsTaskView(root,supplied);const node=root.querySelector('[data-sc-role=qa] .sc-task-view__role-state');roleStatuses[status]=node.textContent;roleStatusClasses[status]=node.className;}
 const globalCases={confirmed:'已确认',planned:'计划',dev_in_progress:'开发中',ready_for_cr:'等待审查',cr_blocked:'审查阻断',ready_for_qa:'等待测试',qa_failed:'测试失败',qa_conditional:'测试条件通过',qa_passed:'测试通过',workflow_ready:'工作流就绪',needs_user_confirm:'等待用户确认',needs_revalidation:'需要重新验证',needs_revision:'需要修订',blocked:'已阻断'};
@@ -143,6 +144,7 @@ try {
   assert.deepEqual(defaultValues, { summary: "暂无总结", selected: "尚未选择", contextHidden: true, debugHidden: true, agentCount: 0, autoMotion: true }, "missing metadata must not imply completion or selected roles; automatic motion remains enabled");
   assert.deepEqual(result.debugTrue, { hidden: false, replay: true }, "strict debug true must expose and enable replay");
   for (const mode of [result.debugString, result.debugDefault, result.debugFalse, result.debugInSnapshot]) assert.deepEqual(mode, { hidden: true, replay: false }, "only options.debug true may enable replay; nondebug programmatic clicks must not replay");
+  assert.equal(result.provided.project, "carryon");
   assert.equal(result.provided.taskType, "界面调整");
   assert.equal(result.provided.selected, "DEV → QA", "selection must come from the orchestrator rather than all cards");
   assert.equal(result.provided.reason, "仅实现和验收");
@@ -155,9 +157,10 @@ try {
   for (const text of ["当前任务视图", "QA 唯一出口", "Windows Chrome"]) assert.ok(result.provided.contextText.includes(text));
   assert.equal(result.provided.agent, result.payload);
   assert.equal(result.provided.agentInTitle, true);
+  assert.deepEqual(result.provided.agents, {req:"req-agent",dev:"dev-agent",cr:"cr-agent",qa:result.payload}, "each role must display its supplied subagent name safely");
   assert.equal(result.provided.injectedElements, 0, "summary and agent names must not inject HTML");
   assert.equal(result.agentUpdated, "新代理名称", "agent names must update on the next snapshot");
-  assert.deepEqual(result.removed, { agentCount: 0, summary: "暂无总结" }, "removing optional metadata must remove stale UI");
+  assert.deepEqual(result.removed, { project: "未提供", projectClass: "sc-task-view__placeholder", agentCount: 3, summary: "暂无总结", summaryClass: "sc-task-view__placeholder" }, "removing optional metadata must remove stale UI and style missing values white");
   assert.deepEqual(result.roleStatuses, result.roleCases, "all supported role statuses must display Chinese");
   assert.notEqual(result.roleStatusClasses.running, result.roleStatusClasses.completed, "running and completed roles must use different semantic color classes");
   assert.notEqual(result.roleStatusClasses.completed, result.roleStatusClasses.failed, "completed and failed roles must use different semantic color classes");
@@ -188,7 +191,7 @@ try {
   assert.equal(result.progress.dev, null, "missing progress must not render");
   assert.deepEqual(result.progress.cr, { name: "CR 任务进度：100%", min: "0", max: "100", now: "100" }, "progress above 100 must clamp with accessible values");
   assert.deepEqual(result.progress.qa, { name: "QA 任务进度：0%", min: "0", max: "100", now: "0" }, "progress below 0 must clamp with accessible values");
-  const toneColors={pending:"rgb(176, 188, 203)",active:"rgb(125, 211, 252)",completed:"rgb(94, 234, 212)",passed:"rgb(134, 239, 172)",danger:"rgb(253, 164, 175)",waiting:"rgb(253, 230, 138)",revision:"rgb(253, 186, 116)",unknown:"rgb(216, 180, 254)"};
+  const toneColors={pending:"rgb(149, 163, 181)",active:"rgb(70, 184, 238)",completed:"rgb(39, 201, 176)",passed:"rgb(75, 216, 130)",danger:"rgb(237, 117, 137)",waiting:"rgb(233, 200, 92)",revision:"rgb(236, 155, 79)",unknown:"rgb(255, 255, 255)"};
   for(const mode of [{width:360,reduced:false},{width:960,reduced:false},{width:360,reduced:true}]) {
     const srcdoc=visualHarness.replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;");
     // A fixed iframe viewport avoids Chrome's desktop-window minimum width.

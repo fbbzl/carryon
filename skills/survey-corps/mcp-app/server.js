@@ -12,27 +12,63 @@ const MAX_FRAME_BYTES = 256 * 1024;
 const MAX_SNAPSHOT_BYTES = 200 * 1024;
 const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", "2025-11-25"]);
 const SNAPSHOT_SCHEMA = { type: "object", required: ["view_id"], properties: { view_id: { type: "string", minLength: 1, description: "Stable logical view identifier; displayed as text and never used as a path or resource URI." } } };
+const EMPTY_SNAPSHOT = Object.freeze({ view_id: "sc-task-view:empty", state: "unknown" });
 
 function send(message) { const line=`${JSON.stringify(message)}\n`; if (Buffer.byteLength(line,"utf8") > MAX_FRAME_BYTES) return process.stdout.write(`${JSON.stringify({jsonrpc:"2.0",id:message.id??null,error:{code:-32603,message:"Response exceeds 256 KiB"}})}\n`); process.stdout.write(line); }
 function failure(id, code, message) { send({ jsonrpc: "2.0", id, error: { code, message } }); }
 function readTemplate() { return fs.readFileSync(TEMPLATE_PATH, "utf8"); }
 function appHtml() {
-  return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body><main id="sc-task-view-root">${readTemplate()}</main><script>(()=>{const root=document.getElementById("sc-task-view-root"),render=snapshot=>window.renderSurveyCorpsTaskView(root,snapshot),initId="sc-ui-init",parentWindow=window.parent;let ready=false;render({});window.addEventListener("message",event=>{if(event.source!==parentWindow)return;const message=event.data;if(!message||message.jsonrpc!=="2.0")return;if(message.id===initId&&("result" in message||"error" in message)){parentWindow.postMessage({jsonrpc:"2.0",method:"ui/notifications/initialized",params:{}},"*");ready=!message.error;return;}if(message.method==="ui/notifications/initialized"){ready=true;return;}if(!ready||message.method!=="ui/notifications/tool-result")return;const result=message.params?.result??message.params;const snapshot=result?.structuredContent?.snapshot;if(snapshot&&typeof snapshot==="object"&&!Array.isArray(snapshot))render(snapshot);});parentWindow.postMessage({jsonrpc:"2.0",id:initId,method:"ui/initialize",params:{}},"*");})();</script></body></html>`;
+  return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body><main id="sc-task-view-root">${readTemplate()}</main><script>(()=>{
+    const root=document.getElementById("sc-task-view-root"),render=snapshot=>window.renderSurveyCorpsTaskView(root,snapshot),initId="sc-ui-init",parentWindow=window.parent;
+    let ready=false;
+    render({});
+    window.addEventListener("message",event=>{
+      if(event.source!==parentWindow)return;
+      const message=event.data;
+      if(!message||message.jsonrpc!=="2.0")return;
+      if(message.id===initId){
+        if("error" in message)return;
+        if("result" in message){
+          ready=true;
+          parentWindow.postMessage({jsonrpc:"2.0",method:"ui/notifications/initialized"},"*");
+        }
+        return;
+      }
+      if(!ready||message.method!=="ui/notifications/tool-result")return;
+      const result=message.params?.result??message.params;
+      const snapshot=result?.structuredContent?.snapshot;
+      if(snapshot&&typeof snapshot==="object"&&!Array.isArray(snapshot))render(snapshot);
+    });
+    parentWindow.postMessage({jsonrpc:"2.0",id:initId,method:"ui/initialize",params:{protocolVersion:"2026-01-26",appInfo:{name:"survey-corps-task-view",version:"0.1.4"},appCapabilities:{}}},"*");
+  })();</script></body></html>`;
 }
 function isObject(value) { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function resource(text) { return { uri: APP_URI, mimeType: APP_MIME, text }; }
+function validateSnapshot(snapshot) {
+  if (!isObject(snapshot)) return "show_sc_task_view snapshot must be an object";
+  if (typeof snapshot.view_id !== "string" || snapshot.view_id.trim() === "") return "snapshot.view_id must be a non-empty string";
+  if (Buffer.byteLength(JSON.stringify(snapshot), "utf8") > MAX_SNAPSHOT_BYTES) return "snapshot exceeds 256 KiB";
+  return null;
+}
 function handle(id, method, params) {
   if (method === "initialize") { const protocolVersion=params?.protocolVersion; if (!SUPPORTED_PROTOCOL_VERSIONS.has(protocolVersion)) return failure(id, -32602, "Unsupported protocol version"); return send({ jsonrpc: "2.0", id, result: { protocolVersion, capabilities: { tools: {}, resources: {} }, serverInfo: { name: "survey-corps-task-view", version: "0.1.4" } } }); }
   if (method === "notifications/initialized") return;
   if (method === "resources/list") return send({ jsonrpc: "2.0", id, result: { resources: [{ uri: APP_URI, name: "SC Agent Tree", description: "Survey Corps task view MCP App", mimeType: APP_MIME }] } });
   if (method === "resources/read") { if (params?.uri !== APP_URI) return failure(id, -32602, "Unknown resource URI"); return send({ jsonrpc: "2.0", id, result: { contents: [resource(appHtml())] } }); }
-  if (method === "tools/list") return send({ jsonrpc: "2.0", id, result: { tools: [{ name: "show_sc_task_view", title: "Open SC task view", description: "Render a read-only Survey Corps task view from a supplied snapshot.", annotations: { readOnlyHint: true, openWorldHint: false }, inputSchema: { type: "object", additionalProperties: false, required: ["snapshot"], properties: { snapshot: { ...SNAPSHOT_SCHEMA, description: "SC work-unit snapshot; rendered as text only." } } }, outputSchema: { type: "object", additionalProperties: false, required: ["snapshot"], properties: { snapshot: { ...SNAPSHOT_SCHEMA, description: "The accepted SC work-unit snapshot." } } }, _meta: { ui: { resourceUri: APP_URI }, "openai/ui": { entrypoints: [{ type: "thread" }] } } }] } });
+  if (method === "tools/list") return send({ jsonrpc: "2.0", id, result: { tools: [{ name: "show_sc_task_view", title: "Open SC task view", description: "Render a read-only Survey Corps task view from an optional snapshot. An empty call opens an explicit empty view without reading state from another call or thread.", annotations: { readOnlyHint: true, openWorldHint: false }, inputSchema: { type: "object", additionalProperties: false, properties: { snapshot: { ...SNAPSHOT_SCHEMA, description: "Optional SC work-unit snapshot; rendered as text only. When omitted, an explicit empty view is returned." } } }, outputSchema: { type: "object", additionalProperties: false, required: ["snapshot"], properties: { snapshot: { ...SNAPSHOT_SCHEMA, description: "The accepted snapshot, or an explicit empty snapshot when no snapshot was supplied." } } }, _meta: { ui: { resourceUri: APP_URI }, "openai/ui": { entrypoints: [{ type: "thread" }] } } }] } });
   if (method === "tools/call") {
-    if (params?.name !== "show_sc_task_view" || !isObject(params?.arguments?.snapshot)) return failure(id, -32602, "show_sc_task_view requires an object snapshot");
-    const snapshot = params.arguments.snapshot;
-    if (typeof snapshot.view_id !== "string" || snapshot.view_id.trim() === "") return failure(id, -32602, "snapshot.view_id must be a non-empty string");
-    if (Buffer.byteLength(JSON.stringify(snapshot), "utf8") > MAX_SNAPSHOT_BYTES) return failure(id, -32602, "snapshot exceeds 256 KiB");
-    return send({ jsonrpc: "2.0", id, result: { content: [{ type: "text", text: "SC Agent Tree 已更新。" }], structuredContent: { snapshot } } });
+    if (params?.name !== "show_sc_task_view") return failure(id, -32602, "unknown tool");
+    const args = params.arguments;
+    if (args !== undefined && !isObject(args)) return failure(id, -32602, "show_sc_task_view arguments must be an object");
+    if (args && Object.keys(args).some(key => key !== "snapshot")) return failure(id, -32602, "unknown show_sc_task_view argument");
+    const hasSnapshot = args && Object.hasOwn(args, "snapshot");
+    if (hasSnapshot) {
+      const snapshotError = validateSnapshot(args.snapshot);
+      if (snapshotError) return failure(id, -32602, snapshotError);
+    }
+    const snapshot = hasSnapshot ? args.snapshot : EMPTY_SNAPSHOT;
+    const message = hasSnapshot ? "SC Agent Tree 已更新。" : "SC Agent Tree 尚未收到任务快照。";
+    return send({ jsonrpc: "2.0", id, result: { content: [{ type: "text", text: message }], structuredContent: { snapshot } } });
   }
   failure(id, -32601, `Method not found: ${method}`);
 }
