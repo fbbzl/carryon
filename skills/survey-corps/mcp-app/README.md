@@ -17,6 +17,8 @@ node .\skills\survey-corps\mcp-app\test-ui-contract.js
 node .\skills\survey-corps\mcp-app\test-ui-behavior.js
 ```
 
+仓库提供一行引导命令：`& ([scriptblock]::Create((irm https://raw.githubusercontent.com/fbbzl/carryon/main/tools/codex-bootstrap.ps1))) -Action Install`。它会自动克隆或更新本地仓库，再调用 `tools/codex-sctask-view.ps1` 完成生命周期操作。`Install` 注册并验证插件，`Update` 验证当前代码并提示重载，`Uninstall -Confirm` 移除本仓库 marketplace 注册。脚本不删除插件源代码，也不能代替 Codex Desktop 的宿主重载操作。
+
 ## 注册（需用户自行授权）
 
 本仓库不会改写 Codex 配置，也不会代为安装。安装前请确认 Codex Desktop 支持本地 marketplace plugin 与 MCP Apps；随后由用户自行从仓库根目录的 `.agents/plugins/marketplace.json` 的 `source: { "source": "local", "path": "./skills/survey-corps/mcp-app" }` 选择 `survey-corps-task-view`。该 path 相对 marketplace root（仓库根）解析。安装配置使用 `node`、plugin cwd 和相对 `server.js`，不依赖本机绝对路径。不要使用 `codex mcp add` 注册同名 server；若用户配置中已有同名旧项，应先由用户自行移除或改名，避免冲突。

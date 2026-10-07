@@ -35,6 +35,28 @@
 
 清单路径：`codex-install.json`。它是本仓库的唯一安装入口，不依赖固定的本机绝对路径。无法读取该清单的客户端，可回退到从 `.agents/plugins/marketplace.json` 手动安装本地插件。
 
+### SC task-view 安装、更新与卸载
+
+其他人无需手动克隆仓库，直接执行一行命令即可（首次会克隆，后续会更新）：
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/fbbzl/carryon/main/tools/codex-bootstrap.ps1))) -Action Install
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/fbbzl/carryon/main/tools/codex-bootstrap.ps1))) -Action Update
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/fbbzl/carryon/main/tools/codex-bootstrap.ps1))) -Action Uninstall -Confirm
+```
+
+一键脚本默认将仓库放在用户目录下的 `.codex\carryon`；卸载只移除 marketplace 注册，不删除本地仓库。
+
+在仓库根目录运行：
+
+```powershell
+.\tools\codex-sctask-view.ps1 -Action Install
+.\tools\codex-sctask-view.ps1 -Action Update
+.\tools\codex-sctask-view.ps1 -Action Uninstall -Confirm
+```
+
+脚本只管理本仓库 marketplace 中的 `survey-corps-task-view` 注册，更新前会运行插件冒烟验证，卸载不会删除源代码或其他 Codex 配置。完成后仍需按 Codex Desktop 提示重新加载插件或重启客户端。
+
 ## Windows 重装后初始化
 
 以管理员身份运行：
