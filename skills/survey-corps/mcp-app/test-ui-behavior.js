@@ -116,7 +116,9 @@ for(const state of Object.keys(globalTones)){snapshot.state=state;window.renderS
 snapshot.state='ready_for_qa';snapshot.role_details.qa.status='running';window.renderSurveyCorpsTaskView(root,snapshot,{debug:true});root.querySelector('[data-sc-play-animation]').click();
 const connectors=[...root.querySelectorAll('.sc-task-view__connector')].map(node=>{const stem=getComputedStyle(node,'::before'),head=getComputedStyle(node,'::after');return {width:node.offsetWidth,height:node.offsetHeight,stemWidth:stem.width,stemHeight:stem.height,headWidth:head.width,headHeight:head.height,headTransform:head.transform,right:head.borderRightWidth,bottom:head.borderBottomWidth,hidden:node.getAttribute('aria-hidden'),next:node.nextElementSibling.dataset.scRole,animation:getComputedStyle(node).animationName};});
 const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches,view=root.querySelector('.sc-task-view'),active=root.querySelector('details.is-active');
-const result={roleTones,globalTones,roleColors,subskillColors,globalColors,connectors,reduced,viewAnimation:getComputedStyle(view).animationName,activeAnimation:getComputedStyle(active).animationName,replay:active.classList.contains('is-manual-replay'),viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};parent.postMessage({scVisualResult:result},'*');
+const header=root.querySelector('.sc-task-view__header'),status=root.querySelector('[data-sc-field=state]'),headerRect=header.getBoundingClientRect(),statusRect=status.getBoundingClientRect();
+const statusLayout={centerOffset:Math.abs((statusRect.left+statusRect.right)/2-(headerRect.left+headerRect.right)/2),fontSize:getComputedStyle(status).fontSize,eyebrowCount:root.querySelectorAll('.sc-task-view__root > .sc-task-view__muted').length};
+const result={roleTones,globalTones,roleColors,subskillColors,globalColors,connectors,statusLayout,reduced,viewAnimation:getComputedStyle(view).animationName,activeAnimation:getComputedStyle(active).animationName,replay:active.classList.contains('is-manual-replay'),viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};parent.postMessage({scVisualResult:result},'*');
 </script></body></html>`;
 
 function readChromeResult(pagePath, profilePath, width, reduced = false) {
@@ -201,6 +203,9 @@ try {
     fs.writeFileSync(page,wrapper,"utf8");
     const observed=readChromeResult(page,path.join(temp,`visual-${mode.width}-${mode.reduced}`),mode.width,mode.reduced);
     assert.equal(observed.viewport,mode.width,"responsive cases must run at the exact requested iframe viewport");
+    assert.ok(observed.statusLayout.centerOffset<=1,"global status must remain centered in the header");
+    assert.equal(observed.statusLayout.fontSize,"18px","global status must use enlarged type");
+    assert.equal(observed.statusLayout.eyebrowCount,0,"work unit eyebrow must not render");
     assert.ok(Object.hasOwn(observed.roleColors,"__proto__")&&Object.hasOwn(observed.subskillColors,"__proto__"),"prototype-name color cases must be executed and retained");
     for(const [status,tone] of Object.entries(observed.roleTones)) {
       for(const item of [observed.roleColors[status],observed.subskillColors[status]]) {

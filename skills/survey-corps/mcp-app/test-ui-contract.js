@@ -14,6 +14,11 @@ assert.match(appTemplate, /data-sc-task-summary>暂无总结</, "task summary mu
 assert.match(appTemplate, /data-sc-context hidden/, "secondary task context must initially be collapsed and hidden when empty");
 assert.match(appTemplate, /data-sc-selected-roles>尚未选择</, "the view must not infer all roles as selected");
 assert.doesNotMatch(appTemplate, /sc-task-view__eyebrow|data-sc-field="project_name"|data-sc-field="view_id"|SURVEY CORPS \/|view_id:input\.view_id/, "the top metadata row and its project/view identifiers must not render");
+assert.doesNotMatch(appTemplate, /SC \/ WORK UNIT/, "the work unit eyebrow must not render");
+assert.match(appTemplate, /grid-template-columns:minmax\(0,1fr\) auto minmax\(0,1fr\)/, "the global status must occupy the center header column");
+assert.match(appTemplate, /\.sc-task-view__status \{[^}]*font-size:18px/, "the global status must use larger type");
+assert.match(appTemplate, /data-sc-field="state" aria-live="polite"[\s\S]*?header-controls/, "the global state must be a separate centered header item from debug controls");
+assert.match(appTemplate, /@media \(max-width:560px\)[\s\S]*?\.sc-task-view__header \{ grid-template-columns:minmax\(0,1fr\)/, "the header must keep a responsive single-column layout on narrow screens");
 assert.match(skill, /project_name:\s+# 可选；当前 Codex 会话所属项目名称，UI 不展示，不得猜测/, "the optional project name must remain in the snapshot contract without rendering");
 assert.match(skill, /agent_name:\s+# 可选；该角色真实 Codex subagent 的名字/, "skill must require real subagent names");
 assert.match(appTemplate, /data-sc-play-animation hidden/, "animation replay is a hidden debug control by default");
