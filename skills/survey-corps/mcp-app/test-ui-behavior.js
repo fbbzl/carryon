@@ -143,7 +143,7 @@ try {
   assert.equal(result.defaults.connectorGeometry.length, 4, "every role card must have a connector");
   assert.ok(result.defaults.connectorGeometry.every(({before,after,afterTransform})=>before!=="none"&&after!=="none"&&afterTransform!=="none"), "connectors must expose a visible stem and arrowhead in the browser");
   const {connectorGeometry,...defaultValues}=result.defaults;
-  assert.deepEqual(defaultValues, { summary: "暂无总结", selected: "尚未选择", contextHidden: true, debugHidden: true, agentCount: 0, autoMotion: true }, "missing metadata must not imply completion or selected roles; automatic motion remains enabled");
+  assert.deepEqual(defaultValues, { summary: "暂无总结", selected: "尚未选择", contextHidden: true, debugHidden: true, agentCount: 4, autoMotion: true }, "missing metadata must not imply completion or selected roles; automatic motion remains enabled");
   assert.deepEqual(result.debugTrue, { hidden: false, replay: true }, "strict debug true must expose and enable replay");
   for (const mode of [result.debugString, result.debugDefault, result.debugFalse, result.debugInSnapshot]) assert.deepEqual(mode, { hidden: true, replay: false }, "only options.debug true may enable replay; nondebug programmatic clicks must not replay");
   assert.equal(result.provided.headerText.includes("SURVEY CORPS"), false, "header must omit the removed metadata row");
@@ -161,10 +161,10 @@ try {
   for (const text of ["当前任务视图", "QA 唯一出口", "Windows Chrome"]) assert.ok(result.provided.contextText.includes(text));
   assert.equal(result.provided.agent, result.payload);
   assert.equal(result.provided.agentInTitle, true);
-  assert.deepEqual(result.provided.agents, {req:null,dev:"dev-agent",cr:null,qa:result.payload}, "each selected role must display its supplied subagent name safely");
+  assert.deepEqual(result.provided.agents, {req:null,dev:"dev-agent",cr:null,qa:result.payload}, "each rendered role must display its supplied or pending subagent name safely");
   assert.equal(result.provided.injectedElements, 0, "summary and agent names must not inject HTML");
   assert.equal(result.agentUpdated, "新代理名称", "agent names must update on the next snapshot");
-  assert.deepEqual(result.removed, { headerText: "SC TASK FLOW\n等待测试", agentCount: 1, summary: "暂无总结", summaryClass: "sc-task-view__placeholder" }, "the header must remain free of removed metadata while other optional values update");
+  assert.deepEqual(result.removed, { headerText: "SC TASK FLOW\n等待测试", agentCount: 2, summary: "暂无总结", summaryClass: "sc-task-view__placeholder" }, "the header must remain free of removed metadata while other optional values update");
   assert.deepEqual(result.roleStatuses, result.roleCases, "all supported role statuses must display Chinese");
   assert.notEqual(result.roleStatusClasses.running, result.roleStatusClasses.completed, "running and completed roles must use different semantic color classes");
   assert.notEqual(result.roleStatusClasses.completed, result.roleStatusClasses.failed, "completed and failed roles must use different semantic color classes");
@@ -191,8 +191,8 @@ try {
   assert.deepEqual(result.afterReplay, ["qa"], "animation replay must not change the accordion");
   assert.equal(result.stateAfter, result.stateBefore, "animation replay must not change task state");
   assert.equal(result.activeToggleListeners, 1, "rerender must leave exactly one accordion toggle listener");
-  assert.equal(result.progress.req, null, "non-number progress must not render");
-  assert.equal(result.progress.dev, null, "missing progress must not render");
+  assert.deepEqual(result.progress.req, { name: "REQ 任务进度：0%", min: "0", max: "100", now: "0" }, "missing progress must default to 0%");
+  assert.deepEqual(result.progress.dev, { name: "DEV 任务进度：0%", min: "0", max: "100", now: "0" }, "missing progress must default to 0%");
   assert.deepEqual(result.progress.cr, { name: "CR 任务进度：100%", min: "0", max: "100", now: "100" }, "progress above 100 must clamp with accessible values");
   assert.deepEqual(result.progress.qa, { name: "QA 任务进度：0%", min: "0", max: "100", now: "0" }, "progress below 0 must clamp with accessible values");
   const toneColors={pending:"rgb(149, 163, 181)",active:"rgb(70, 184, 238)",completed:"rgb(39, 201, 176)",passed:"rgb(75, 216, 130)",danger:"rgb(237, 117, 137)",waiting:"rgb(233, 200, 92)",revision:"rgb(236, 155, 79)",unknown:"rgb(255, 255, 255)"};

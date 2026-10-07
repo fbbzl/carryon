@@ -13,6 +13,7 @@ const MAX_SNAPSHOT_BYTES = 200 * 1024;
 const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", "2025-11-25"]);
 const SNAPSHOT_SCHEMA = { type: "object", required: ["view_id"], properties: { view_id: { type: "string", minLength: 1, description: "Stable logical view identifier; not displayed in the UI or used as a path or resource URI." } } };
 const EMPTY_SNAPSHOT = Object.freeze({ view_id: "sc-task-view:empty", state: "unknown" });
+let latestSnapshot = null;
 
 function send(message) { const line=`${JSON.stringify(message)}\n`; if (Buffer.byteLength(line,"utf8") > MAX_FRAME_BYTES) return process.stdout.write(`${JSON.stringify({jsonrpc:"2.0",id:message.id??null,error:{code:-32603,message:"Response exceeds 256 KiB"}})}\n`); process.stdout.write(line); }
 function failure(id, code, message) { send({ jsonrpc: "2.0", id, error: { code, message } }); }
@@ -55,7 +56,7 @@ function handle(id, method, params) {
   if (method === "notifications/initialized") return;
   if (method === "resources/list") return send({ jsonrpc: "2.0", id, result: { resources: [{ uri: APP_URI, name: "SC Agent Tree", description: "Survey Corps task view MCP App", mimeType: APP_MIME }] } });
   if (method === "resources/read") { if (params?.uri !== APP_URI) return failure(id, -32602, "Unknown resource URI"); return send({ jsonrpc: "2.0", id, result: { contents: [resource(appHtml())] } }); }
-  if (method === "tools/list") return send({ jsonrpc: "2.0", id, result: { tools: [{ name: "show_sc_task_view", title: "Open SC task view", description: "Render a read-only Survey Corps task view from an optional snapshot. An empty call opens an explicit empty view without reading state from another call or thread.", annotations: { readOnlyHint: true, openWorldHint: false }, inputSchema: { type: "object", additionalProperties: false, properties: { snapshot: { ...SNAPSHOT_SCHEMA, description: "Optional SC work-unit snapshot; rendered as text only. When omitted, an explicit empty view is returned." } } }, outputSchema: { type: "object", additionalProperties: false, required: ["snapshot"], properties: { snapshot: { ...SNAPSHOT_SCHEMA, description: "The accepted snapshot, or an explicit empty snapshot when no snapshot was supplied." } } }, _meta: { ui: { resourceUri: APP_URI }, "openai/ui": { entrypoints: [{ type: "thread" }] } } }] } });
+  if (method === "tools/list") return send({ jsonrpc: "2.0", id, result: { tools: [{ name: "show_sc_task_view", title: "Open SC task view", description: "Render a read-only Survey Corps task view. An empty call restores the most recently supplied task snapshot in this server session.", annotations: { readOnlyHint: true, openWorldHint: false }, inputSchema: { type: "object", additionalProperties: false, properties: { snapshot: { ...SNAPSHOT_SCHEMA, description: "Optional SC work-unit snapshot; rendered as text only. When omitted, the most recently supplied snapshot is restored." } } }, outputSchema: { type: "object", additionalProperties: false, required: ["snapshot"], properties: { snapshot: { ...SNAPSHOT_SCHEMA, description: "The accepted snapshot, or an explicit empty snapshot when no snapshot has been supplied." } } }, _meta: { ui: { resourceUri: APP_URI }, "openai/ui": { entrypoints: [{ type: "thread" }] } } }] } });
   if (method === "tools/call") {
     if (params?.name !== "show_sc_task_view") return failure(id, -32602, "unknown tool");
     const args = params.arguments;
@@ -66,8 +67,9 @@ function handle(id, method, params) {
       const snapshotError = validateSnapshot(args.snapshot);
       if (snapshotError) return failure(id, -32602, snapshotError);
     }
-    const snapshot = hasSnapshot ? args.snapshot : EMPTY_SNAPSHOT;
-    const message = hasSnapshot ? "SC Agent Tree 已更新。" : "SC Agent Tree 尚未收到任务快照。";
+    if (hasSnapshot) latestSnapshot = args.snapshot;
+    const snapshot = hasSnapshot ? args.snapshot : latestSnapshot || EMPTY_SNAPSHOT;
+    const message = hasSnapshot ? "SC Agent Tree 已更新。" : latestSnapshot ? "SC Agent Tree 已恢复。" : "SC Agent Tree 尚未收到任务快照。";
     return send({ jsonrpc: "2.0", id, result: { content: [{ type: "text", text: message }], structuredContent: { snapshot } } });
   }
   failure(id, -32601, `Method not found: ${method}`);

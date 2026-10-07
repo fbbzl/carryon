@@ -52,8 +52,8 @@ request(2, { name: "show_sc_task_view", arguments: { snapshot: { view_id: "sc-ta
   assert.equal(reply.result.structuredContent.snapshot.state, "planned");
 });
 request(3, { name: "show_sc_task_view", arguments: {} }, reply => {
-  assert.deepEqual(reply.result.structuredContent.snapshot, { view_id: "sc-task-view:empty", state: "unknown" });
-  assert.equal(reply.result.content[0].text, "SC Agent Tree 尚未收到任务快照。");
+  assert.deepEqual(reply.result.structuredContent.snapshot, { view_id: "sc-task-view:entry", state: "planned" });
+  assert.equal(reply.result.content[0].text, "SC Agent Tree 已恢复。");
 });
 request(4, { name: "show_sc_task_view", arguments: { snapshot: { state: "planned" } } }, reply => {
   assert.equal(reply.error.code, -32602);
@@ -68,6 +68,6 @@ request(6, { name: "show_sc_task_view", arguments: { unexpected: true } }, reply
   assert.match(reply.error.message, /unknown/);
 });
 request(7, { name: "show_sc_task_view", arguments: {} }, reply => {
-  assert.deepEqual(reply.result.structuredContent.snapshot, { view_id: "sc-task-view:empty", state: "unknown" });
-  assert.equal(reply.result.content[0].text, "SC Agent Tree 尚未收到任务快照。");
+  assert.deepEqual(reply.result.structuredContent.snapshot, { view_id: "sc-task-view:entry", state: "planned" });
+  assert.equal(reply.result.content[0].text, "SC Agent Tree 已恢复。");
 });
