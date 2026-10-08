@@ -21,14 +21,14 @@ metadata:
 
 - 任务视图只有一条渲染路径：`show_sc_task_view(snapshot) -> ui://survey-corps/task-view -> Codex 内嵌 iframe`。禁止创建、复制、打开或展示本地 HTML 可视化产物，禁止文本、Markdown、Mermaid 或其他替代任务视图。
 - 视图主流程固定为 `SC -> REQ -> DEV -> CR -> QA`，`QA` 是唯一任务出口，不在 QA 后渲染 SC 回流门禁。每个角色是可折叠任务卡，仅展示状态、摘要、必要证据、风险和下一步；状态机参考集、独立元数据面板、console 和 session log 不进入视图。
-- 渐进展示只自动展开一个当前活动角色，其余角色保持折叠；用户手动展开任一角色时也必须关闭其他角色，任何时刻最多显示一个详情区。活动角色优先取 `role_details.<role>.status` 命中活动白名单的流程中最后一个角色；没有命中时，仅对能唯一定位角色的 `snapshot.state` 使用固定映射：`dev_in_progress -> DEV`、`ready_for_cr -> CR`、`ready_for_qa -> QA`。其他状态均不猜测活动角色，因此不自动展开任何卡。
+- 渐进展示只自动展开一个当前活动角色，其余角色保持折叠；用户手动展开任一角色时也必须关闭其他角色，任何时刻最多显示一个详情区。活动角色优先取 `role_details.<role>.status` 命中活动白名单的流程中最后一个角色；没有命中时，仅对正在开发的 `snapshot.state=dev_in_progress` 映射到 DEV。等待 CR/QA 的状态不代表角色正在执行，不触发活动动画或自动展开。其他状态均不猜测活动角色。
 - `show_sc_task_view` 工具缺失、MCP App 资源无法加载或工具调用失败时，立即将当前工作单元标记为 `blocked`，停止启动角色或继续交接。阻断报告必须说明实际错误，恢复条件为安装并启用 `survey-corps-task-view` 插件、启用 MCP Apps，必要时重启 Codex 并在新会话中确认该 tool 可用后重试。不得以任何降级视图绕过阻断。
 - 每次角色启动、交接、状态变化、风险或证据变化时，必须再次调用同一 `show_sc_task_view` tool 更新快照。视图仅随这些明确的编排动作刷新，不声明自动事件订阅、后台轮询或平台原生实时同步。
 - MCP App 展示不是权威记录，也不能改变状态机、角色交接、完成门禁或 subagent-only 约束。权威记录仍是当前任务中的工作单元、交接和角色结论。
 
 ### 任务视图数据契约
 
-MCP App 资源 `mcp-app/assets/sc-task-view.html` 的渲染函数接收根元素、快照和可选调试选项：`window.renderSurveyCorpsTaskView(root, snapshot, options)`。正式调用不传第三参数。只有 `options.debug === true` 才显示并启用“播放动画”；`snapshot.debug` 和字符串 `"true"` 均不能开启调试。自动动画保持启用。可省略字段使用明确缺省提示，不得由视图猜测完成、通过或风险关闭。
+MCP App 资源 `mcp-app/assets/sc-task-view.html` 的渲染函数接收根元素、快照和可选调试选项：`window.renderSurveyCorpsTaskView(root, snapshot, options)`。正式调用不传第三参数。只有 `options.debug === true` 才显示并启用“播放动画”；`snapshot.debug` 和字符串 `"true"` 均不能开启调试。默认仅实际活动角色的边框显示低幅度动画；无活动角色时不播放动画，任务视图、连线和其他状态更新均保持静止。可省略字段使用明确缺省提示，不得由视图猜测完成、通过或风险关闭。
 
 ```yaml
 work_unit:
@@ -38,7 +38,7 @@ work_unit:
   task_type:             # 可选；当前任务类型文本
   roles: []
   role_selection_reason: # 可选；编排者选择参与角色的原因
-  scope: []              # 可选；文本或列表，与验收、环境一起折叠展示
+  scope: []              # 可选；文本或列表，保留在快照中但不在视图展示
   summary:               # 可选；只读任务总结文本，缺省“暂无总结”
   reference_version:
   environment:
@@ -54,16 +54,15 @@ resume_state:            # state=needs_revalidation 时必填，表示从何处�
 role_details:            # 可选，以 req/dev/cr/qa 为键
   req:
     status:              # 可选；角色自身快照，交接记录不能替代它
-    agent_name:          # 可选；该角色真实 Codex subagent 的名字，缺失时不显示；不得用角色名或猜测值代替
     summary:
     evidence: []
     risks: []
     next_action:
     subskills: []        # 可选；所属角色实际调用的子技能记录，格式见下文
-handoffs: []             # 权威交接记录；视图仅用于状态或 handoff 更新动画 fingerprint，不逐条展示
+handoffs: []             # 权威交接记录；不在 UI 中逐条展示
 ```
 
-编排者每次构建快照时，按当前任务填写 `task_type`、实际参与的 `roles` 和 `role_selection_reason`；`project_name` 只取当前 Codex 会话实际所属项目名称，无法确认时省略；已启动角色的 `agent_name` 取自真实协作工具返回的名字，未启动或未取得名字时省略，不能编造。顶部只展示任务标题和状态，不展示项目名或视图 ID。参与角色只展示 `work_unit.roles` 中规范化、去重后的 req/dev/cr/qa，未提供有效角色时显示“尚未选择”，不根据状态猜测参与链。`scope`、`acceptance`、`environment` 有值时才展示可折叠的任务上下文；它不属于角色卡的互斥展开组。主流程仍止于 QA 卡，QA 下方的无边框任务总结只读展示 `work_unit.summary`，不是额外角色或完成门禁。
+编排者每次构建快照时，按当前任务填写 `task_type`、实际参与的 `roles` 和 `role_selection_reason`；顶部不展示项目名、视图 ID 或 subagent 名称。参与角色只展示 `work_unit.roles` 中规范化、去重后的 req/dev/cr/qa，未提供有效角色时显示“尚未选择”，不根据状态猜测参与链。任务上下文中的 `scope`、`acceptance`、`environment` 保留在权威快照中但不在 UI 展示。主流程仍止于 QA 卡，QA 下方的无边框任务总结只读展示 `work_unit.summary`，不是额外角色或完成门禁。
 
 任务视图将当前 `snapshot.state` 和角色 `status` 映射为中文标签，不显示英文状态值；未知值显示“未知状态”，缺失角色状态显示“状态未提供”，权威快照值不变。不展示状态机、状态参考集、复验入口或 `resume_state`。`resume_state` 仍是 `state=needs_revalidation` 时的必填权威工作流字段，只是不进入该极简 UI。全部外部展示值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
 

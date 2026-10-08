@@ -18,14 +18,7 @@
     .sc-task-view__root { padding:14px; text-align:center; }
     .sc-task-view__target { margin-top:4px !important; overflow-wrap:anywhere; font-size:16px; font-weight:700; }
     .sc-task-view__root-meta { display:flex; justify-content:center; gap:8px 16px; flex-wrap:wrap; margin-top:8px; color:var(--muted); }
-    .sc-task-view__context-meta { margin:10px 0 0; display:grid; grid-template-columns:auto minmax(0,1fr); gap:4px 10px; text-align:left; }
-    .sc-task-view__context-meta dt { color:var(--muted); }
-    .sc-task-view__context-meta dd { margin:0; overflow-wrap:anywhere; }
-    .sc-task-view details.sc-task-view__context { margin-top:10px; text-align:left; border:0; background:transparent; }
-    .sc-task-view__context summary { padding:4px 0; }
-    .sc-task-view__context-body { padding-bottom:4px; }
     .sc-task-view__role-name { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; min-width:0; }
-    .sc-task-view__agent-name { color:var(--muted); font-weight:400; overflow-wrap:anywhere; min-width:0; }
     .sc-task-view__task-summary { margin-top:18px; overflow-wrap:anywhere; }
     .sc-task-view__task-summary p { margin-top:4px; }
     .sc-task-view [hidden] { display:none !important; }
@@ -34,12 +27,10 @@
     .sc-task-view__connector::after { content:""; position:absolute; left:2px; bottom:4px; width:8px; height:8px; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(45deg); }
     .sc-task-view__roles { display:flex; flex-direction:column; align-items:stretch; }
     .sc-task-view details { min-width:0; border:1px solid var(--line); background:var(--panel); }
-    .sc-task-view details[data-sc-role] { position:relative; isolation:isolate; overflow:hidden; border-color:transparent; }
-    .sc-task-view details[data-sc-role]::before { content:""; position:absolute; z-index:-2; inset:0; background:conic-gradient(from 0deg,var(--line),var(--focus),var(--completed),var(--line),var(--focus),var(--line)); animation:sc-thinking-border 2.8s linear infinite; }
-    .sc-task-view details[data-sc-role]::after { content:""; position:absolute; z-index:-1; inset:1px; background:var(--panel); }
-    .sc-task-view details[data-sc-role].is-active::after { background:var(--panel-active); }
-    .sc-task-view details[data-sc-role] > * { position:relative; z-index:0; }
-    .sc-task-view details.is-active { border-color:var(--focus); background:var(--panel-active); animation:sc-active-role 2.2s ease-in-out infinite; }
+    .sc-task-view details[data-sc-role] { position:relative; border-color:var(--line); }
+    .sc-task-view details[data-sc-role].is-active { border-color:transparent; background:var(--panel-active); }
+    .sc-task-view details[data-sc-role].is-active::before { content:""; position:absolute; z-index:0; inset:0; padding:1px; background:conic-gradient(from 0deg,transparent 0 68%,color-mix(in srgb,var(--focus) 55%,var(--line)) 82%,var(--line) 94%,transparent); -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; opacity:.55; pointer-events:none; animation:sc-thinking-border 8s linear infinite; }
+    .sc-task-view details[data-sc-role].is-active > * { position:relative; z-index:1; }
     .sc-task-view summary { display:flex; justify-content:space-between; gap:12px; padding:11px 12px; cursor:pointer; font-weight:700; list-style-position:inside; overflow-wrap:anywhere; }
     .sc-task-view summary:focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
     .sc-task-view__role-state { color:var(--muted); font-weight:400; text-align:right; }
@@ -52,11 +43,6 @@
     .sc-task-view .sc-task-view__state--revision { color:var(--revision); }
     .sc-task-view .sc-task-view__state--unknown { color:var(--unknown); }
     .sc-task-view .sc-task-view__placeholder { color:#fff; }
-    .sc-task-view__progress { display:flex; align-items:center; gap:8px; padding:0 12px 10px; }
-    .sc-task-view__progress-track { flex:1; height:6px; overflow:hidden; border:1px solid #273241; background:#070a0e; }
-    .sc-task-view__progress-value { display:block; width:var(--progress,0%); height:100%; background:var(--focus); transition:width .45s ease-out; }
-    .sc-task-view details.is-active .sc-task-view__progress-value { animation:sc-progress-pulse 1.8s ease-in-out infinite; }
-    .sc-task-view__progress-label { min-width:42px; color:var(--muted); text-align:right; }
     .sc-task-view__detail { padding:0 12px 12px; border-top:1px solid #273241; }
     .sc-task-view__detail ul { margin:5px 0 0; padding-left:18px; }
     .sc-task-view__detail li, .sc-task-view__detail p { overflow-wrap:anywhere; }
@@ -69,20 +55,8 @@
     .sc-task-view__play { padding:5px 9px; border:1px solid var(--line); background:var(--panel); color:var(--text); font:inherit; cursor:pointer; }
     .sc-task-view__play:hover { border-color:var(--focus); color:var(--focus); }
     .sc-task-view__play:focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
-    .sc-task-view__root.is-state-updated, .sc-task-view__status.is-state-updated { animation:sc-state-update .6s ease-out 1; }
-    .sc-task-view.is-entering { animation:sc-view-enter .38s ease-out both; }
-    .sc-task-view.is-entering .sc-task-view__node { animation:sc-node-enter .45s ease-out both; }
-    .sc-task-view__flow.is-connection-entering .sc-task-view__connector { animation:sc-connection-enter .7s ease-out both; }
-    .sc-task-view__flow.is-handoff-flow .sc-task-view__connector { animation:sc-handoff-flow .85s ease-out 1; }
     .sc-task-view details.sc-task-view__node.is-manual-replay { animation:sc-manual-role 1.1s ease-in-out 2; }
-    @keyframes sc-state-update { from { box-shadow:0 0 0 0 color-mix(in srgb,var(--focus) 45%,transparent); } to { box-shadow:0 0 0 14px transparent; } }
-    @keyframes sc-view-enter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes sc-node-enter { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes sc-connection-enter { from { opacity:.2; transform:scaleY(0); } to { opacity:1; transform:scaleY(1); } }
-    @keyframes sc-handoff-flow { 0%,100% { color:var(--muted); } 50% { color:var(--focus); } }
-    @keyframes sc-active-role { 0%,100% { box-shadow:0 0 0 0 transparent; } 50% { box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 16%,transparent); } }
     @keyframes sc-manual-role { 0%,100% { box-shadow:0 0 0 0 transparent; } 50% { box-shadow:0 0 0 6px color-mix(in srgb,var(--focus) 32%,transparent); } }
-    @keyframes sc-progress-pulse { 0%,100% { opacity:.72; } 50% { opacity:1; } }
     @keyframes sc-thinking-border { to { transform:rotate(360deg); } }
     @media (max-width:560px) { .sc-task-view { padding:14px; } .sc-task-view__header { grid-template-columns:minmax(0,1fr); justify-items:stretch; } .sc-task-view__status { justify-self:center; } .sc-task-view__header-controls { justify-content:flex-end; } .sc-task-view summary { flex-direction:column; gap:3px; } .sc-task-view__role-state { text-align:left; } }
     @media (prefers-reduced-motion:reduce) { .sc-task-view *, .sc-task-view *::before, .sc-task-view *::after { animation:none !important; transition:none !important; } }
@@ -100,7 +74,6 @@
         <dt>参与角色</dt><dd data-sc-selected-roles>尚未选择</dd>
         <dt>选择原因</dt><dd data-sc-field="role_selection_reason">未提供</dd>
       </dl>
-      <details class="sc-task-view__context" data-sc-context hidden><summary>任务上下文</summary><div class="sc-task-view__context-body" data-sc-context-body></div></details>
     </article>
     <div class="sc-task-view__roles" data-sc-roles aria-label="REQ、DEV、CR、QA 顺序任务"></div>
   </section>
@@ -110,43 +83,34 @@
   <script>
     "use strict";
     (() => {
-      const states=["confirmed","planned","dev_in_progress","ready_for_cr","cr_blocked","ready_for_qa","qa_failed","qa_conditional","qa_passed","workflow_ready","needs_user_confirm","needs_revalidation","needs_revision","blocked"];
-      const labels={confirmed:"已确认",planned:"计划",dev_in_progress:"开发中",ready_for_cr:"等待审查",cr_blocked:"审查阻断",ready_for_qa:"等待测试",qa_failed:"测试失败",qa_conditional:"测试条件通过",qa_passed:"测试通过",workflow_ready:"工作流就绪",needs_user_confirm:"等待用户确认",needs_revalidation:"需要重新验证",needs_revision:"需要修订",blocked:"已阻断"};
+      const labels={confirmed:"已确认",planned:"计划",dev_in_progress:"开发中",ready_for_cr:"等待审查",cr_blocked:"审查阻断",ready_for_qa:"等待测试",qa_failed:"测试失败",qa_conditional:"测试条件通过",qa_passed:"测试通过",workflow_ready:"工作流就绪",completed:"已完成",success:"已完成",succeeded:"已完成",needs_user_confirm:"等待用户确认",needs_revalidation:"需要重新验证",needs_revision:"需要修订",blocked:"已阻断"};
       const roles=["req","dev","cr","qa"],roleLabels={req:"REQ",dev:"DEV",cr:"CR",qa:"QA"};
-      const stateRole={dev_in_progress:"dev",ready_for_cr:"cr",ready_for_qa:"qa"};
+      const stateRole={dev_in_progress:"dev"};
       const activeRoleStates=new Set(["running","preparing","in_progress","working","active","started","started_working"]);
       const asObject=value=>value&&typeof value==="object"&&!Array.isArray(value)?value:{};
       const asList=value=>Array.isArray(value)?value:value===undefined||value===null||value===""?[]:[value];
       const safeText=value=>value===undefined||value===null||value===""?"未提供":typeof value==="object"?JSON.stringify(value):String(value);
       const missing=value=>value===undefined||value===null||value==="";
-      const stateText=value=>states.includes(value)?labels[value]:"未知状态";
-      const stateTones={confirmed:"completed",planned:"pending",dev_in_progress:"active",ready_for_cr:"waiting",cr_blocked:"danger",ready_for_qa:"waiting",qa_failed:"danger",qa_conditional:"revision",qa_passed:"passed",workflow_ready:"passed",needs_user_confirm:"waiting",needs_revalidation:"revision",needs_revision:"revision",blocked:"danger"};
+      const stateText=value=>Object.hasOwn(labels,value)?labels[value]:"未知状态";
+      const stateTones={confirmed:"completed",planned:"pending",dev_in_progress:"active",ready_for_cr:"waiting",cr_blocked:"danger",ready_for_qa:"waiting",qa_failed:"danger",qa_conditional:"revision",qa_passed:"passed",workflow_ready:"passed",completed:"completed",success:"completed",succeeded:"completed",needs_user_confirm:"waiting",needs_revalidation:"revision",needs_revision:"revision",blocked:"danger"};
       const toneClass=(tones,value)=>`sc-task-view__state--${Object.hasOwn(tones,value)?tones[value]:"unknown"}`;
       const stateClass=value=>toneClass(stateTones,value);
       const normalizedStatus=value=>safeText(value).trim().toLowerCase().replace(/[ -]+/g,"_");
-      const roleStatusLabels={pending:"待开始",not_started:"待开始",running:"进行中",preparing:"准备中",in_progress:"进行中",working:"进行中",active:"进行中",started:"进行中",started_working:"进行中",completed:"已完成",done:"已完成",passed:"已通过",failed:"失败",blocked:"已阻断",paused:"已暂停",cancelled:"已取消",canceled:"已取消",skipped:"已跳过",waiting:"等待中",needs_user_confirm:"等待用户确认",needs_revision:"需要修订"};
+      const roleStatusLabels={pending:"待开始",not_started:"待开始",running:"进行中",preparing:"进行中",in_progress:"进行中",working:"进行中",active:"进行中",started:"进行中",started_working:"进行中",completed:"已完成",complete:"已完成",done:"已完成",success:"已完成",successful:"已完成",succeeded:"已完成",passed:"已通过",qa_passed:"已通过",qa_success:"已通过",workflow_ready:"已通过",failed:"失败",blocked:"已阻断",paused:"已暂停",cancelled:"已取消",canceled:"已取消",skipped:"已跳过",waiting:"等待中",needs_user_confirm:"等待用户确认",needs_revision:"需要修订"};
       const roleStatusText=value=>value===undefined||value===null||value===""?"状态未提供":Object.hasOwn(roleStatusLabels,normalizedStatus(value))?roleStatusLabels[normalizedStatus(value)]:"未知状态";
-      const roleStatusTones={pending:"pending",not_started:"pending",running:"active",preparing:"active",in_progress:"active",working:"active",active:"active",started:"active",started_working:"active",completed:"completed",done:"completed",passed:"passed",failed:"danger",blocked:"danger",paused:"waiting",cancelled:"pending",canceled:"pending",skipped:"pending",waiting:"waiting",needs_user_confirm:"waiting",needs_revision:"revision"};
+      const roleStatusTones={pending:"pending",not_started:"pending",running:"active",preparing:"active",in_progress:"active",working:"active",active:"active",started:"active",started_working:"active",completed:"completed",complete:"completed",done:"completed",success:"completed",successful:"completed",succeeded:"completed",passed:"passed",qa_passed:"passed",qa_success:"passed",workflow_ready:"passed",failed:"danger",blocked:"danger",paused:"waiting",cancelled:"pending",canceled:"pending",skipped:"pending",waiting:"waiting",needs_user_confirm:"waiting",needs_revision:"revision"};
       const roleStatusClass=value=>toneClass(roleStatusTones,normalizedStatus(value));
       const optionalText=value=>typeof value==="string"?value.trim():"";
-      const displayAgentName=value=>optionalText(value).replace(/^\/root\//,"");
-      function renderWorkContext(root,work) {
+      function renderRootMetadata(root,work) {
         const selected=[...new Set(asList(work.roles).filter(value=>typeof value==="string").map(value=>value.trim().toLowerCase()).filter(value=>roles.includes(value)))];
         const selectedNode=root.querySelector("[data-sc-selected-roles]"),summaryNode=root.querySelector("[data-sc-task-summary]"),summary=optionalText(work.summary);
         selectedNode.textContent=selected.length?selected.map(role=>roleLabels[role]).join(" → "):"尚未选择";
         selectedNode.classList.toggle("sc-task-view__placeholder",!selected.length);
         summaryNode.textContent=summary||"暂无总结";
         summaryNode.classList.toggle("sc-task-view__placeholder",!summary);
-        const box=root.querySelector("[data-sc-context]"),body=root.querySelector("[data-sc-context-body]");
-        body.replaceChildren();
-        [["范围",work.scope],["验收",work.acceptance],["环境",work.environment]].forEach(([label,value])=>{
-          const values=asList(value).filter(item=>item!==undefined&&item!==null&&item!==""&&!(typeof item==="string"&&!item.trim()));
-          if (values.length) detailField(body,label,values);
-        });
-        box.hidden=!body.childElementCount;
       }
       const isActiveRoleStatus=value=>activeRoleStates.has(normalizedStatus(value));
-      function resolveActiveRole(details,state) { const explicit=roles.filter(role=>isActiveRoleStatus(asObject(details[role]).status)); return explicit.length?explicit.at(-1):(stateRole[state]||null); }
+      function resolveActiveRole(details,state) { const explicit=roles.filter(role=>isActiveRoleStatus(asObject(details[role]).status)); if (explicit.length) return explicit.at(-1); const mapped=stateRole[state]; return mapped&&!missing(asObject(details[mapped]).status)?null:mapped||null; }
       function renderList(container,value) { const values=asList(value); container.replaceChildren(); if (!values.length) { const empty=document.createElement("p"); empty.className="sc-task-view__empty"; empty.textContent="未提供"; container.append(empty); return; } const list=document.createElement("ul"); values.forEach(value=>{ const item=document.createElement("li"); item.textContent=safeText(value); item.classList.toggle("sc-task-view__placeholder",missing(value)); list.append(item); }); container.append(list); }
       function detailField(body,label,value) { const heading=document.createElement("h3"),content=document.createElement("div"); heading.textContent=label; renderList(content,value); body.append(heading,content); }
       const subskillNames={req:["align-with-visuals","grill-with-docs"],dev:["tech-select"],cr:["review-with-goal"],qa:["test-with-goal"]};
@@ -200,17 +164,13 @@
         box.append(heading,...nodes);
         body.append(box);
       }
-      function normalizedProgress(value) { return typeof value==="number"&&Number.isFinite(value)?Math.min(100,Math.max(0,value)):0; }
-      function roleNode(role,detail,activeRole,openRole) { const node=document.createElement("details"),summary=document.createElement("summary"),name=document.createElement("span"),status=document.createElement("span"),body=document.createElement("div"); const active=role===activeRole; node.className=`sc-task-view__node${active?" is-active":""}`; node.open=role===openRole; node.dataset.scRole=role; if (active) node.setAttribute("aria-current","step"); name.className="sc-task-view__role-name"; const roleName=document.createElement("span"); roleName.textContent=roleLabels[role]; name.append(roleName); const agentName=displayAgentName(detail.agent_name),agent=document.createElement("span"); agent.className="sc-task-view__agent-name"; agent.dataset.scAgentName=""; agent.textContent=agentName||"未启动"; agent.classList.toggle("sc-task-view__placeholder",!agentName); name.append(agent); status.className=`sc-task-view__role-state ${roleStatusClass(detail.status)}`; status.textContent=roleStatusText(detail.status); summary.append(name,status); const progress=normalizedProgress(detail.progress); const progressRow=document.createElement("div"),track=document.createElement("div"),value=document.createElement("span"),label=document.createElement("span"); progressRow.className="sc-task-view__progress"; track.className="sc-task-view__progress-track"; track.setAttribute("role","progressbar"); track.setAttribute("aria-label",`${roleLabels[role]} 任务进度：${progress}%`); track.setAttribute("aria-valuemin","0"); track.setAttribute("aria-valuemax","100"); track.setAttribute("aria-valuenow",String(progress)); value.className="sc-task-view__progress-value"; value.style.setProperty("--progress",`${progress}%`); value.setAttribute("aria-hidden","true"); label.className="sc-task-view__progress-label"; label.setAttribute("aria-hidden","true"); label.textContent=`${progress}%`; track.append(value); progressRow.append(track,label); node.append(summary,progressRow); body.className="sc-task-view__detail"; detailField(body,"摘要",detail.summary); detailField(body,"必要证据",detail.evidence); detailField(body,"风险",detail.risks); detailField(body,"下一步",detail.next_action); renderSubskills(body,role,detail.subskills); node.append(body); return node; }
+      function roleNode(role,detail,activeRole,openRole) { const node=document.createElement("details"),summary=document.createElement("summary"),name=document.createElement("span"),status=document.createElement("span"),body=document.createElement("div"); const active=role===activeRole; node.className=`sc-task-view__node${active?" is-active":""}`; node.open=role===openRole; node.dataset.scRole=role; if (active) node.setAttribute("aria-current","step"); name.className="sc-task-view__role-name"; const roleName=document.createElement("span"); roleName.textContent=roleLabels[role]; name.append(roleName); status.className=`sc-task-view__role-state ${roleStatusClass(detail.status)}`; status.textContent=roleStatusText(detail.status); summary.append(name,status); node.append(summary); body.className="sc-task-view__detail"; detailField(body,"摘要",detail.summary); detailField(body,"必要证据",detail.evidence); detailField(body,"风险",detail.risks); detailField(body,"下一步",detail.next_action); renderSubskills(body,role,detail.subskills); node.append(body); return node; }
       function renderRoles(root,details,activeRole,openRole,selectedRoles) { const box=root.querySelector("[data-sc-roles]"),fragment=document.createDocumentFragment(),orderedRoles=selectedRoles.length?selectedRoles:roles; box.setAttribute("aria-label",`${orderedRoles.map(role=>roleLabels[role]).join("、")} 顺序任务`); orderedRoles.forEach(role=>{ const connector=document.createElement("span"); connector.className="sc-task-view__connector"; connector.setAttribute("aria-hidden","true"); fragment.append(connector,roleNode(role,asObject(details[role]),activeRole,openRole)); }); box.replaceChildren(fragment); }
       function enforceSingleOpen(root) { root.__scAccordionCleanup?.(); const onToggle=event=>{ const opened=event.target; if (!opened.matches?.("details[data-sc-role]")||!opened.open) return; root.querySelectorAll("details[data-sc-role][open]").forEach(node=>{ if (node!==opened) node.open=false; }); }; root.addEventListener("toggle",onToggle,true); root.__scAccordionCleanup=()=>root.removeEventListener("toggle",onToggle,true); }
       const prefersReducedMotion=()=>matchMedia("(prefers-reduced-motion:reduce)").matches;
       function animateOnce(node,className,cleanups) { if (!node) return; node.classList.remove(className); void node.offsetWidth; node.classList.add(className); const finish=()=>{ node.classList.remove(className); node.removeEventListener("animationend",finish); node.removeEventListener("animationcancel",finish); }; node.addEventListener("animationend",finish,{once:true}); node.addEventListener("animationcancel",finish,{once:true}); cleanups.push(finish); }
-      function bindAnimationControls(root) { if (root.__scAnimationButtonBound) return; const button=root.querySelector("[data-sc-play-animation]"); if (!button) return; const onClick=()=>{ if (!root.__scDebugMode) return; root.__scManualMotionCleanup?.(); root.__scManualMotionCleanup=undefined; if (prefersReducedMotion()) return; const cleanups=[]; playEntranceEffects(root,cleanups); animateOnce(root.querySelector("details.is-active"),"is-manual-replay",cleanups); root.__scManualMotionCleanup=()=>cleanups.forEach(cleanup=>cleanup()); }; button.addEventListener("click",onClick); root.__scAnimationButtonBound=true; root.__scAnimationButtonCleanup=()=>button.removeEventListener("click",onClick); }
-      function handoffFingerprint(handoffs) { return handoffs.map(item=>["from","to","state","handoff_result","reference_version"].map(field=>safeText(item[field])).join("\u001f")).join("\u001e"); }
-      function playEntranceEffects(root,cleanups) { const view=root.matches(".sc-task-view")?root:root.querySelector(".sc-task-view"),flow=root.querySelector("[data-sc-flow]"); let timer=0; view?.classList.remove("is-entering"); flow?.classList.remove("is-connection-entering"); void root.offsetWidth; view?.classList.add("is-entering"); flow?.classList.add("is-connection-entering"); const finish=()=>{ view?.classList.remove("is-entering"); flow?.classList.remove("is-connection-entering"); }; timer=setTimeout(finish,900); cleanups.push(()=>{ clearTimeout(timer); finish(); }); }
-      function playUpdateEffects(root,state,handoffs) { const previous=root.__scMotionSnapshot; root.__scMotionCleanup?.(); const current={state,handoffs:handoffFingerprint(handoffs)},cleanups=[]; root.__scMotionSnapshot=current; if (prefersReducedMotion()) return; if (!previous) playEntranceEffects(root,cleanups); else { if (previous.state!==state) { animateOnce(root.querySelector("[data-sc-root]"),"is-state-updated",cleanups); animateOnce(root.querySelector('[data-sc-field="state"]'),"is-state-updated",cleanups); } if (previous.handoffs!==current.handoffs) animateOnce(root.querySelector("[data-sc-flow]"),"is-handoff-flow",cleanups); } root.__scMotionCleanup=()=>cleanups.forEach(cleanup=>cleanup()); }
-      window.renderSurveyCorpsTaskView=(root,snapshot,options)=>{ if (!(root instanceof Element)) throw new TypeError("root 必须是一个 DOM 元素"); const input=asObject(snapshot),work=asObject(input.work_unit),details=asObject(input.role_details),handoffs=asList(input.handoffs||input.handoff).map(asObject),state=input.state,selectedRoles=[...new Set(asList(work.roles).filter(value=>typeof value==="string").map(value=>value.trim().toLowerCase()).filter(value=>roles.includes(value)))],activeRole=resolveActiveRole(details,state),userOpenRole=root.querySelector("details[data-sc-role][open]")?.dataset.scRole,openRole=root.__scResolvedActiveRole===activeRole?userOpenRole:activeRole,values={target:work.target,task_type:work.task_type,role_selection_reason:work.role_selection_reason}; Object.entries(values).forEach(([name,value])=>root.querySelectorAll(`[data-sc-field="${name}"]`).forEach(node=>{ node.textContent=safeText(value); node.classList.toggle("sc-task-view__placeholder",missing(value)); })); const status=root.querySelector('[data-sc-field="state"]'); if (status) { status.textContent=stateText(state); status.className=`sc-task-view__status ${stateClass(state)}`; } renderWorkContext(root,work); root.__scDebugMode=asObject(options).debug===true; const playButton=root.querySelector("[data-sc-play-animation]"); if (playButton) playButton.hidden=!root.__scDebugMode; if (!root.__scDebugMode) { root.__scManualMotionCleanup?.(); root.__scManualMotionCleanup=undefined; } renderRoles(root,details,activeRole,openRole,selectedRoles); root.__scResolvedActiveRole=activeRole; enforceSingleOpen(root); bindAnimationControls(root); playUpdateEffects(root,state,handoffs); };
+      function bindAnimationControls(root) { if (root.__scAnimationButtonBound) return; const button=root.querySelector("[data-sc-play-animation]"); if (!button) return; const onClick=()=>{ if (!root.__scDebugMode) return; root.__scManualMotionCleanup?.(); root.__scManualMotionCleanup=undefined; if (prefersReducedMotion()) return; const cleanups=[]; animateOnce(root.querySelector("details.is-active"),"is-manual-replay",cleanups); root.__scManualMotionCleanup=()=>cleanups.forEach(cleanup=>cleanup()); }; button.addEventListener("click",onClick); root.__scAnimationButtonBound=true; root.__scAnimationButtonCleanup=()=>button.removeEventListener("click",onClick); }
+      window.renderSurveyCorpsTaskView=(root,snapshot,options)=>{ if (!(root instanceof Element)) throw new TypeError("root 必须是一个 DOM 元素"); const input=asObject(snapshot),work=asObject(input.work_unit),details=asObject(input.role_details),state=input.state,selectedRoles=[...new Set(asList(work.roles).filter(value=>typeof value==="string").map(value=>value.trim().toLowerCase()).filter(value=>roles.includes(value)))],activeRole=resolveActiveRole(details,state),userOpenRole=root.querySelector("details[data-sc-role][open]")?.dataset.scRole,openRole=root.__scResolvedActiveRole===activeRole?userOpenRole:activeRole,values={target:work.target,task_type:work.task_type,role_selection_reason:work.role_selection_reason}; Object.entries(values).forEach(([name,value])=>root.querySelectorAll(`[data-sc-field="${name}"]`).forEach(node=>{ node.textContent=safeText(value); node.classList.toggle("sc-task-view__placeholder",missing(value)); })); const status=root.querySelector('[data-sc-field="state"]'); if (status) { status.textContent=stateText(state); status.className=`sc-task-view__status ${stateClass(state)}`; } renderRootMetadata(root,work); root.__scDebugMode=asObject(options).debug===true; const playButton=root.querySelector("[data-sc-play-animation]"); if (playButton) playButton.hidden=!root.__scDebugMode; if (!root.__scDebugMode) { root.__scManualMotionCleanup?.(); root.__scManualMotionCleanup=undefined; } renderRoles(root,details,activeRole,openRole,selectedRoles); root.__scResolvedActiveRole=activeRole; enforceSingleOpen(root); bindAnimationControls(root); };
     })();
   </script>
 </section>
