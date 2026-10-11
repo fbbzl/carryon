@@ -59,17 +59,18 @@ const debugFalse={hidden:root.querySelector('[data-sc-play-animation]').hidden,r
 const snapshotDebug=structuredClone(next);snapshotDebug.debug=true;window.renderSurveyCorpsTaskView(root,snapshotDebug);root.querySelector('[data-sc-play-animation]').click();
 const debugInSnapshot={hidden:root.querySelector('[data-sc-play-animation]').hidden,replay:!!root.querySelector('.is-manual-replay')};
 const supplied=structuredClone(next),payload='<img src=x onerror="window.qaInjected=true">';
-supplied.work_unit={project_name:'carryon',target:'明确目标',task_type:'界面调整',roles:['dev','qa'],role_selection_reason:'仅实现和验收',summary:payload,scope:['当前任务视图'],acceptance:['QA 唯一出口'],environment:'Windows Chrome'};
+supplied.work_unit={project_name:'carryon',target:'明确目标',task_type:'界面调整',roles:['dev','qa'],role_selection_reason:'仅实现和验收；此说明专门用于验证长文本始终在元数据值列内自然换行，且不会挤占左侧标签列。',summary:payload,scope:['当前任务视图'],acceptance:['QA 唯一出口'],environment:'Windows Chrome'};
 supplied.role_details.req.agent_name='req-agent';supplied.role_details.dev={agent_name:'dev-agent'};supplied.role_details.cr.agent_name='cr-agent';
 supplied.role_details.qa.agent_name=payload;
 window.renderSurveyCorpsTaskView(root,supplied);
 const summary=root.querySelector('[data-sc-task-summary]');
-const provided={headerText:root.querySelector('.sc-task-view__header').innerText,taskType:root.querySelector('[data-sc-field=task_type]').textContent,selected:root.querySelector('[data-sc-selected-roles]').textContent,reason:root.querySelector('[data-sc-field=role_selection_reason]').textContent,summary:summary.textContent,summaryOutsideFlow:!summary.closest('[data-sc-flow]'),summaryAfterQA:!!(root.querySelector('[data-sc-role=qa]').compareDocumentPosition(summary)&Node.DOCUMENT_POSITION_FOLLOWING),roleCount:root.querySelectorAll('details[data-sc-role]').length,contextRemoved:!root.querySelector('[data-sc-context]'),namesRemoved:!root.querySelector('[data-sc-agent-name]'),injectedElements:root.querySelectorAll('img').length};
+const metadata=root.querySelector('.sc-task-view__metadata'),taskTypeLabel=metadata.querySelector('dt'),taskTypeValue=metadata.querySelector('dd'),reasonValue=metadata.querySelector('[data-sc-field=role_selection_reason]'),metadataRect=metadata.getBoundingClientRect(),taskTypeLabelRect=taskTypeLabel.getBoundingClientRect(),taskTypeValueRect=taskTypeValue.getBoundingClientRect(),reasonValueRect=reasonValue.getBoundingClientRect(),metadataStyles=getComputedStyle(metadata),reasonStyles=getComputedStyle(reasonValue),metadataLayout={className:metadata.className,gridTemplateColumns:metadataStyles.gridTemplateColumns,alignItems:metadataStyles.alignItems,labelTextAlign:getComputedStyle(taskTypeLabel).textAlign,labelValueTopDelta:Math.abs(taskTypeLabelRect.top-taskTypeValueRect.top),valueStartsAfterLabel:taskTypeValueRect.left>=taskTypeLabelRect.right,reasonWraps:reasonValueRect.height>parseFloat(reasonStyles.lineHeight),reasonFits:reasonValueRect.right<=metadataRect.right+1};
+const provided={headerText:root.querySelector('.sc-task-view__header').innerText,taskType:root.querySelector('[data-sc-field=task_type]').textContent,selected:root.querySelector('[data-sc-selected-roles]').textContent,reason:root.querySelector('[data-sc-field=role_selection_reason]').textContent,summary:summary.textContent,summaryOutsideFlow:!summary.closest('[data-sc-flow]'),summaryAfterQA:!!(root.querySelector('[data-sc-role=qa]').compareDocumentPosition(summary)&Node.DOCUMENT_POSITION_FOLLOWING),roleCount:root.querySelectorAll('details[data-sc-role]').length,contextRemoved:!root.querySelector('[data-sc-context]'),namesRemoved:!root.querySelector('[data-sc-agent-name]'),injectedElements:root.querySelectorAll('img').length,metadataLayout};
 delete supplied.role_details.qa.agent_name;delete supplied.work_unit.summary;window.renderSurveyCorpsTaskView(root,supplied);
 const removed={headerText:root.querySelector('.sc-task-view__header').innerText,contextRemoved:!root.querySelector('[data-sc-context]'),namesRemoved:!root.querySelector('[data-sc-agent-name]'),summary:root.querySelector('[data-sc-task-summary]').textContent,summaryClass:root.querySelector('[data-sc-task-summary]').className};
 const roleCases={pending:'待开始',not_started:'待开始',running:'进行中',preparing:'进行中',in_progress:'进行中',working:'进行中',active:'进行中',started:'进行中',started_working:'进行中',completed:'已完成',complete:'已完成',done:'已完成',success:'已完成',successful:'已完成',succeeded:'已完成',passed:'已通过',qa_passed:'已通过',qa_success:'已通过',workflow_ready:'已通过',failed:'失败',blocked:'已阻断',paused:'已暂停',cancelled:'已取消',canceled:'已取消',skipped:'已跳过',waiting:'等待中'};
 const roleStatuses={};const roleStatusClasses={};for(const status of Object.keys(roleCases)){supplied.role_details.qa.status=status;window.renderSurveyCorpsTaskView(root,supplied);const node=root.querySelector('[data-sc-role=qa] .sc-task-view__role-state');roleStatuses[status]=node.textContent;roleStatusClasses[status]=node.className;}
-const globalCases={confirmed:'已确认',planned:'计划',dev_in_progress:'开发中',ready_for_cr:'等待审查',cr_blocked:'审查阻断',ready_for_qa:'等待测试',qa_failed:'测试失败',qa_conditional:'测试条件通过',qa_passed:'测试通过',workflow_ready:'工作流就绪',completed:'已完成',success:'已完成',succeeded:'已完成',needs_user_confirm:'等待用户确认',needs_revalidation:'需要重新验证',needs_revision:'需要修订',blocked:'已阻断'};
+const globalCases={confirmed:'已确认',planned:'计划',dev_in_progress:'开发中',ready_for_cr:'等待审查',cr_blocked:'审查阻断',ready_for_qa:'等待测试',qa_failed:'测试失败',qa_conditional:'测试条件通过',qa_passed:'测试通过',workflow_ready:'任务完成',completed:'已完成',success:'已完成',succeeded:'已完成',needs_user_confirm:'等待用户确认',needs_revalidation:'需要重新验证',needs_revision:'需要修订',blocked:'已阻断'};
 const globalStatuses={};const globalStatusClasses={};for(const state of Object.keys(globalCases)){supplied.state=state;window.renderSurveyCorpsTaskView(root,supplied);const node=root.querySelector('[data-sc-field=state]');globalStatuses[state]=node.textContent;globalStatusClasses[state]=node.className;}
 supplied.state=payload;supplied.role_details.qa.status=payload;window.renderSurveyCorpsTaskView(root,supplied);
 const unknown={global:root.querySelector('[data-sc-field=state]').textContent,role:root.querySelector('[data-sc-role=qa] .sc-task-view__role-state').textContent,img:root.querySelectorAll('img').length};
@@ -110,15 +111,16 @@ const root=document.getElementById('root'),snapshot=${JSON.stringify(snapshot)};
 const roleTones={pending:'pending',not_started:'pending',running:'active',preparing:'active',in_progress:'active',working:'active',active:'active',started:'active',started_working:'active',completed:'completed',complete:'completed',done:'completed',success:'completed',successful:'completed',succeeded:'completed',passed:'passed',qa_passed:'passed',qa_success:'passed',workflow_ready:'passed',failed:'danger',blocked:'danger',paused:'waiting',cancelled:'pending',canceled:'pending',skipped:'pending',waiting:'waiting',needs_user_confirm:'waiting',needs_revision:'revision',constructor:'unknown',['__proto__']:'unknown',toString:'unknown',unrecognized:'unknown'};
 const globalTones={confirmed:'completed',planned:'pending',dev_in_progress:'active',ready_for_cr:'waiting',cr_blocked:'danger',ready_for_qa:'waiting',qa_failed:'danger',qa_conditional:'revision',qa_passed:'passed',workflow_ready:'passed',completed:'completed',success:'completed',succeeded:'completed',needs_user_confirm:'waiting',needs_revalidation:'revision',needs_revision:'revision',blocked:'danger'};
 const sample=node=>({className:node.className,color:getComputedStyle(node).color});
-const roleColors=Object.create(null),globalColors=Object.create(null),subskillColors=Object.create(null);
+const roleColors=Object.create(null),globalColors=Object.create(null),subskillColors=Object.create(null),activeRoleMotion=Object.create(null);
 for(const status of Object.keys(roleTones)){snapshot.role_details.qa={status,subskills:[{name:'test-with-goal',status,summary:'QA 记录'}]};window.renderSurveyCorpsTaskView(root,snapshot);roleColors[status]=sample(root.querySelector('[data-sc-role=qa] > summary .sc-task-view__role-state'));subskillColors[status]=sample(root.querySelector('[data-sc-role=qa] [data-sc-subskill] > summary .sc-task-view__role-state'));}
 for(const state of Object.keys(globalTones)){snapshot.state=state;window.renderSurveyCorpsTaskView(root,snapshot);globalColors[state]=sample(root.querySelector('[data-sc-field=state]'));}
-snapshot.state='ready_for_qa';snapshot.role_details.qa.status='running';window.renderSurveyCorpsTaskView(root,snapshot,{debug:true});root.querySelector('[data-sc-play-animation]').click();
+for(const status of ['running','preparing','in_progress','working','active','started','started_working']){snapshot.state='ready_for_qa';snapshot.role_details.qa={status};window.renderSurveyCorpsTaskView(root,snapshot);const role=root.querySelector('[data-sc-role=qa]'),roleStyles=getComputedStyle(role);activeRoleMotion[status]={active:role.classList.contains('is-active'),animation:roleStyles.animationName,borderColor:roleStyles.borderTopColor};}
+snapshot.state='ready_for_qa';snapshot.role_details.qa={status:'running'};window.renderSurveyCorpsTaskView(root,snapshot,{debug:true});root.querySelector('[data-sc-play-animation]').click();
 const connectors=[...root.querySelectorAll('.sc-task-view__connector')].map(node=>{const stem=getComputedStyle(node,'::before'),head=getComputedStyle(node,'::after');return {width:node.offsetWidth,height:node.offsetHeight,stemWidth:stem.width,stemHeight:stem.height,headWidth:head.width,headHeight:head.height,headTransform:head.transform,right:head.borderRightWidth,bottom:head.borderBottomWidth,hidden:node.getAttribute('aria-hidden'),next:node.nextElementSibling.dataset.scRole,animation:getComputedStyle(node).animationName};});
 const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches,view=root.querySelector('.sc-task-view'),active=root.querySelector('details.is-active');
 const header=root.querySelector('.sc-task-view__header'),status=root.querySelector('[data-sc-field=state]'),headerRect=header.getBoundingClientRect(),statusRect=status.getBoundingClientRect();
-const statusLayout={centerOffset:Math.abs((statusRect.left+statusRect.right)/2-(headerRect.left+headerRect.right)/2),fontSize:getComputedStyle(status).fontSize,eyebrowCount:root.querySelectorAll('.sc-task-view__root > .sc-task-view__muted').length};
-const idle=root.querySelector('[data-sc-role=req]');const result={roleTones,globalTones,roleColors,subskillColors,globalColors,connectors,statusLayout,reduced,viewAnimation:getComputedStyle(view).animationName,activeAnimation:getComputedStyle(active,'::before').animationName,idleAnimation:getComputedStyle(idle,'::before').animationName,replay:active.classList.contains('is-manual-replay'),viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};parent.postMessage({scVisualResult:result},'*');
+const statusLayout={centerOffset:Math.abs((statusRect.left+statusRect.right)/2-(headerRect.left+headerRect.right)/2),fontSize:getComputedStyle(status).fontSize,eyebrowCount:root.querySelectorAll('.sc-task-view__root > .sc-task-view__muted').length,titleCount:root.querySelectorAll('h2').length};
+const idle=root.querySelector('[data-sc-role=req]');const result={roleTones,globalTones,roleColors,subskillColors,globalColors,activeRoleMotion,connectors,statusLayout,reduced,viewAnimation:getComputedStyle(view).animationName,activeAnimation:getComputedStyle(active,'::before').animationName,idleAnimation:getComputedStyle(idle,'::before').animationName,replay:active.classList.contains('is-manual-replay'),viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};parent.postMessage({scVisualResult:result},'*');
 </script></body></html>`;
 
 function readChromeResult(pagePath, profilePath, width, reduced = false) {
@@ -151,7 +153,15 @@ try {
   assert.equal(result.provided.headerText.includes("sc-task-view:"), false, "view identifiers must not render in the header");
   assert.equal(result.provided.taskType, "界面调整");
   assert.equal(result.provided.selected, "DEV → QA", "selection must come from the orchestrator rather than all cards");
-  assert.equal(result.provided.reason, "仅实现和验收");
+  assert.equal(result.provided.reason, "仅实现和验收；此说明专门用于验证长文本始终在元数据值列内自然换行，且不会挤占左侧标签列。");
+  assert.equal(result.provided.metadataLayout.className, "sc-task-view__metadata");
+  assert.match(result.provided.metadataLayout.gridTemplateColumns, /^78px /, "metadata must reserve a stable first column for labels");
+  assert.equal(result.provided.metadataLayout.alignItems, "baseline");
+  assert.equal(result.provided.metadataLayout.labelTextAlign, "right");
+  assert.ok(result.provided.metadataLayout.labelValueTopDelta<=1, "metadata labels and values must align on their first baseline");
+  assert.equal(result.provided.metadataLayout.valueStartsAfterLabel, true);
+  assert.equal(result.provided.metadataLayout.reasonWraps, true, "long metadata must wrap in the value column");
+  assert.equal(result.provided.metadataLayout.reasonFits, true, "long metadata must not overflow the value column");
   assert.equal(result.provided.summary, result.payload, "task summary must preserve supplied text safely");
   assert.equal(result.provided.summaryOutsideFlow, true);
   assert.equal(result.provided.summaryAfterQA, true);
@@ -159,7 +169,7 @@ try {
   assert.equal(result.provided.contextRemoved, true);
   assert.equal(result.provided.namesRemoved, true);
   assert.equal(result.provided.injectedElements, 0, "task summary must not inject HTML");
-  assert.deepEqual(result.removed, { headerText: "SC TASK FLOW\n等待测试", contextRemoved: true, namesRemoved: true, summary: "暂无总结", summaryClass: "sc-task-view__placeholder" }, "removed metadata must stay absent while optional values update");
+  assert.deepEqual(result.removed, { headerText: "等待测试", contextRemoved: true, namesRemoved: true, summary: "暂无总结", summaryClass: "sc-task-view__placeholder" }, "removed metadata must stay absent while optional values update");
   assert.deepEqual(result.roleStatuses, result.roleCases, "all supported role statuses must display Chinese");
   assert.notEqual(result.roleStatusClasses.running, result.roleStatusClasses.completed, "running and completed roles must use different semantic color classes");
   assert.notEqual(result.roleStatusClasses.completed, result.roleStatusClasses.failed, "completed and failed roles must use different semantic color classes");
@@ -200,6 +210,7 @@ try {
     assert.ok(observed.statusLayout.centerOffset<=1,"global status must remain centered in the header");
     assert.equal(observed.statusLayout.fontSize,"18px","global status must use enlarged type");
     assert.equal(observed.statusLayout.eyebrowCount,0,"work unit eyebrow must not render");
+    assert.equal(observed.statusLayout.titleCount,0,"the redundant task-flow title must not render");
     assert.ok(Object.hasOwn(observed.roleColors,"__proto__")&&Object.hasOwn(observed.subskillColors,"__proto__"),"prototype-name color cases must be executed and retained");
     for(const [status,tone] of Object.entries(observed.roleTones)) {
       for(const item of [observed.roleColors[status],observed.subskillColors[status]]) {
@@ -221,6 +232,11 @@ try {
     assert.equal(observed.reduced,mode.reduced,"reduced-motion test must use the intended browser preference");
     assert.equal(observed.replay,!mode.reduced,"manual replay must respect reduced motion");
     assert.equal(observed.viewAnimation,"none","opening a task view must not animate when no role is actively working");
+    for(const [status,motion] of Object.entries(observed.activeRoleMotion)) {
+      assert.equal(motion.active,true,`${status} must retain an active role card`);
+      assert.equal(motion.borderColor,toneColors.active,`${status} must retain the active role color`);
+      assert.equal(motion.animation,mode.reduced?"none":"sc-running-pulse",`${status} must ${mode.reduced?"disable":"retain"} its persistent running animation`);
+    }
     assert.equal(observed.activeAnimation,mode.reduced?"none":"sc-thinking-border","only the active role border may animate");
     assert.equal(observed.idleAnimation,"none","idle role borders must remain static");
     assert.ok(observed.scrollWidth<=observed.viewport,"role states and arrow connectors must not cause horizontal overflow");

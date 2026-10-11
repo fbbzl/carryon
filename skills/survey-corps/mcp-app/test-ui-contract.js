@@ -12,14 +12,18 @@ assert.match(appTemplate, /selectedRoles\.length\?selectedRoles:roles/, "task fl
 assert.doesNotMatch(appTemplate, /data-sc-exit|sc-task-view__exit|QA · 唯一任务出口/, "QA exit must not render a separate node or retain its styles");
 assert.match(appTemplate, /roleName\.textContent=roleLabels\[role\]/, "role titles must use the plain role label without a QA exit suffix");
 assert.match(appTemplate, /data-sc-task-summary>暂无总结</, "task summary must default to no supplied summary");
-assert.doesNotMatch(appTemplate, /任务上下文|data-sc-context/, "the task context panel must be removed from the view");
+assert.doesNotMatch(appTemplate, /任务上下文|data-sc-context|sc-task-view__context/, "the task context panel must be removed from the view");
 assert.match(appTemplate, /data-sc-selected-roles>尚未选择</, "the view must not infer all roles as selected");
+assert.doesNotMatch(appTemplate, /SC TASK FLOW|<h2\b/, "the redundant visual task-flow title must not render");
+assert.match(appTemplate, /<dl class="sc-task-view__metadata">[\s\S]*?<dt>任务类型<\/dt><dd data-sc-field="task_type">[\s\S]*?<dt>参与角色<\/dt><dd data-sc-selected-roles>[\s\S]*?<dt>选择原因<\/dt><dd data-sc-field="role_selection_reason">/, "required task metadata must remain in the stable label-value list");
+assert.match(appTemplate, /\.sc-task-view__metadata \{[^}]*grid-template-columns:6em minmax\(0,1fr\);[^}]*align-items:baseline/, "task metadata must use a fixed label column and a baseline-aligned value column");
+assert.match(appTemplate, /\.sc-task-view__metadata dd \{[^}]*min-width:0;[^}]*margin:0;[^}]*overflow-wrap:anywhere/, "long metadata values must stay inside the value column");
 assert.doesNotMatch(appTemplate, /sc-task-view__eyebrow|data-sc-field="project_name"|data-sc-field="view_id"|SURVEY CORPS \/|view_id:input\.view_id/, "the top metadata row and its project/view identifiers must not render");
 assert.doesNotMatch(appTemplate, /SC \/ WORK UNIT/, "the work unit eyebrow must not render");
-assert.match(appTemplate, /grid-template-columns:minmax\(0,1fr\) auto minmax\(0,1fr\)/, "the global status must occupy the center header column");
+assert.match(appTemplate, /\.sc-task-view__header \{[^}]*position:relative;[^}]*justify-content:center/, "the global status must remain centered without an empty title placeholder");
 assert.match(appTemplate, /\.sc-task-view__status \{[^}]*font-size:18px/, "the global status must use larger type");
 assert.match(appTemplate, /data-sc-field="state" aria-live="polite"[\s\S]*?header-controls/, "the global state must be a separate centered header item from debug controls");
-assert.match(appTemplate, /@media \(max-width:560px\)[\s\S]*?\.sc-task-view__header \{ grid-template-columns:minmax\(0,1fr\)/, "the header must keep a responsive single-column layout on narrow screens");
+assert.match(appTemplate, /@media \(max-width:560px\)[\s\S]*?\.sc-task-view__header \{ flex-direction:column/, "the header must keep a responsive single-column layout on narrow screens");
 assert.match(skill, /project_name:\s+# 可选；当前 Codex 会话所属项目名称，UI 不展示，不得猜测/, "the optional project name must remain in the snapshot contract without rendering");
 assert.doesNotMatch(appTemplate, /data-sc-agent-name|sc-task-view__agent-name/, "subagent names must not render in role cards");
 assert.match(appTemplate, /data-sc-play-animation hidden/, "animation replay is a hidden debug control by default");
@@ -52,7 +56,9 @@ assert.match(appTemplate, /sc-task-view__connector::before/, "role connectors mu
 assert.match(appTemplate, /sc-task-view__connector::after/, "role connectors must render a downward arrowhead");
 assert.match(appTemplate, /transform:rotate\(45deg\)/, "connector arrowhead must point downward");
 assert.doesNotMatch(appTemplate, /sc-task-view__progress|role="progressbar"|任务进度：|progress-label/, "role cards must not render progress bars or percentages");
-assert.match(appTemplate, /\.sc-task-view details\[data-sc-role\]\.is-active::before[^}]*animation:sc-thinking-border 8s linear infinite/, "only active role cards may show the subdued thinking border");
+assert.match(appTemplate, /\.sc-task-view details\[data-sc-role\]\.is-active \{[^}]*border-color:var\(--active\);[^}]*animation:sc-running-pulse 1\.8s ease-in-out infinite/, "active role cards must retain a visible persistent running animation");
+assert.match(appTemplate, /@keyframes sc-running-pulse/, "the running role animation must be defined");
+assert.match(appTemplate, /workflow_ready:"任务完成"/, "workflow_ready must present completion without changing its state semantics");
 assert.match(appTemplate, /workflow_ready:"已通过"/, "the completed QA workflow state must display as passed in role cards");
 
 console.log("SC minimal task-flow UI contract passed.");
