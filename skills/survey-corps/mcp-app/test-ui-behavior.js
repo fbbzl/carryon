@@ -237,7 +237,7 @@ try {
       assert.equal(motion.borderColor,toneColors.active,`${status} must retain the active role color`);
       assert.equal(motion.animation,mode.reduced?"none":"sc-running-pulse",`${status} must ${mode.reduced?"disable":"retain"} its persistent running animation`);
     }
-    assert.equal(observed.activeAnimation,mode.reduced?"none":"sc-thinking-border","only the active role border may animate");
+    assert.equal(observed.activeAnimation,"none","role cards must not render a rotating geometric border");
     assert.equal(observed.idleAnimation,"none","idle role borders must remain static");
     assert.ok(observed.scrollWidth<=observed.viewport,"role states and arrow connectors must not cause horizontal overflow");
   }

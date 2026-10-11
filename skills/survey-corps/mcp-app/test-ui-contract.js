@@ -56,7 +56,7 @@ assert.match(appTemplate, /sc-task-view__connector::before/, "role connectors mu
 assert.match(appTemplate, /sc-task-view__connector::after/, "role connectors must render a downward arrowhead");
 assert.match(appTemplate, /transform:rotate\(45deg\)/, "connector arrowhead must point downward");
 assert.doesNotMatch(appTemplate, /sc-task-view__progress|role="progressbar"|任务进度：|progress-label/, "role cards must not render progress bars or percentages");
-assert.match(appTemplate, /\.sc-task-view details\[data-sc-role\]\.is-active \{[^}]*border-color:var\(--active\);[^}]*animation:sc-running-pulse 1\.8s ease-in-out infinite/, "active role cards must retain a visible persistent running animation");
+assert.match(appTemplate, /\.sc-task-view details\[data-sc-role\]\.is-active \{[^}]*border-color:var\(--active\);[^}]*animation:sc-running-pulse 1\.6s ease-in-out infinite/, "active role cards must retain a visible persistent running animation");
 assert.match(appTemplate, /@keyframes sc-running-pulse/, "the running role animation must be defined");
 assert.match(appTemplate, /workflow_ready:"任务完成"/, "workflow_ready must present completion without changing its state semantics");
 assert.match(appTemplate, /workflow_ready:"已通过"/, "the completed QA workflow state must display as passed in role cards");
