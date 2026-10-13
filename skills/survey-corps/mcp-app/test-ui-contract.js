@@ -23,6 +23,11 @@ assert.doesNotMatch(appTemplate, /SC \/ WORK UNIT/, "the work unit eyebrow must 
 assert.match(appTemplate, /\.sc-task-view__header \{[^}]*position:relative;[^}]*justify-content:center/, "the global status must remain centered without an empty title placeholder");
 assert.match(appTemplate, /\.sc-task-view__status \{[^}]*font-size:18px/, "the global status must use larger type");
 assert.match(appTemplate, /data-sc-field="state" aria-live="polite"[\s\S]*?header-controls/, "the global state must be a separate centered header item from debug controls");
+assert.match(appTemplate, /<details class="sc-task-view__project-mcps" data-sc-project-mcps hidden>[\s\S]*?项目 MCP[\s\S]*?data-sc-project-mcp-list/, "project MCP names must render as a default-collapsed left header section");
+assert.match(appTemplate, /function renderProjectMcps\(root,work\)[\s\S]*?work\.project_mcps[\s\S]*?section\.hidden=!mcps\.length[\s\S]*?item\.textContent=name/, "project MCPs must be supplied by the snapshot, hidden when absent, and rendered as text only");
+assert.match(appTemplate, /projectMcpName=value=>\{ const name=optionalText\(value\)\.toLowerCase\(\); return \/\^\[a-z\]/, "project MCP names must be normalized and restricted to safe identifiers");
+assert.match(skill, /project_mcps: \[\].*当前项目已生效的 MCP 名称/, "snapshot contract must declare explicit project MCP names");
+assert.match(skill, /视图不得读取或推断本机 Codex 配置/, "project MCP display must not scan local Codex configuration");
 assert.match(appTemplate, /@media \(max-width:560px\)[\s\S]*?\.sc-task-view__header \{ flex-direction:column/, "the header must keep a responsive single-column layout on narrow screens");
 assert.match(skill, /project_name:\s+# 可选；当前 Codex 会话所属项目名称，UI 不展示，不得猜测/, "the optional project name must remain in the snapshot contract without rendering");
 assert.doesNotMatch(appTemplate, /data-sc-agent-name|sc-task-view__agent-name/, "subagent names must not render in role cards");

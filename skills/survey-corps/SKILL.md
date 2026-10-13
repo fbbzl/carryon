@@ -20,7 +20,7 @@ metadata:
 显式启动 `sc` 后，编排者必须立即为**当前 Codex 任务**调用 `show_sc_task_view(snapshot)`。该工具由 `survey-corps-task-view` MCP Apps server 提供，将 `structuredContent.snapshot` 传给 `ui://survey-corps/task-view` MCP App，并由 Codex 在内嵌 iframe 中渲染 HTML/CSS/JavaScript。`req`、`dev`、`cr`、`qa` 不是独立总视图入口，而是该总视图内可展开的成员子视图。
 
 - 任务视图只有一条渲染路径：`show_sc_task_view(snapshot) -> ui://survey-corps/task-view -> Codex 内嵌 iframe`。禁止创建、复制、打开或展示本地 HTML 可视化产物，禁止文本、Markdown、Mermaid 或其他替代任务视图。
-- 视图主流程固定为 `SC -> REQ -> DEV -> CR -> QA`，`QA` 是唯一任务出口，不在 QA 后渲染 SC 回流门禁。每个角色是可折叠任务卡，仅展示状态、摘要、必要证据、风险和下一步；状态机参考集、独立元数据面板、console 和 session log 不进入视图。
+- 视图按 `work_unit.roles` 呈现实际参与角色；包含 QA 时，QA 是该链路的最后一个角色卡，不在其后渲染 SC 回流门禁。每个角色是可折叠任务卡，仅展示状态、摘要、必要证据、风险和下一步；状态机参考集、独立元数据面板、console 和 session log 不进入视图。
 - 渐进展示只自动展开一个当前活动角色，其余角色保持折叠；用户手动展开任一角色时也必须关闭其他角色，任何时刻最多显示一个详情区。活动角色优先取 `role_details.<role>.status` 命中活动白名单的流程中最后一个角色；没有命中时，仅对正在开发的 `snapshot.state=dev_in_progress` 映射到 DEV。等待 CR/QA 的状态不代表角色正在执行，不触发活动动画或自动展开。其他状态均不猜测活动角色。
 - `show_sc_task_view` 工具缺失、MCP App 资源无法加载或工具调用失败时，立即将当前工作单元标记为 `blocked`，停止启动角色或继续交接。阻断报告必须说明实际错误，恢复条件为安装并启用 `survey-corps-task-view` 插件、启用 MCP Apps，必要时重启 Codex 并在新会话中确认该 tool 可用后重试。不得以任何降级视图绕过阻断。
 - 每次角色启动、交接、状态变化、风险或证据变化时，必须再次调用同一 `show_sc_task_view` tool 更新快照。视图仅随这些明确的编排动作刷新，不声明自动事件订阅、后台轮询或平台原生实时同步。
@@ -34,6 +34,7 @@ MCP App 资源 `mcp-app/assets/sc-task-view.html` 的渲染函数接收根元素
 work_unit:
   work_unit_id:
   project_name:          # 可选；当前 Codex 会话所属项目名称，UI 不展示，不得猜测
+  project_mcps: []       # 可选；当前项目已生效的 MCP 名称，由编排者明确提供；UI 左上角折叠展示，不读取本机配置
   target:
   task_type:             # 可选；当前任务类型文本
   roles: []
@@ -62,11 +63,11 @@ role_details:            # 可选，以 req/dev/cr/qa 为键
 handoffs: []             # 权威交接记录；不在 UI 中逐条展示
 ```
 
-编排者每次构建快照时，按当前任务填写 `task_type`、实际参与的 `roles` 和 `role_selection_reason`；顶部不展示项目名、视图 ID 或 subagent 名称。参与角色只展示 `work_unit.roles` 中规范化、去重后的 req/dev/cr/qa，未提供有效角色时显示“尚未选择”，不根据状态猜测参与链。任务上下文中的 `scope`、`acceptance`、`environment` 保留在权威快照中但不在 UI 展示。主流程仍止于 QA 卡，QA 下方的无边框任务总结只读展示 `work_unit.summary`，不是额外角色或完成门禁。
+编排者每次构建快照时，按当前任务填写 `task_type`、实际参与的 `roles` 和 `role_selection_reason`；顶部不展示项目名、视图 ID 或 subagent 名称。`project_mcps` 只填写已在当前项目生效的 MCP 名称（例如 `codegraph`）：必须同时具备当前项目已初始化的证据和当前会话工具可用性，缺任一项都不填写；不填写地址、参数、密钥或未经确认的候选项。名称会转为小写，且仅接受字母开头、由字母、数字、`.`、`_`、`-` 组成的 1–64 字符标识。有效值在左上角以默认折叠的“项目 MCP”展示，无值时完全隐藏，视图不得读取或推断本机 Codex 配置。参与角色只展示 `work_unit.roles` 中规范化、去重后的 req/dev/cr/qa，未提供有效角色时显示“尚未选择”，不根据状态猜测参与链。任务上下文中的 `scope`、`acceptance`、`environment` 保留在权威快照中但不在 UI 展示。主流程仍止于 QA 卡，QA 下方的无边框任务总结只读展示 `work_unit.summary`，不是额外角色或完成门禁。
 
 任务视图将当前 `snapshot.state` 和角色 `status` 映射为中文标签，不显示英文状态值；未知值显示“未知状态”，缺失角色状态显示“状态未提供”，权威快照值不变。不展示状态机、状态参考集、复验入口或 `resume_state`。`resume_state` 仍是 `state=needs_revalidation` 时的必填权威工作流字段，只是不进入该极简 UI。全部外部展示值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
 
-`role_details.<role>.subskills` 是可选数组，每项包含 `name`、`status` 及可选字符串 `goal`、`summary`、`question`、`result`，`options` 和 `evidence` 只接收字符串数组。只记录该角色实际调用的子技能：REQ 支持 `align-with-visuals`、`grill-with-docs`；DEV 支持 `tech-select`；CR 支持 `review-with-goal`；QA 支持 `test-with-goal`。非法名称、角色不匹配、错误类型和空白内容不展示；只有名称或状态、没有任务内容的项也不展示。候选选项仅随有效问题展示。
+`role_details.<role>.subskills` 是可选数组，每项包含 `name`、`status` 及可选字符串 `goal`、`summary`、`question`、`result`，`options` 和 `evidence` 只接收字符串数组。只记录该角色实际调用的子技能：REQ 支持 `align-with-visuals`、`grill-with-docs`；DEV 支持 `tech-select`、`refactor-with-goal`、`bugfix`、`bug-cause`、`optimize`；CR 支持 `review-with-goal`；QA 支持 `test-with-goal`。非法名称、角色不匹配、错误类型和空白内容不展示；只有名称或状态、没有任务内容的项也不展示。候选选项仅随有效问题展示。
 
 子技能区嵌在所属角色的详情内；每项默认折叠，只有提供有效内容时才出现，不生成完整技能目录或流程节点。子技能折叠不参与角色互斥组，也不自动展开其他角色。状态使用中文标签，另支持 `needs_user_confirm`（等待用户确认）和 `needs_revision`（需要修订）。问题与选项只读，用户通过当前会话答复；视图不回传选择、不启动技能、不执行审批或改变权威状态。
 
