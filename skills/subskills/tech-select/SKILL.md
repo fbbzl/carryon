@@ -3,10 +3,6 @@ name: tech-select
 description: "Use only while dev and the user are actively aligning an implementation approach that requires choosing among technologies, libraries, components, or integration patterns. Do not invoke after the approach is confirmed or for routine internal choices."
 metadata:
   version: 1.2.2
-  type: agent-skill
-  scope: software-engineering
-  tags: [tech-select, architecture, dependencies, dev, workflow]
-  author: carryon
 ---
 
 # tech-select

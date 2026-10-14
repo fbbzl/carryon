@@ -3,10 +3,6 @@ name: bugfix
 description: "Use only when QA hands a registered, reproducible Bug to dev for correction and expects implementation evidence back. Do not invoke directly for user-reported or dev-discovered defects before QA registration."
 metadata:
   version: 1.2.3
-  type: agent-skill
-  scope: software-engineering
-  tags: [bugfix, dev, regression, workflow]
-  author: carryon
 ---
 
 # bugfix

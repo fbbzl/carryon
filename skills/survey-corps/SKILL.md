@@ -3,10 +3,6 @@ name: survey-corps
 description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes. The shorthand `sc` starts this workflow."
 metadata:
   version: 3.0.7
-  type: agent-skill
-  scope: software-engineering
-  tags: [survey-corps, req, dev, cr, qa, workflow]
-  author: carryon
 ---
 
 # 调查兵团

@@ -3,10 +3,6 @@ name: req
 description: "Use when user intent needs requirement clarification, business modeling, acceptance criteria, boundary definition, or change-impact analysis before implementation."
 metadata:
   version: 1.4.6
-  type: agent-skill
-  scope: software-engineering
-  tags: [req, product, agent, workflow]
-  author: carryon
 ---
 
 # req 子代理剧本

@@ -3,10 +3,6 @@ name: align-with-visuals
 description: "Use when req needs a visual artifact to clarify requirements more efficiently than text alone."
 metadata:
   version: 1.4.1
-  type: agent-skill
-  scope: software-engineering
-  tags: [req, clarification, visualization, html, prototype, workflow]
-  author: carryon
 ---
 
 # align-with-visuals

@@ -3,10 +3,6 @@ name: bug-cause
 description: "Use when dev needs an evidence-based root-cause analysis for a QA-registered, reproducible Bug before or alongside implementation repair. Do not use to register, close, or retest Bugs."
 metadata:
   version: 1.0.1
-  type: agent-skill
-  scope: software-engineering
-  tags: [bug-cause, dev, root-cause, diagnosis]
-  author: carryon
 ---
 
 # bug-cause

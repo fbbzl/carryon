@@ -3,10 +3,6 @@ name: skill-eval
 description: "按 B/E/C/S/V 五项标准对一个或多个项目 skill 进行证据化评分，识别扣分原因并提出最小改进项。"
 metadata:
   version: 1.1.1
-  type: agent-skill
-  scope: software-engineering
-  tags: [skill, evaluation, quality, workflow]
-  author: carryon
 ---
 
 # Skill 评分

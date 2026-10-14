@@ -3,10 +3,6 @@ name: qa
 description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
 metadata:
   version: 1.9.5
-  type: agent-skill
-  scope: software-engineering
-  tags: [qa, testing, agent, workflow]
-  author: carryon
 ---
 
 # qa 子代理剧本

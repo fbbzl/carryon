@@ -3,10 +3,6 @@ name: humanity-tech-docs
 description: "先以准确性为先审查，再进行受控的语言清理，完善现有技术文档。适用于 API 参考、README、设计说明和技术指南。"
 metadata:
   version: 1.0.2
-  type: agent-skill
-  scope: documentation
-  tags: [technical-writing, documentation, editing]
-  author: carryon
 ---
 
 # 技术文档精修

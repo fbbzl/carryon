@@ -3,10 +3,6 @@ name: dev
 description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or recovery inputs."
 metadata:
   version: 1.8.5
-  type: agent-skill
-  scope: software-engineering
-  tags: [dev, fullstack, agent, workflow]
-  author: carryon
 ---
 
 # dev 子代理剧本

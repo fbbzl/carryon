@@ -3,10 +3,6 @@ name: optimize
 description: "Use only when CR returns an explicit optimization review item to dev with evidence and acceptance conditions. Do not invoke for self-initiated tuning, general cleanup, or user-requested optimization before CR review."
 metadata:
   version: 1.2.2
-  type: agent-skill
-  scope: software-engineering
-  tags: [optimize, performance, dev, workflow]
-  author: carryon
 ---
 
 # optimize

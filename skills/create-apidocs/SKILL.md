@@ -2,12 +2,7 @@
 name: create-apidocs
 description: 从当前项目的路由、处理逻辑、类型和测试证据生成 API 文档；逐接口保留项目自己的请求、响应和分页契约，不套用固定字段结构。
 metadata:
-  short-description: 从代码生成项目专属 API 文档
   version: 1.0.1
-  type: agent-skill
-  scope: software-engineering
-  tags: [api, documentation, code-generation]
-  author: carryon
 ---
 
 # 从代码生成 API 文档

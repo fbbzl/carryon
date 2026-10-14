@@ -3,10 +3,6 @@ name: cr
 description: "Use when code or design changes need evidence-based review of correctness, contracts, security, data, performance, or maintainability before formal testing."
 metadata:
   version: 1.11.2
-  type: agent-skill
-  scope: software-engineering
-  tags: [cr, code-review, agent, workflow]
-  author: carryon
 ---
 
 # cr 子代理剧本
