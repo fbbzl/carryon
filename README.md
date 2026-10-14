@@ -1,6 +1,6 @@
 # carryon
 
-团队共用的工程标准、AI 协作 Skill 和 Windows 开发环境初始化脚本。
+团队共用的工程标准和 AI 协作 Skill。
 
 ## 内容
 
@@ -8,7 +8,6 @@
 |---|---|
 | `std/` | 通用、语言、框架和专项工程规范 |
 | `skills/` | 本仓库维护的 AI 协作 Skill |
-| `init/` | Windows 重装后的开发环境恢复脚本 |
 
 规则冲突时，按以下优先级处理：
 
@@ -32,21 +31,6 @@
 > 请从 `https://github.com/fbbzl/carryon` 安装 `codex-install.json` 中声明的所有 Skills 和 MCP Apps，并按提示完成授权与重新加载。
 
 `codex-install.json` 是完整安装清单。
-
-## Windows 重装后初始化
-
-以管理员身份在仓库根目录运行：
-
-```powershell
-cd .\init
-.\setup.ps1
-```
-
-脚本恢复 D 盘开发工具与配置，然后安装并启动 Windows 系统优化 Skill；系统修改会逐项确认。
-
-- 只安装指定工具：`./setup.ps1 -Tools @("git", "java", "maven", "vscode")`
-- 跳过已有工具和 Skill 更新：`./setup.ps1 -SkipExisting`
-- 不执行系统优化：`./setup.ps1 -SkipSystemOptimization`
 
 ## 维护
 

@@ -1,4 +1,0 @@
-[windows]
-	appendAtomically = false
-[http]
-	sslVerify = true

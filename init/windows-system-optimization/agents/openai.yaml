@@ -1,4 +1,0 @@
-interface:
-  display_name: "Windows 重装后优化"
-  short_description: "恢复固定 Windows 状态后，安全检查并优化系统"
-  default_prompt: "使用 $windows-system-optimization 核对 init/windows-state 的固定策略与日志，再只读盘点 Windows 并逐项确认后续优化。"
