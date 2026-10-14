@@ -1,5 +1,5 @@
 ---
-name: subject-consensus
+name: state-consensus
 description: 当需要正负两名子代理中由目标方向决定的一方修复、另一方独立验收，使文档、缺陷或其他有状态对象达到可验证目标状态时使用。
 ---
 
