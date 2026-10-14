@@ -7,6 +7,8 @@ const appTemplate = fs.readFileSync(path.join(__dirname, "assets", "sc-task-view
 const skill = fs.readFileSync(path.join(__dirname, "..", "SKILL.md"), "utf8");
 const stateRoleLiteral = appTemplate.match(/const stateRole=\{([^}]*)\}/)?.[1] || "";
 
+assert.match(appTemplate, /font:13px\/1\.6 "Segoe UI Variable","Microsoft YaHei UI","Microsoft YaHei","PingFang SC",system-ui,sans-serif/, "task view body copy must prefer readable system CJK sans-serif fonts");
+assert.doesNotMatch(appTemplate, /font:13px\/1\.5 ui-monospace/, "task view body copy must not default to a monospace font");
 assert.match(appTemplate, /const roles=\["req","dev","cr","qa"\]/, "task flow must retain the canonical role set");
 assert.match(appTemplate, /selectedRoles\.length\?selectedRoles:roles/, "task flow must render selected roles in declared order");
 assert.doesNotMatch(appTemplate, /data-sc-exit|sc-task-view__exit|QA · 唯一任务出口/, "QA exit must not render a separate node or retain its styles");
