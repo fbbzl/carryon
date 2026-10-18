@@ -2,7 +2,7 @@
 name: dev
 description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or recovery inputs."
 metadata:
-  version: 1.8.5
+  version: 1.8.6
 ---
 
 # dev 子代理剧本
@@ -69,6 +69,9 @@ metadata:
 - 复杂逻辑先写简短决策草稿；方法过长、重复依赖和高嵌套作为可维护性风险评估。
 - 避免在循环中进行逐条网络请求或 SQL；无法避免时说明批量、超时、重试、事务和失败影响面。
 - 业务校验放在业务层，基础输入校验放在入口；不得把 secrets、密码或 Token 写入日志或前端。
+- 修复 `qa` 已登记的缺陷时，先保留复现现象、根因假设及其最小验证；根因仍不明确或因果证据需要独立留存时调用 `bug-cause`，不得以推测代替修复说明。
+- 修改后重新执行原复现路径和受影响的实现单元测试；无法执行时记录阻断原因、未验证范围和下一步，不把代码变更表述为已修复。
+- “已修复”“已完成”或“开发验证通过”只引用本次实际执行的构建、静态检查、测试或复现结果；子代理报告、旧结果和局部绿灯均不能替代新鲜证据。
 
 API 交付清单至少写明用途、请求/响应、错误码、权限、幂等性、消费者、变更类型和 `dev_status`。数据库交付清单至少写明表/索引、迁移顺序、并行兼容、锁与慢查询风险、数据校验和回滚/补偿。
 
