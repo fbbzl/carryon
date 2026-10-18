@@ -1,6 +1,6 @@
 # FastAPI 标准
 
-本文件只补充 FastAPI 特有规则，并继承 [python.md](python.md)、[api-design.md](api-design.md)、[database.md](database.md) 与 [security.md](security.md)。
+本文件只补充 FastAPI 特有规则，并继承 [python.std](python.std)、[api-design.std](api-design.std)、[database.std](database.std) 与 [security.std](security.std)。
 
 ## 适用基线
 

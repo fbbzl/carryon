@@ -1,6 +1,6 @@
 # C# (.NET) 编码标准
 
-本文件只补充 C# / .NET 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.md](general.md)、[security.md](security.md)、[database.md](database.md) 和 [logging.md](logging.md)。
+本文件只补充 C# / .NET 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.std](general.std)、[security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。
 
 ## 适用基线
 

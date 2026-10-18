@@ -1,6 +1,6 @@
 # NestJS 标准
 
-本文件只补充 NestJS 特有规则，并继承 [typescript.md](typescript.md)、[api-design.md](api-design.md)、[database.md](database.md) 与 [security.md](security.md)。
+本文件只补充 NestJS 特有规则，并继承 [typescript.std](typescript.std)、[api-design.std](api-design.std)、[database.std](database.std) 与 [security.std](security.std)。
 
 ## 适用基线
 
@@ -25,7 +25,7 @@
 ## 生命周期与数据
 
 0. 实现 `OnModuleInit`、`OnApplicationShutdown` 等 Hook 时，启动和清理必须有界且可重复；关闭时先停止接收，再排空或明确拒绝已接收任务，最后释放依赖，并通过 shutdown hook、显式信号处理或平台等效路径触发。
-1. 数据访问技术服从项目选择，事务和迁移按 `database.md`；序列化前注意懒加载和 N+1。
+1. 数据访问技术服从项目选择，事务和迁移按 `database.std`；序列化前注意懒加载和 N+1。
 2. Config 与秘密使用类型化边界注入，不通过任意 `process.env` 读取散落到业务代码。
 
 ## 消息与异步

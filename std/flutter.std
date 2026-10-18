@@ -1,6 +1,6 @@
 # Flutter 标准
 
-本文件只补充 Flutter / Dart 特有规则，并继承 [frontend.md](frontend.md)、[general.md](general.md) 与 [security.md](security.md)。
+本文件只补充 Flutter / Dart 特有规则，并继承 [frontend.std](frontend.std)、[general.std](general.std) 与 [security.std](security.std)。
 
 ## 适用基线
 

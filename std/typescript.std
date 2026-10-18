@@ -1,6 +1,6 @@
 # TypeScript 编码标准
 
-本文件只补充 TypeScript 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.md](general.md)、[security.md](security.md)、[database.md](database.md) 和 [logging.md](logging.md)。前端或 NestJS 项目再读取对应规范。
+本文件只补充 TypeScript 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.std](general.std)、[security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。前端或 NestJS 项目再读取对应规范。
 
 ## 适用基线
 

@@ -1,6 +1,6 @@
 # React 标准
 
-本文件只补充 React 特有规则，并继承 [frontend.md](frontend.md)、[typescript.md](typescript.md) 与 [security.md](security.md)。
+本文件只补充 React 特有规则，并继承 [frontend.std](frontend.std)、[typescript.std](typescript.std) 与 [security.std](security.std)。
 
 ## 适用基线
 
