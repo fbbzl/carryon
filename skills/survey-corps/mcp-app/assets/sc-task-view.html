@@ -131,7 +131,7 @@
       function resolveActiveRole(details,state) { const explicit=roles.filter(role=>isActiveRoleStatus(asObject(details[role]).status)); if (explicit.length) return explicit.at(-1); const mapped=stateRole[state]; return mapped&&!missing(asObject(details[mapped]).status)?null:mapped||null; }
       function renderList(container,value) { const values=asList(value); container.replaceChildren(); if (!values.length) { const empty=document.createElement("p"); empty.className="sc-task-view__empty"; empty.textContent="未提供"; container.append(empty); return; } const list=document.createElement("ul"); values.forEach(value=>{ const item=document.createElement("li"); item.textContent=safeText(value); item.classList.toggle("sc-task-view__placeholder",missing(value)); list.append(item); }); container.append(list); }
       function detailField(body,label,value) { const heading=document.createElement("h3"),content=document.createElement("div"); heading.textContent=label; renderList(content,value); body.append(heading,content); }
-      const subskillNames={req:["align-with-visuals","grill-with-docs"],dev:["tech-select","refactor-with-goal","bugfix","bug-cause","optimize"],cr:["review-with-goal"],qa:["test-with-goal"]};
+      const subskillNames={req:["align-with-visuals","grill-with-docs"],dev:["tech-select","refactor-with-goal","bug-fix","bug-cause","optimize"],cr:["review-with-goal"],qa:["test-with-goal"]};
       const stringList=value=>Array.isArray(value)?value.map(optionalText).filter(Boolean):[];
       function subskillField(body,field,label,value) {
         const values=Array.isArray(value)?value:optionalText(value);

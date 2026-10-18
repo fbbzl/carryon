@@ -1,11 +1,11 @@
 ---
-name: bugfix
+name: bug-fix
 description: "Use only when QA hands a registered, reproducible Bug to dev for correction and expects implementation evidence back. Do not invoke directly for user-reported or dev-discovered defects before QA registration."
 metadata:
-  version: 1.2.3
+  version: 1.2.4
 ---
 
-# bugfix
+# bug-fix
 
 仅在 `qa` 将已登记、可复现的 Bug 反馈给 `dev` 后，定位根因、实施最小修复并把开发证据交回审查与测试链路。`qa` 独占 Bug 的登记、定级、关闭与重开；`cr` 独占审查结论；`survey-corps` 处理跨角色的高风险裁决。
 

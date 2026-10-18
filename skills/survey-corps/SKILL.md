@@ -63,7 +63,7 @@ handoffs: []             # 权威交接记录；不在 UI 中逐条展示
 
 任务视图将当前 `snapshot.state` 和角色 `status` 映射为中文标签，不显示英文状态值；未知值显示“未知状态”，缺失角色状态显示“状态未提供”，权威快照值不变。不展示状态机、状态参考集、复验入口或 `resume_state`。`resume_state` 仍是 `state=needs_revalidation` 时的必填权威工作流字段，只是不进入该极简 UI。全部外部展示值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
 
-`role_details.<role>.subskills` 是可选数组，每项包含 `name`、`status` 及可选字符串 `goal`、`summary`、`question`、`result`，`options` 和 `evidence` 只接收字符串数组。只记录该角色实际调用的子技能：REQ 支持 `align-with-visuals`、`grill-with-docs`；DEV 支持 `tech-select`、`refactor-with-goal`、`bugfix`、`bug-cause`、`optimize`；CR 支持 `review-with-goal`；QA 支持 `test-with-goal`。非法名称、角色不匹配、错误类型和空白内容不展示；只有名称或状态、没有任务内容的项也不展示。候选选项仅随有效问题展示。
+`role_details.<role>.subskills` 是可选数组，每项包含 `name`、`status` 及可选字符串 `goal`、`summary`、`question`、`result`，`options` 和 `evidence` 只接收字符串数组。只记录该角色实际调用的子技能：REQ 支持 `align-with-visuals`、`grill-with-docs`；DEV 支持 `tech-select`、`refactor-with-goal`、`bug-fix`、`bug-cause`、`optimize`；CR 支持 `review-with-goal`；QA 支持 `test-with-goal`。非法名称、角色不匹配、错误类型和空白内容不展示；只有名称或状态、没有任务内容的项也不展示。候选选项仅随有效问题展示。
 
 子技能区嵌在所属角色的详情内；每项默认折叠，只有提供有效内容时才出现，不生成完整技能目录或流程节点。子技能折叠不参与角色互斥组，也不自动展开其他角色。状态使用中文标签，另支持 `needs_user_confirm`（等待用户确认）和 `needs_revision`（需要修订）。问题与选项只读，用户通过当前会话答复；视图不回传选择、不启动技能、不执行审批或改变权威状态。
 
@@ -93,8 +93,8 @@ handoffs: []             # 权威交接记录；不在 UI 中逐条展示
 | 需求或影响不明 | `req`；需求收敛后按当前场景选择后续链路 | 有文档且存在高风险歧义：`grill-with-docs`；视觉化能消除歧义：`align-with-visuals` |
 | 已确认的功能或行为变更 | `dev -> cr -> qa` | 无 |
 | 受控重构 | `dev -> cr -> qa` | `refactor-with-goal`、`test-with-goal` |
-| 未登记异常 | `qa -> dev -> cr -> qa` | `bugfix`、`test-with-goal` |
-| 已登记缺陷 | `dev -> cr -> qa` | `bugfix`、`test-with-goal` |
+| 未登记异常 | `qa -> dev -> cr -> qa` | `bug-fix`、`test-with-goal` |
+| 已登记缺陷 | `dev -> cr -> qa` | `bug-fix`、`test-with-goal` |
 | 性能、容量、成本或资源效率优化 | `cr（建项） -> dev -> cr（复审） -> qa` | `optimize` |
 
 需求或影响不明时先由 `req` 收敛，再选择主场景。代码变更同时符合多行时，按缺陷修复、量化优化、受控重构、功能变更选择主链路；混合目标拆分工作单元并保留各自门禁。未登记异常先由 `qa` 复现登记，已登记缺陷从 `dev` 开始。优化先由 `cr` 建项，实施后复审。

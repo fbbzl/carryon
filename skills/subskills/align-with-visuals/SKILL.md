@@ -2,7 +2,7 @@
 name: align-with-visuals
 description: "Use when req needs a visual artifact to clarify requirements more efficiently than text alone."
 metadata:
-  version: 1.4.1
+  version: 1.4.2
 ---
 
 # align-with-visuals
@@ -11,7 +11,7 @@ metadata:
 
 ## 启用与边界
 
-- 仅由 `req` 在视觉表达能实质降低当前理解偏差时调用；文字已经足够时不生成产物。
+- 仅由 `req` 调用：视觉表达能实质降低当前理解偏差时调用；用户明确要求图、原型、页面结构、流程展示、权限矩阵、接口示例或方案比较时必须调用，即使文字已经足够。
 - 高风险规则本身不清晰时先由 `req` 澄清来源和裁决，视觉展示不能把未确认内容变成事实。
 - 本技能不替代需求状态、技术方案、实现、测试或发布结论。
 
