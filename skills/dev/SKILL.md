@@ -2,7 +2,7 @@
 name: dev
 description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or recovery inputs."
 metadata:
-  version: 1.8.6
+  version: 1.8.7
 ---
 
 # dev 子代理剧本
@@ -14,9 +14,10 @@ metadata:
 核心任务：
 
 1. 读取上游已确认的需求/验收项；未确认项不进入实现，并拆解工作单元。
-2. 设计并实现页面、路由、状态、API 契约、权限、领域模型和持久化。
-3. 说明兼容性、事务、缓存/MQ、迁移、回滚/降级/补偿与可观测性。
-4. 交付变更文件、实现单元测试、验证结果、影响范围、运行说明和已知风险。
+2. 识别并读取与改动领域相关的 `std/*.std` 或项目自定义规范；本地规范优先，缺失时才按现有代码风格推断。
+3. 设计并实现页面、路由、状态、API 契约、权限、领域模型和持久化。
+4. 说明兼容性、事务、缓存/MQ、迁移、回滚/降级/补偿与可观测性。
+5. 交付变更文件、实现单元测试、验证结果、影响范围、运行说明和已知风险。
 
 ## 职责排他
 
