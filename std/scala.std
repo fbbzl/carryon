@@ -1,6 +1,6 @@
-# Scala 编码标准
+# Scala 开发标准
 
-本文件只补充 Scala 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.std](general.std)、[security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。
+本文件是 Scala 开发变更的主入口：涉及源代码、测试、构建配置、Future/效果系统/actor、Java 互操作或公共库 API 时读取。始终联读 [general.std](general.std)；仅在实际触及输入/权限/秘密、持久化、日志与可观测性时分别联读 [security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。
 
 ## 适用基线
 
@@ -15,6 +15,7 @@
 2. 默认使用不可变集合和值；需要可变状态时限制作用域并明确并发模型。
 3. given/implicit、扩展方法和类型类应让依赖更清晰，禁止隐藏昂贵 I/O 或业务副作用。
 4. 高阶抽象服务于重复问题；单次业务流程不为追求纯度强制引入 tagless final 或效果系统。
+5. 默认通过 `import` 使用类型简单名；同名冲突优先用 import rename / alias 消歧，只有必须强调来源的局部位置才使用全限定类型名。
 
 ## 错误与资源
 

@@ -1,6 +1,6 @@
-# C# (.NET) 编码标准
+# C# (.NET) 开发标准
 
-本文件只补充 C# / .NET 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.std](general.std)、[security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。
+本文件是 C# / .NET 开发变更的主入口：涉及源代码、测试、项目配置、异步/后台工作、依赖注入或公共 API 时读取。始终联读 [general.std](general.std)；仅在实际触及输入/权限/秘密、持久化、日志与可观测性时分别联读 [security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。
 
 ## 适用基线
 
@@ -13,6 +13,7 @@
 1. 启用 Nullable Reference Types 时准确标注 `T?`，不使用 `null!` 长期绕过分析。
 2. `var` 在右侧类型清晰时可用；复杂泛型、数值转换或公共契约优先显式类型。
 3. `record` 只在值语义成立时使用；不可变集合和 `readonly` 根据生命周期、共享与修改需求选择，不把可变实体误建模为值对象。
+4. 默认通过 `using` 使用类型简单名；同名类型冲突优先 alias，只有必须强调命名空间或处理局部冲突时才使用全限定类型名。
 
 ## 异步与资源
 

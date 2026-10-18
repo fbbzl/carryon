@@ -1,6 +1,6 @@
-# C / C++ 编码标准
+# C / C++ 开发标准
 
-本文件只补充 C / C++ 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.std](general.std)、[security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。
+本文件是 C / C++ 开发变更的主入口：涉及源代码、测试、构建配置、运行时并发、ABI/FFI 或公共 API 时读取。始终联读 [general.std](general.std)；仅在实际触及输入/权限/秘密、持久化、日志与可观测性时分别联读 [security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。
 
 ## 适用基线
 

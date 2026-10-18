@@ -1,6 +1,6 @@
-# Java 编码标准
+# Java 开发标准
 
-本文件只补充 Java 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.std](general.std)、[security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。Spring 项目再读取 [spring.std](spring.std)。
+本文件是 Java 开发变更的主入口：涉及源代码、测试、构建配置、并发/后台工作、JVM 公共 API 或库发布时读取。始终联读 [general.std](general.std)；仅在实际触及输入/权限/秘密、持久化、日志与可观测性时分别联读 [security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。Spring 项目再读取 [spring.std](spring.std)。
 
 ## 适用基线
 
@@ -15,6 +15,7 @@
 2. `Optional` 适合表达返回值缺失，不裸用 `get()`，也不默认用于字段、参数或序列化模型。
 3. `record` 只用于值语义和不变量稳定的数据，不替代需要身份或生命周期的实体。
 4. `equals`、`hashCode` 和排序规则保持一致；普通对象的值语义使用 `equals` / `Objects.equals`，enum 常量和显式身份比较可使用 `==`。
+5. 默认通过 `import` 使用类型简单名；仅在同名类型冲突、迁移兼容或需要强调来源的局部位置使用全限定类名，不能用全限定名替代正常的依赖声明。
 
 ## 错误与资源
 

@@ -1,6 +1,6 @@
-# Python 编码标准
+# Python 开发标准
 
-本文件只补充 Python 特有规则。通用工程、安全、数据库和日志要求分别继承 [general.std](general.std)、[security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。Django 或 FastAPI 项目再读取对应框架规范。
+本文件是 Python 开发变更的主入口：涉及源代码、测试、包/构建配置、异步/后台工作、CLI 或公共模块 API 时读取。始终联读 [general.std](general.std)；仅在实际触及输入/权限/秘密、持久化、日志与可观测性时分别联读 [security.std](security.std)、[database.std](database.std) 和 [logging.std](logging.std)。Django 或 FastAPI 项目再读取对应框架规范。
 
 ## 适用基线
 
