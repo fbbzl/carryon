@@ -14,6 +14,8 @@
 2. 循环依赖优先通过边界重构、事件或抽取接口消除；`forwardRef` 只作为明确记录的过渡方案。
 3. Dynamic Module 和全局 Module 控制导出范围，不把配置与基础设施隐式注入全部模块。
 4. DI Token 与反射 DTO 必须保留运行时值；接口使用显式 `@Inject` Token，依赖 metatype 的 DTO 不得仅作 type-only 导入。
+5. Controller 负责协议适配，Provider 承担用例与业务规则，外部系统接入集中在明确适配边界；不为每个简单 Provider 增加无收益接口或抽象基类。
+6. 异步 factory 明确初始化失败、资源归属与关闭责任；Module 导出的是稳定能力，不要求调用方访问其内部连接或任意 Provider。
 
 ## 请求管线
 
@@ -21,6 +23,9 @@
 1. DTO 与 Pipe 负责协议输入验证和转换；写入模型前显式映射允许字段，或按契约配置 `whitelist` / `forbidNonWhitelisted`；转换不能替代领域规则、数据库约束或对象级授权。
 2. Guard 不执行无界重 I/O；权限检查需要异步依赖时明确缓存、超时和失败策略。
 3. Exception Filter 在应用边界生成稳定错误契约，并保留内部 cause 供受控日志使用。
+4. TypeScript 类型不会自动变成运行时校验；可选、可空、嵌套 DTO 和转换规则需由实际 Pipe 配置及测试证明，不依赖类型断言或 `Partial<T>` 接收外部输入。
+5. Interceptor 返回组合后的 Observable，不自行 `subscribe` 提前消耗请求流；错误、取消和清理由对应流语义处理，不能因记录成功日志就提前认定请求成功。
+6. 直接使用原生 Response 对象或更换 Express/Fastify 适配器时，验证响应映射、拦截器、错误处理和上传差异，不假定所有平台行为一致。
 
 ## 生命周期与数据
 
@@ -39,3 +44,8 @@
 0. 测试沿用项目工具，覆盖 Module 装配、Provider 作用域、请求管线顺序、消息确认前后失败/重复投递/死信、关闭排空和真实持久化边界。
 1. 常见失效包括循环依赖、请求级 Provider 扩散、Filter/Interceptor 顺序错误和 Guard 中阻塞工作。
 2. ORM 懒加载、Class Transformer 与 DTO 映射可能在响应序列化时触发额外查询或泄露字段。
+3. HTTP 测试穿过真实 Pipe、Guard 和响应映射边界，验证恶意额外字段、对象级越权和错误契约；不只对 Controller 方法传入已构造好的 DTO。
+
+## 参考依据
+
+0. Nest 官方文档的 [Providers](https://docs.nestjs.com/providers)、[Interceptors](https://docs.nestjs.com/interceptors) 与 [Validation](https://docs.nestjs.com/techniques/validation)：按依赖作用域、流式请求处理与运行时验证主题补齐规则，不绑定特定 ORM 或测试库。
