@@ -29,9 +29,9 @@ assert.match(appTemplate, /<details class="sc-task-view__project-mcps" data-sc-p
 assert.match(appTemplate, /function renderProjectMcps\(root,work\)[\s\S]*?work\.project_mcps[\s\S]*?section\.hidden=!mcps\.length[\s\S]*?item\.textContent=name/, "project MCPs must be supplied by the snapshot, hidden when absent, and rendered as text only");
 assert.match(appTemplate, /projectMcpName=value=>\{ const name=optionalText\(value\)\.toLowerCase\(\); return \/\^\[a-z\]/, "project MCP names must be normalized and restricted to safe identifiers");
 assert.match(skill, /project_mcps: \[\].*当前项目已生效的 MCP 名称/, "snapshot contract must declare explicit project MCP names");
-assert.match(skill, /视图不得读取或推断本机 Codex 配置/, "project MCP display must not scan local Codex configuration");
+assert.match(skill, /视图不得读取或推断本机宿主配置/, "project MCP display must not scan local host configuration");
 assert.match(appTemplate, /@media \(max-width:560px\)[\s\S]*?\.sc-task-view__header \{ flex-direction:column/, "the header must keep a responsive single-column layout on narrow screens");
-assert.match(skill, /project_name:\s+# 可选；当前 Codex 会话所属项目名称，UI 不展示，不得猜测/, "the optional project name must remain in the snapshot contract without rendering");
+assert.match(skill, /project_name:\s+# 可选；当前会话所属项目名称，UI 不展示，不得猜测/, "the optional project name must remain in the snapshot contract without rendering");
 assert.doesNotMatch(appTemplate, /data-sc-agent-name|sc-task-view__agent-name/, "subagent names must not render in role cards");
 assert.match(appTemplate, /data-sc-play-animation hidden/, "animation replay is a hidden debug control by default");
 assert.match(appTemplate, /data-sc-subskill-field|dataset\.scSubskillField/, "called subskills must expose their read-only fields");

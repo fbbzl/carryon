@@ -18,7 +18,7 @@ assert.equal(fs.existsSync(path.join(root, "assets", "sc-task-view.html")), true
 assert.equal(fs.existsSync(path.join(root, "..", "sc-task-view.html")), false, "legacy local HTML fallback must not exist");
 assert.equal(fs.existsSync(path.join(root, "..", "Prepare-ScTaskView.ps1")), false, "legacy fallback helper must not exist");
 assert.equal(fs.existsSync(path.join(root, "..", "Test-Prepare-ScTaskView.ps1")), false, "legacy fallback test must not exist");
-assert.match(skill, /show_sc_task_view\(snapshot\) -> ui:\/\/survey-corps\/task-view -> Codex 内嵌 iframe/, "skill must declare the single MCP App rendering path");
+assert.match(skill, /show_sc_task_view\(snapshot\) -> ui:\/\/survey-corps\/task-view -> 宿主内嵌 iframe/, "skill must declare the single MCP App rendering path");
 assert.match(skill, /show_sc_task_view.*工具缺失.*blocked/s, "skill must block when the MCP App tool is unavailable");
 assert.doesNotMatch(skill, /Prepare-ScTaskView|create\(view_id\)|文本降级/, "skill must not retain a fallback rendering path");
 assert.match(skill, /全局 `blocked` 的合法来源包括.*P0\/P1.*未授权执行.*任务视图 MCP.*subagent/s, "skill must declare every global blocked source");

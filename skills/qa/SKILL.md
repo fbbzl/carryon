@@ -2,7 +2,7 @@
 name: qa
 description: "Use when a change needs risk-driven testing, human-feedback triage, bug lifecycle management, retesting, or an evidence-based acceptance conclusion."
 metadata:
-  version: 1.9.5
+  version: 1.9.6
 ---
 
 # qa 子代理剧本
@@ -27,7 +27,7 @@ metadata:
 
 ## Goal 驱动测试
 
-当一个测试工作单元可表达为明确的行为或风险目标时，调用 [test-with-goal](../subskills/test-with-goal/SKILL.md)。Goal 绑定现有 `work_unit_id`、版本和环境，记录目标、范围、测试资产、证据、退出条件和残余风险；它不是 Codex 平台任务，也不创建独立状态机。
+当一个测试工作单元可表达为明确的行为或风险目标时，调用 [test-with-goal](../subskills/test-with-goal/SKILL.md)。Goal 绑定现有 `work_unit_id`、版本和环境，记录目标、范围、测试资产、证据、退出条件和残余风险；它不是宿主平台任务，也不创建独立状态机。
 
 测试发现产品缺陷时，先建立可重复失败复现，再由 `qa` 登记带有复现条件、预期/实际结果、影响范围和证据的 Bug，交给 `dev` 修复。修复后先交 `cr` 复审，再由 `qa` 复测原复现和受影响范围，独占决定关闭或重开 Bug。
 

@@ -2,7 +2,7 @@
 name: humanity-tech-docs
 description: "先以准确性为先审查，再进行受控的语言清理，完善现有技术文档。适用于 API 参考、README、设计说明和技术指南。"
 metadata:
-  version: 1.0.2
+  version: 1.0.3
 ---
 
 # 技术文档精修
@@ -11,7 +11,7 @@ metadata:
 
 ## 必需依赖
 
-使用当前 skill 清单将两个依赖解析为绝对路径；若未设置 `$CODEX_HOME`，回退到 `~/.codex/skills`。按顺序读取它们，记录路径及版本或内容摘要，并确认它们支持下述技术文风和契约保护要求。依赖不兼容时停止并报告；依赖发生变化时重新检查：
+使用当前 skill 清单将两个依赖解析为绝对路径；必须先读取并遵循 [依赖目录解析规则](references/dependency-locations.md) 中的原有环境变量与默认目录规则，再判断依赖是否缺失。按顺序读取它们，记录路径及版本或内容摘要，并确认它们支持下述技术文风和契约保护要求。依赖不兼容时停止并报告；依赖发生变化时重新检查：
 
 1. `technical-writer-voice/SKILL.md`
 2. `humanizer/SKILL.md`
