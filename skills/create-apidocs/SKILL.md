@@ -2,7 +2,7 @@
 name: create-apidocs
 description: 从当前项目的路由、处理逻辑、类型和测试证据生成 API 文档；逐接口保留项目自己的请求、响应和分页契约，不套用固定字段结构。
 metadata:
-  version: 1.0.2
+  version: 1.0.3
 ---
 
 # 从代码生成 API 文档
@@ -11,7 +11,7 @@ metadata:
 
 ## 必需依赖
 
-开始审阅或编辑文档前，按当前技能目录解析以下依赖的绝对路径；目录未提供时，必须先读取并遵循 [依赖目录解析规则](references/dependency-locations.md) 中的原有环境变量与默认目录规则，再判断依赖是否缺失。依次读取，记录路径与版本或内容摘要，确认支持下文要求的技术语气及契约保护；不兼容时停止并报告，依赖变化后重新核验：
+开始审阅或编辑文档前，必须先读取并遵循 [依赖目录解析规则](references/dependency-locations.md)，将以下依赖解析为绝对路径，再判断是否缺失。依次读取，记录路径与版本或内容摘要，确认支持下文要求的技术语气及契约保护；不兼容时停止并报告，依赖变化后重新核验：
 
 1. `technical-writer-voice/SKILL.md`
 2. `humanizer/SKILL.md`

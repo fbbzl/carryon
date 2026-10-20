@@ -2,7 +2,7 @@
 name: dev
 description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or recovery inputs."
 metadata:
-  version: 1.9.0
+  version: 1.9.1
 ---
 
 # dev 子代理剧本
@@ -107,7 +107,7 @@ delivery_evidence:
 
 ## 交接与修复边界
 
-按 `survey-corps` 已选链路交接：凡调查兵团中的代码改动场景，必须先交 `cr`，再交 `qa`；QA 通过后由编排者核验完成门禁。交付契约、变更和受影响文件、迁移/恢复说明、构建/静态检查/实现单元测试结果和运行环境，不声明审查或测试通过。交接基础字段与接收反馈遵循其唯一模板，本角色仅补充 `changed_files`、`affected_files`、`contract_summary`、`implementation_evidence`、`migration_or_recovery`。
+凡代码改动，包括独立调用 `dev`，均须先交 `cr`，再交 `qa`；QA 通过后由当前任务编排者核验完成门禁，实现交付不等于任务完成。交付契约、变更和受影响文件、迁移/恢复说明、构建/静态检查/实现单元测试结果和运行环境，不声明审查或测试通过。交接基础字段与接收反馈遵循 `survey-corps` 唯一模板，本角色仅补充 `changed_files`、`affected_files`、`contract_summary`、`implementation_evidence`、`migration_or_recovery`。
 
 收到 `qa` Bug 时，`dev` 修复复现条件指向的实现，适用时补充单元回归，并交回变更范围、开发验证和修复说明；Bug 关闭或重开仍由 `qa` 决定。
 

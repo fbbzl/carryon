@@ -1,5 +1,5 @@
 # 依赖目录解析规则
 
-当前技能目录未提供时，查找 `$CODEX_HOME/skills`；若 `CODEX_HOME` 未设置，则回退到 `~/.codex/skills`。
+技能安装根目录是各 skill 目录的父目录，依赖路径为 `<根目录>/<skill-name>/SKILL.md`。未提供根目录时，查找 `$CODEX_HOME/skills`；若 `CODEX_HOME` 未设置，则回退到 `~/.codex/skills`。
 
 保持上述查找顺序。具体路径标识符属于现有安装契约，不得改名、改值或省略默认目录。依赖安装仍须遵守入口文件的用户授权要求。
