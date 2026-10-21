@@ -17,7 +17,7 @@ node .\skills\survey-corps\mcp-app\test-ui-contract.js
 node .\skills\survey-corps\mcp-app\test-ui-behavior.js
 ```
 
-仓库提供一行引导命令：`& ([scriptblock]::Create((irm https://raw.githubusercontent.com/fbbzl/carryon/main/tools/codex-bootstrap.ps1))) -Action Install`。它会自动克隆或更新本地仓库，再调用 `tools/codex-sctask-view.ps1` 完成生命周期操作。`Install` 注册并验证插件，`Update` 验证当前代码并提示重载，`Uninstall -Confirm` 移除本仓库 marketplace 注册。脚本不删除插件源代码，也不能代替 Codex Desktop 的宿主重载操作。
+仓库提供一行引导命令：`& ([scriptblock]::Create((irm https://raw.githubusercontent.com/fbbzl/kyojin/main/tools/codex-bootstrap.ps1))) -Action Install`。它会自动克隆或更新本地仓库，再调用 `tools/codex-sctask-view.ps1` 完成生命周期操作。`Install` 注册并验证插件，`Update` 验证当前代码并提示重载，`Uninstall -Confirm` 移除本仓库 marketplace 注册。脚本不删除插件源代码，也不能代替 Codex Desktop 的宿主重载操作。
 
 ## 注册（需用户自行授权）
 

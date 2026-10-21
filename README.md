@@ -1,4 +1,4 @@
-# carryon
+# kyojin
 
 团队共用的工程标准和 AI 协作 Skill。
 
@@ -28,7 +28,7 @@
 
 将以下提示词粘贴给 Codex：
 
-> 请从 `https://github.com/fbbzl/carryon` 安装 `codex-install.json` 中声明的所有 Skills 和 MCP Apps，并按提示完成授权与重新加载。
+> 请从 `https://github.com/fbbzl/kyojin` 安装 `codex-install.json` 中声明的所有 Skills 和 MCP Apps，并按提示完成授权与重新加载。
 
 `codex-install.json` 是完整安装清单。
 

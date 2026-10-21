@@ -2,8 +2,8 @@
 param(
   [ValidateSet("Install", "Update", "Uninstall")]
   [string]$Action = "Update",
-  [string]$RepositoryUrl = "https://github.com/fbbzl/carryon.git",
-  [string]$InstallRoot = (Join-Path $env:USERPROFILE ".codex\carryon")
+  [string]$RepositoryUrl = "https://github.com/fbbzl/kyojin.git",
+  [string]$InstallRoot = (Join-Path $env:USERPROFILE ".codex\kyojin")
 )
 
 $ErrorActionPreference = "Stop"

@@ -12,7 +12,7 @@ $pluginPath = Join-Path $root "skills\survey-corps\mcp-app"
 $manifestPath = Join-Path $pluginPath ".codex-plugin\plugin.json"
 $testPath = Join-Path $pluginPath "test-server.js"
 $pluginName = "survey-corps-task-view"
-$pluginId = "$pluginName@carryon-local"
+$pluginId = "$pluginName@kyojin-local"
 
 function Fail([string]$Message) { throw $Message }
 

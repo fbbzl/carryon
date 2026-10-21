@@ -59,7 +59,7 @@ const debugFalse={hidden:root.querySelector('[data-sc-play-animation]').hidden,r
 const snapshotDebug=structuredClone(next);snapshotDebug.debug=true;window.renderSurveyCorpsTaskView(root,snapshotDebug);root.querySelector('[data-sc-play-animation]').click();
 const debugInSnapshot={hidden:root.querySelector('[data-sc-play-animation]').hidden,replay:!!root.querySelector('.is-manual-replay')};
 const supplied=structuredClone(next),payload='<img src=x onerror="window.qaInjected=true">';
-supplied.work_unit={project_name:'carryon',project_mcps:['codegraph','CodeGraph','filesystem',payload,42,'  '],target:'明确目标',task_type:'界面调整',roles:['dev','qa'],role_selection_reason:'仅实现和验收；此说明专门用于验证长文本始终在元数据值列内自然换行，且不会挤占左侧标签列。',summary:payload,scope:['当前任务视图'],acceptance:['QA 唯一出口'],environment:'Windows Chrome'};
+supplied.work_unit={project_name:'kyojin',project_mcps:['codegraph','CodeGraph','filesystem',payload,42,'  '],target:'明确目标',task_type:'界面调整',roles:['dev','qa'],role_selection_reason:'仅实现和验收；此说明专门用于验证长文本始终在元数据值列内自然换行，且不会挤占左侧标签列。',summary:payload,scope:['当前任务视图'],acceptance:['QA 唯一出口'],environment:'Windows Chrome'};
 supplied.role_details.req.agent_name='req-agent';supplied.role_details.dev={agent_name:'dev-agent'};supplied.role_details.cr.agent_name='cr-agent';
 supplied.role_details.qa.agent_name=payload;
 window.renderSurveyCorpsTaskView(root,supplied);
@@ -149,7 +149,7 @@ try {
   assert.deepEqual(result.debugTrue, { hidden: false, replay: true }, "strict debug true must expose and enable replay");
   for (const mode of [result.debugString, result.debugDefault, result.debugFalse, result.debugInSnapshot]) assert.deepEqual(mode, { hidden: true, replay: false }, "only options.debug true may enable replay; nondebug programmatic clicks must not replay");
   assert.equal(result.provided.headerText.includes("SURVEY CORPS"), false, "header must omit the removed metadata row");
-  assert.equal(result.provided.headerText.includes("carryon"), false, "project metadata must not render in the header");
+  assert.equal(result.provided.headerText.includes("kyojin"), false, "project metadata must not render in the header");
   assert.equal(result.provided.headerText.includes("sc-task-view:"), false, "view identifiers must not render in the header");
   assert.equal(result.provided.taskType, "界面调整");
   assert.equal(result.provided.selected, "DEV → QA", "selection must come from the orchestrator rather than all cards");

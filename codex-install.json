@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "name": "carryon",
-  "repository": "https://github.com/fbbzl/carryon",
-  "description": "Carryon engineering skills and the Survey Corps task-view MCP App.",
+  "name": "kyojin",
+  "repository": "https://github.com/fbbzl/kyojin",
+  "description": "Kyojin engineering skills and the Survey Corps task-view MCP App.",
   "skills": {
     "root": "skills",
     "entrypoint": "SKILL.md",
@@ -12,7 +12,7 @@
     "marketplace": ".agents/plugins/marketplace.json",
     "plugins": [
       {
-        "id": "survey-corps-task-view@carryon-local",
+        "id": "survey-corps-task-view@kyojin-local",
         "name": "survey-corps-task-view",
         "manifest": "skills/survey-corps/mcp-app/.codex-plugin/plugin.json",
         "server": "survey-corps-task-view",
