@@ -59,6 +59,8 @@ role_details:            # 可选，以 req/dev/cr/qa 为键
 handoffs: []             # 权威交接记录；不在 UI 中逐条展示
 ```
 
+角色名称标记固定为：REQ 为 Hange、DEV 为 Eren、CR 为 Armin、QA 为 Mikasa。名称仅用于角色标记，不在任务视图中展示，不代表 subagent 名称或身份，不参与状态、交接、权限或完成门禁。视图标题仅显示 REQ、DEV、CR、QA。
+
 编排者每次构建快照时，按当前任务填写 `task_type`、实际参与的 `roles` 和 `role_selection_reason`；顶部不展示项目名、视图 ID 或 subagent 名称。`project_mcps` 只填写已在当前项目生效的 MCP 名称（例如 `codegraph`）：必须同时具备当前项目已初始化的证据和当前会话工具可用性，缺任一项都不填写；不填写地址、参数、密钥或未经确认的候选项。名称会转为小写，且仅接受字母开头、由字母、数字、`.`、`_`、`-` 组成的 1–64 字符标识。有效值在左上角以默认折叠的“项目 MCP”展示，无值时完全隐藏，视图不得读取或推断本机宿主配置。参与角色只展示 `work_unit.roles` 中规范化、去重后的 req/dev/cr/qa，未提供有效角色时显示“尚未选择”，不根据状态猜测参与链。任务上下文中的 `scope`、`acceptance`、`environment` 保留在权威快照中但不在 UI 展示。主流程仍止于 QA 卡，QA 下方的无边框任务总结只读展示 `work_unit.summary`，不是额外角色或完成门禁。
 
 任务视图将当前 `snapshot.state` 和角色 `status` 映射为中文标签，不显示英文状态值；未知值显示“未知状态”，缺失角色状态显示“状态未提供”，权威快照值不变。不展示状态机、状态参考集、复验入口或 `resume_state`。`resume_state` 仍是 `state=needs_revalidation` 时的必填权威工作流字段，只是不进入该极简 UI。全部外部展示值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
