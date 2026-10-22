@@ -2,7 +2,7 @@
 name: survey-corps
 description: "Coordinate a multi-role engineering task with the smallest necessary role chain, evidence-based handoffs, and explicit escalation for high-risk changes. The shorthand `sc` starts this workflow."
 metadata:
-  version: 3.0.8
+  version: 3.0.9
 ---
 
 # 调查兵团
@@ -24,7 +24,7 @@ metadata:
 
 ### 任务视图数据契约
 
-MCP App 资源 `mcp-app/assets/sc-task-view.html` 的渲染函数接收根元素、快照和可选调试选项：`window.renderSurveyCorpsTaskView(root, snapshot, options)`。正式调用不传第三参数。只有 `options.debug === true` 才显示并启用“播放动画”；`snapshot.debug` 和字符串 `"true"` 均不能开启调试。默认仅实际活动角色的边框显示低幅度动画；无活动角色时不播放动画，任务视图、连线和其他状态更新均保持静止。可省略字段使用明确缺省提示，不得由视图猜测完成、通过或风险关闭。
+MCP App 资源 `mcp-app/assets/sc-task-view.html` 的渲染函数接收根元素、快照和可选调试选项：`window.renderSurveyCorpsTaskView(root, snapshot, options)`。正式调用不传第三参数。只有 `options.debug === true` 才显示并启用“播放动画”；`snapshot.debug` 和字符串 `"true"` 均不能开启调试。默认实际活动角色的边框显示低幅度动画；符合下述权威交接契约时，连接线额外播放一次流光，接收卡片随后短暂提亮。其余视图和状态更新保持静止；可省略字段使用明确缺省提示，不得由视图猜测完成、通过或风险关闭。
 
 ```yaml
 work_unit:
@@ -60,6 +60,12 @@ role_details:            # 可选，以 req/dev/cr/qa 为键
     subskills: []        # 可选；所属角色实际调用的子技能记录，格式见下文
 handoffs: []             # 权威交接记录；不在 UI 中逐条展示
 ```
+
+交接动效只消费权威 `handoffs`：编排者为每次新建的角色交接填写当前任务的 `work_unit_id`，并生成非空、在同一工作单元内唯一且稳定的字符串 `handoff_id`，`from`、`to` 使用小写角色名。同一次交接由 `pending` 转为 `accepted` 时保留 ID；返工或重新交接使用新 ID，不因刷新生成新 ID。此字段是兼容扩展，旧记录没有 ID 仍正常展示状态，不生成动画。
+
+同一根元素、同一 `view_id` 在已观测历史后，仅末尾新增一条 `accepted` 交接，或末尾同一条 `pending` 转为 `accepted`，才可能播放；先前记录的身份和接收结果须保持不变。接收角色必须在该快照中显式 `status=running`，双方必须是当前选中链中相邻角色；若记录提供 `work_unit_id`，还须匹配当前任务。正向沿线向下，逆向返工时流光和箭头短暂向上；跨多角色或批量补入历史保持静态，避免把中间角色误画为交接参与方。卡片提亮不改变状态、手动展开或焦点，结束后继续既有活动呼吸。
+
+首次装载、不同根元素初次展示、切换任务后返回、相同快照刷新及历史改写均不重播；曾观测的 `accepted` ID 会去重。暂停、等待、阻断、结束、接收角色未明确运行或 `prefers-reduced-motion` 下不播放，该条记录仍视为已观测，之后恢复运行不会补播。根元素销毁或重新挂载后重新建立静态基线，不保存磁盘记录、不轮询、不补放历史。减少动态偏好禁用全部动画和过渡，仍完整展示状态。
 
 角色名称标记固定为：REQ 为 Hange、DEV 为 Eren、CR 为 Armin、QA 为 Mikasa。名称仅用于角色标记，不在任务视图中展示，不代表 subagent 名称或身份，不参与状态、交接、权限或完成门禁。视图标题仅显示 REQ、DEV、CR、QA。
 
@@ -159,6 +165,7 @@ work_unit:
 ```yaml
 handoff:
   work_unit_id:
+  handoff_id:          # 可选；同一任务内唯一且稳定；任务视图仅用它去重真实交接动效
   from:
   to:
   state:

@@ -6,6 +6,14 @@
 
 任务和角色耗时由服务端在当前会话内自动统计：所选角色自身状态规范化后为 `running` 时累计，不根据任务总状态推断角色运行；等待用户、暂停、全局 blocked 或结束时停止，任务总值按活动时段并集计算，不叠加并行角色。状态变化或空参数恢复视图时结算，页面不轮询；未上报的暂停/结束无法自动识别。包含 object `work_unit` 的快照才创建或启动计时；纯 `{view_id,state}` 快照保持原样，但显式暂停或结束仍停止同一 view 的已有计时。首次可以提供有效的 `metrics.elapsed_ms` 作为历史基线，后续回传不会重复累计。计时记录按 `view_id` 隔离，内存最多保存 128 个任务，满后明确拒绝新 ID；服务重启不会保留历史时段。Token 用量不再采集或展示，旧 `total_tokens` 仅兼容透传。
 
+## 交接动效
+
+视图保留活动角色的呼吸高亮，并为真实交接增加单次 650ms 连线流光、随后 420ms 接收卡片提亮。编排者为每次新建的 `handoffs` 记录填写当前任务的 `work_unit_id`，并生成同任务内唯一、稳定的 `handoff_id`；`from`、`to` 使用小写角色名，同一次 `pending -> accepted` 保留 ID，新的返工交接使用新 ID。此字段是兼容扩展，已有快照无需迁移，没有 ID 时只展示静态交接状态。
+
+同一根元素持续展示同一 `view_id` 时，只检测末尾新加一条 `accepted` 或末尾同条 `pending -> accepted`；其余历史身份和接收结果须不变。同一快照必须提供接收角色显式 `status=running`，交接双方须为当前选中链的相邻角色；若交接包含 `work_unit_id`，必须匹配当前任务。正向向下、逆向返工向上，箭头和流光方向一致；跨多角色、批量历史更新保持静态。
+
+首次加载、第二根元素初次展示、切换任务后返回、相同快照刷新、历史替换不重播。已接受 ID 去重；暂停、等待、阻断、结束、接收角色未运行、减少动态偏好下首次出现的已接受记录也会消耗 ID，恢复后不补播。手动展开、键盘焦点、所选角色和静态状态不受动效影响。每次快照清理上一段瞬时动画，减少动态偏好禁用全部动画和过渡；不新增依赖、定时器、后台轮询或持久化记录。
+
 ## 本地验证
 
 ```powershell
@@ -17,6 +25,8 @@ node .\skills\survey-corps\mcp-app\test-app-bridge-contract.js
 node .\skills\survey-corps\mcp-app\test-thread-entrypoint-contract.js
 node .\skills\survey-corps\mcp-app\test-plugin-structure.js
 node .\skills\survey-corps\mcp-app\test-motion-contract.js
+node .\skills\survey-corps\mcp-app\test-handoff-motion.js
+node .\skills\survey-corps\mcp-app\test-handoff-motion-behavior.js
 node .\skills\survey-corps\mcp-app\test-ui-contract.js
 node .\skills\survey-corps\mcp-app\test-ui-behavior.js
 node .\skills\survey-corps\mcp-app\test-protocol-boundaries.js

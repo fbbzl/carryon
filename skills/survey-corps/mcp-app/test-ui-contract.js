@@ -83,6 +83,8 @@ assertSkillMatch(/不展示状态机、状态参考集、复验入口或 `resume
 assertSkillDoesNotMatch(/needs_revalidation` 时必须展示 `resume_state`/, "skill must not require resume_state rendering");
 assertSkillMatch(/handoffs: \[\].*权威交接记录.*不在 UI 中逐条展示/, "skill must keep handoffs authoritative but out of the minimal UI");
 assertSkillDoesNotMatch(/handoffs: \[\].*每条均展示|handoffs?.*(session log|Session log|逐条展示其自身)/, "skill must not require handoff or session-log rendering");
+assert.match(appTemplate, /dataset\.scConnectorFrom=orderedRoles\[index-1\]\|\|"sc"; connector\.dataset\.scConnectorTo=role/, "decorative connectors must identify their actual adjacent endpoints");
+assertSkillMatch(/handoff_id/, "the snapshot contract must document stable optional handoff identity");
 
 for (const tone of ["pending", "active", "completed", "passed", "danger", "waiting", "revision", "unknown"]) assert.match(appTemplate, new RegExp(`sc-task-view__state--${tone} \\{[^}]*color:`), `${tone} must define a semantic status color`);
 assert.match(appTemplate, /--unknown:#fff/, "unknown and missing status text must be white");

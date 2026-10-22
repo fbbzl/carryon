@@ -4,7 +4,7 @@ const path = require("node:path");
 
 const appTemplate = fs.readFileSync(path.join(__dirname, "assets", "sc-task-view.html"), "utf8");
 
-assert.doesNotMatch(appTemplate, /is-entering|is-connection-entering|is-handoff-flow|is-state-updated/, "view, connector and state updates must not animate automatically");
+assert.doesNotMatch(appTemplate, /is-entering|is-connection-entering|is-state-updated/, "mounting and ordinary state updates must not add entrance or state animations");
 assert.match(appTemplate, /activeRoleStates=new Set\(\["running","preparing","in_progress"/, "active role states must include the required statuses");
 for (const status of ["running", "preparing", "in_progress", "working", "active", "started", "started_working"]) assert.match(appTemplate, new RegExp(`activeRoleStates=new Set\\(\\[[^\\]]*"${status}"`), `${status} must keep a role card active`);
 assert.match(appTemplate, /details\[data-sc-role\]\.is-active \{[^}]*animation:sc-running-pulse 1\.6s ease-in-out infinite/, "an active role card must visibly pulse continuously at the requested faster cadence");
@@ -14,7 +14,11 @@ assert.doesNotMatch(appTemplate, /sc-thinking-border|details\[data-sc-role\]\.is
 assert.doesNotMatch(appTemplate, /details\[data-sc-role\]::before[^}]*animation:/, "idle roles must not animate");
 assert.match(appTemplate, /details\.sc-task-view__node\.is-manual-replay \{[^}]*animation:sc-manual-role/, "debug replay must be scoped to a role card");
 assert.match(appTemplate, /@media \(prefers-reduced-motion:reduce\).*animation:none !important; transition:none !important;/, "reduced motion must disable animation and transitions");
-assert.doesNotMatch(appTemplate, /\.sc-task-view__connector[^}]*animation:/, "flow connectors must not animate automatically");
+assert.doesNotMatch(appTemplate, /\.sc-task-view__connector(?:::before|::after)? \{[^}]*animation:/, "idle connectors must remain static");
+assert.match(appTemplate, /\.sc-task-view__connector\.is-handoff-flow::before \{[^}]*animation:sc-handoff-flow [^;]* 1 both/, "an explicitly triggered handoff must use one finite connector animation");
+assert.match(appTemplate, /\.sc-task-view__connector\.is-handoff-reverse::before \{[^}]*animation-direction:reverse/, "return handoffs must reverse their travel direction");
+assert.match(appTemplate, /\.sc-task-view__connector\.is-handoff-reverse::after \{[^}]*transform:rotate\(225deg\)/, "return handoffs must point upward");
+assert.match(appTemplate, /\.is-handoff-receiving::after \{[^}]*pointer-events:none;[^}]*animation:sc-handoff-receive [^;]* 1 both/, "receiver feedback must be finite and must not intercept interaction");
 assert.match(appTemplate, /\.sc-task-view__connector::before[^}]*background:currentColor/, "connector stem must follow the flow color");
 assert.match(appTemplate, /\.sc-task-view__connector::after[^}]*transform:rotate\(45deg\)/, "connector arrowhead must point down");
 assert.match(appTemplate, /data-sc-play-animation[^>]*aria-label="播放任务视图动画"/, "task view must expose an accessible animation replay button");
