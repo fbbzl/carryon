@@ -10,6 +10,8 @@ place to invoke the doctor and must not be treated as a repository-path error.
 
 Use two diagnostic modes:
 
+Other references use these same installation-mode definitions for validation; selecting a mode alone does not run the doctor.
+
 - **Installed-skill mode** (default): check the runtime and the resolved skill
   installation. Do not require maintainer-only repository files.
 - **Maintainer-checkout mode**: use this only when the resolved installation
@@ -30,8 +32,14 @@ If no flags are provided, run in standard mode.
 Run all checks in this order and report each as `pass`, `warn`, or `fail`.
 
 1. Python runtime
-- Resolve `python3` first, then `python`. A name that is on PATH but cannot report
-  its own version does not win the resolution: fall through to the next candidate.
+- Prefer an explicitly supplied interpreter or the project's documented runtime,
+  as in [PNG export detection](export.md#detection); for this checkout, see
+  [LOCAL-RUNTIME.md](../LOCAL-RUNTIME.md). If that configured interpreter cannot
+  launch or report its version, mark `fail` and continue the independent checks
+  without substituting another interpreter.
+- When no runtime is configured, resolve `python3` first, then `python`. A name
+  that is on PATH but cannot report its own version does not win the resolution:
+  fall through to the next candidate.
   (Windows ships a `python3` App Execution Alias that is a Microsoft Store stub, not
   an interpreter, and it sits on PATH ahead of a python.org install.) A name that
   cannot be launched at all counts as the same kind of dud, and is reported as a
@@ -41,9 +49,20 @@ Run all checks in this order and report each as `pass`, `warn`, or `fail`.
 - `fail` if version is below 3.10.
 
 2. Playwright availability for PNG export
-- Check whether Playwright import works in the active Python interpreter (`import playwright`); an optional package version attribute is not required.
-- Verify the default headless Chromium can launch in that interpreter and close it after the probe. This includes a supported headless-shell-only installation; the full Chromium executable path is not required for default PNG export. Bound browser startup to 5 seconds and the subprocess probe to 10 seconds, then terminate the owned probe tree on timeout. Windows tree cleanup and parent reaping each have an additional 2-second limit; report cleanup failures as warnings.
-- If missing, mark `warn` and report that the host environment must provision
+- If the Python check failed, mark this check `warn` as unverified, skip its
+  probes, and continue the independent checks. Otherwise, check whether Playwright import works in
+  the selected interpreter (`import playwright`); an optional package version
+  attribute is not required.
+- Use the supplied or documented browser channel (`chrome` or `msedge`) as in
+  [PNG rasterization](export.md#rasterize); otherwise probe default headless
+  Chromium. Do not silently switch browsers on failure. The default supports a
+  headless-shell-only installation and does not require the full Chromium
+  executable path. Close the browser after the probe. Bound browser startup to
+  5 seconds and the subprocess probe to 10 seconds, then terminate the owned
+  probe tree on timeout. Windows tree cleanup and parent reaping each have an
+  additional 2-second limit; report cleanup failures as warnings.
+- If the package or selected browser is unavailable or fails to launch, mark
+  `warn` and report that the host environment must provision
   an approved Playwright installation and compatible browser.
 - Never auto-install dependencies.
 

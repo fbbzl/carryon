@@ -210,6 +210,8 @@ Universal building blocks. Type-specialized primitives (lifeline, activation bar
 
 Exact markup (background, dotted paper, markers, node box, arrow label, legend) and the long form of each connector rule: [`references/primitives-core.md`](references/primitives-core.md). The static templates (`template.html`, `template-dark.html`, `template-full.html`) already define the background and the `arrow`, `arrow-accent`, and `arrow-link` markers; `template-motion.html` defines only its own prefixed marker, so add the others from primitives-core.md when a motion diagram needs them.
 
+**Validation modes:** use the installation-mode test in [`references/doctor.md`](references/doctor.md). An enclosing project Git checkout alone does not make this an upstream maintainer checkout. Maintainer verification commands throughout this skill and its references apply only in that mode; `<repo-root>` means the resolved upstream maintainer root. Other copies use the packaged `scripts/self_check.py` and the relevant manual/browser checks. Report unavailable checks as unverified, never as passed.
+
 - **Arrows:** `muted` by default, `accent` for the headline path, `link` for HTTP/API and external calls, dashed `5,4` for optional, passive, return, or async. Draw arrows before boxes so lines sit behind nodes.
 - **Node box:** an opaque paper mask rect, then the styled box at `rx=6`, a rectangular type tag at `rx=2` (not a pill), the name in Geist 600, and a Geist Mono sublabel.
 
@@ -222,7 +224,7 @@ Non-negotiable, and §9 checks each one. Full text and edge cases: [primitives-c
 3. **No overlaps.** No shared or stacked strokes: offset parallel routes by 12px or more, and use the bridge/hop at a single crossing.
 4. **Fan attach points.** Connectors on one box edge each get their own point at `L * k / (N + 1)`, 12px or more apart (8px on very small boxes).
 5. **No transit behind a non-endpoint box.** Reroute. Only when the box is geometrically unavoidable: dashed stroke (`4,3`), label at the visible end, no marker on the intervening box.
-6. **Mask before node.** A label mask must not overlap a node drawn after it; badge masks fully inside a node and masks over earlier zones are fine. From a repository checkout, verify with `python3 <repo-root>/scripts/verify-geometry.py <file>`.
+6. **Mask before node.** A label mask must not overlap a node drawn after it; badge masks fully inside a node and masks over earlier zones are fine. In upstream maintainer-checkout mode, verify with `python3 <repo-root>/scripts/verify-geometry.py <file>`.
 
 ---
 
@@ -290,7 +292,7 @@ Run before producing any diagram.
 - [ ] **§6 rule 3:** no overlapping or stacked connectors; bridge/hop at crossings?
 - [ ] **§6 rule 4:** a distinct attach point per connector on a shared edge, 12px or more apart, none hiding another?
 - [ ] **§6 rule 5:** no transit behind a non-endpoint box, except the unavoidable case (dashed, label at the visible end)?
-- [ ] **§6 rule 6:** no label mask overlapping a node drawn after it? (From a repository checkout, run `python3 <repo-root>/scripts/verify-geometry.py <file>`.)
+- [ ] **§6 rule 6:** no label mask overlapping a node drawn after it? (In upstream maintainer-checkout mode, run `python3 <repo-root>/scripts/verify-geometry.py <file>`.)
 - [ ] Every arrow label has an opaque rect matching its current background surface, resolved from the active style guide?
 - [ ] Legend is a horizontal bottom strip, not floating?
 - [ ] No vertical `writing-mode` text?
@@ -298,7 +300,7 @@ Run before producing any diagram.
 - [ ] **`min-width` equals the viewBox width, and the SVG sits in a local `overflow-x: auto` wrapper? (Otherwise a phone scrolls the whole page — or an `overflow: hidden` ancestor clips the diagram with no scrollbar at all. See [output-spec.md](references/output-spec.md).)**
 - [ ] Node origins, dimensions, gaps, padding on the 4px grid; type sizes on the role ramp?
 - [ ] From the installed skill directory, did `python3 scripts/self_check.py <file>` pass? (Accessible-SVG contract, single-file safety, content inside the viewBox, motion basics.)
-- [ ] If animated, does the complete static/no-JS frame work, does reduced motion hide/disable playback, and is the controller copied verbatim from `assets/template-motion.html`? From a repository checkout, also run `python3 <repo-root>/scripts/verify-motion.py path/to/generated.html` plus the skin linter; from an installed skill, manually check print and static-query states on top of the self-check.
+- [ ] If animated, does the complete static/no-JS frame work, does reduced motion hide/disable playback, and is the controller copied verbatim from `assets/template-motion.html`? In upstream maintainer-checkout mode, also run `python3 <repo-root>/scripts/verify-motion.py path/to/generated.html` plus the skin linter; in installed-skill mode, perform the browser checks in `references/animation.md` on top of the packaged self-check.
 
 **Typography:**
 

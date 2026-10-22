@@ -36,7 +36,7 @@ future diagrams use verified tokens
 
 Gate-only choices use the same finish:
 
-- **(d) Manual:** accept the user's tokens, write them under a new `Custom tokens` section in `style-guide.md`, then offer to save a named profile.
+- **(d) Manual:** map the user's tokens into the existing `Semantic roles` and `Typography` tables and `Font source` setting as applicable, preserving unspecified values. Follow Steps 3–5 for checks, an approved diff, and recoverable application, then offer a profile and complete the final user-verification step.
 - **(e) Default:** proceed with the shipped skin. To persist that choice for this project, offer to write a `.diagram-design` marker containing exactly `profile: default`; write it only with explicit consent.
 
 ---
@@ -142,7 +142,7 @@ If any check fails, propose an adjusted value and explain why.
 
 ## Step 4 — preview the diff
 
-Show the user what will change in `style-guide.md`. Only the tokens table — everything else stays the same.
+Show the proposed changes to the existing token and typography tables and, when applicable, the `Font source` setting in `style-guide.md`. Keep unrelated sections unchanged.
 
 ```diff
 -| `paper`  | `#f5f4ed` | `#1c1a17` |
@@ -171,12 +171,9 @@ The receipt is required when the user says “match this site,” “use their b
 
 Before overwriting a still-pristine guide, create the recoverable `default` snapshot if it does not exist, following [`profiles.md`](profiles.md). Retain the pre-diff body for that snapshot; never snapshot newly customized tokens as `default`.
 
-Write the new tokens to `style-guide.md`. Suggest running the `/regenerate-examples` flow (if it exists) or rebuilding one example to verify the new skin reads cleanly.
+Write the approved values into the existing tables/settings in `style-guide.md`. Continue to profile choice and the final user-verification step below, rebuilding the requested output or one representative example with the new guide.
 
-After onboarding, the user should:
-
-1. Open `assets/index.html` (gallery) and confirm the new palette feels coherent across all 45 visual types.
-2. If any type looks off, they usually need to tune `muted` (often too dark or too light against the new `paper`).
+Pre-baked `assets/index.html` examples do not update when tokens change. Use the gallery to validate the new skin only for examples actually rebuilt; otherwise review the representative output, not the old gallery skin.
 
 ---
 

@@ -114,15 +114,22 @@ The final-state capture contract is synchronous: `?motion=static`, `<html data-m
 
 PNG and SVG exports are static final-state artifacts unless the user explicitly requests a named step. Before capture, open `?motion=static`, await `document.fonts.ready`, and assert `data-frame="static"`. SVG extraction omits HTML controls and scripts; source-visible semantic markup keeps the result complete.
 
-Run:
+In upstream maintainer-checkout mode, as defined in [`doctor.md`](doctor.md), run
+the following with `<repo-root>` resolved to that upstream root:
 
 ```bash
-python3 scripts/verify-motion.py path/to/animated-diagram.html
-python3 scripts/test-verify-motion.py
-python3 scripts/lint-skin.py path/to/animated-diagram.html
+python3 <repo-root>/scripts/verify-motion.py path/to/animated-diagram.html
+python3 <repo-root>/scripts/test-verify-motion.py
+python3 <repo-root>/scripts/lint-skin.py path/to/animated-diagram.html
 ```
 
-The verifier checks mode/state declarations, contiguous steps, motion budgets, complete SVG naming, no-JS source visibility, decorative accessibility, the full control set, live status, reduced-motion/print CSS, keyboard handling, page-hide pause, bounded static/test overrides, immediate final-step stop, and exact canonical-controller identity. Root SVG icons marked `aria-hidden="true"` are exempt from diagram naming checks, while the document still needs an accessible SVG (exactly one for the policy-trace example). Its adversarial tests mutate the canonical template to prove each failure is rejected.
+In installed-skill mode, use the configured Python runtime (see
+[`LOCAL-RUNTIME.md`](../LOCAL-RUNTIME.md)) to run the packaged
+`scripts/self_check.py path/to/animated-diagram.html`, then perform the browser
+checks below. Maintainer scripts are not required in this mode; report any
+unavailable check as unverified rather than passed.
+
+The maintainer verifier checks mode/state declarations, contiguous steps, motion budgets, complete SVG naming, no-JS source visibility, decorative accessibility, the full control set, live status, reduced-motion/print CSS, keyboard handling, page-hide pause, bounded static/test overrides, immediate final-step stop, and exact canonical-controller identity. Root SVG icons marked `aria-hidden="true"` are exempt from diagram naming checks, while the document still needs an accessible SVG (exactly one for the policy-trace example). Its adversarial tests mutate the canonical template to prove each failure is rejected.
 
 Then verify in a browser:
 
@@ -131,7 +138,7 @@ Then verify in a browser:
 3. Use keyboard only: Tab reaches each native control; Enter/Space operate it; Left/Right/Home/End step without moving focus.
 4. Pause, resume, and replay twice: ordering and final state are identical.
 5. Capture `?motion=static` twice after `document.fonts.ready`: pixels are stable.
-6. Print preview plus PNG/SVG export: controls and decorative tokens are absent, while all semantic labels and relationships remain.
+6. Print preview and any requested PNG/SVG exports: controls and decorative tokens are absent, while all semantic labels and relationships remain.
 
 ## Anti-patterns
 

@@ -220,7 +220,7 @@ Four options:
 
 1. **Run onboarding** — see [`onboarding.md`](onboarding.md). Drop a URL; the skill extracts the palette + fonts and rewrites this file.
 2. **Edit by hand** — change the hex values in the tables above. Run the pre-output taste gate afterward to verify the accent still reads as "focal" against the new paper color.
-3. **Brand handoff** — paste your existing design-token JSON into a new section here and map its tokens to the semantic roles above.
+3. **Brand handoff** — map values from your design-token JSON into the existing semantic-role and typography tables above. Any retained raw JSON is source documentation, not an overriding token layer.
 4. **Client profiles** — save and switch named skins, or bind one to a project, using [`profiles.md`](profiles.md).
 
 ### Constraints (don't break these)
@@ -228,7 +228,7 @@ Four options:
 - **Contrast**: every text token (`ink`, `muted`, `soft`, `link`, and `accent`) must clear 4.5:1 on `paper`, in both skins. See the [contrast contract](#contrast-contract); `scripts/verify-contrast.py` checks it.
 - **One accent**: pick one color for `accent`. Two accents erases the focal signal.
 - **No rainbow palette**: if your brand ships 8 colors, pick 3 (paper, ink, accent). The rest become `muted` variants.
-- **Serif + sans + mono**: three families, not more. If brand typography is all sans, keep Instrument Serif for `title` and `callout` anyway — the contrast is load-bearing.
+- **Typography roles**: the default skin uses serif + sans + mono. For brand-matched output, the verified families mapped to each role take precedence, including all-sans brands. Use default families only for missing roles or disclosed fallbacks, following the exact-font gate in `onboarding.md`.
 - **Paper is warm-neutral, not pure white**: pure white turns the design sterile. Pick a cream, bone, or light grey with a hint of warmth.
 - **Dot pattern is optional, not default**: the 22×22 dot pattern is an opt-in "dotted paper" variant (good for long-form editorial hero diagrams). The default background is a clean `paper` fill, no pattern. When the pattern is enabled, it should sit at ~10% opacity of `ink` on `paper` — visible but quiet.
 - **Container is clean by default**: the diagram sits directly on the page paper, no secondary container background or border. A framed variant (`paper-2` bg + `rule` border + 8px radius + padding) is available as an opt-in for card-heavy layouts, but don't reach for it by default — the extra chrome fights the figure.
