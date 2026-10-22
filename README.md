@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/logo.svg" width="112" height="112" alt="kyojin Logo：深墨蓝底的青绿色几何字母 K">
+  <img src="assets/brand/logo.svg" width="112" height="112" alt="kyojin Logo：深绿底、米白色三重城墙与外凸城区俯视图">
 </p>
 
 <h1 align="center">kyojin</h1>

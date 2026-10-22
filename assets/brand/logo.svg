@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
-  <title id="title">kyojin</title>
-  <desc id="desc">A geometric letter K with ascending teal facets on an ink-blue rounded square.</desc>
-  <rect width="256" height="256" rx="56" fill="#102A3A"/>
-  <path d="M60 56h32v144H60z" fill="#E4F5F2"/>
-  <path d="M104 118l60-62h40l-80 82z" fill="#52D6BA"/>
-  <path d="M104 138l22-23 78 85h-43z" fill="#22A88F"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 256 256" role="img" aria-labelledby="title desc"><title id="title">kyojin — Three Walls concept</title><desc id="desc">Stylized top-down concentric walls with outward projecting enclosed districts. Logo concept, not a canonical map.</desc><rect width="256" height="256" rx="50" fill="#222C28"/><g fill="none" stroke="#E2DAC5" stroke-width="5.5" stroke-linejoin="round"><path d="M 137 43 A 85 85 0 0 1 213 119 C 236.4 119 236.4 137 213 137 A 85 85 0 0 1 137 213 C 137 236.4 119 236.4 119 213 A 85 85 0 0 1 43 137 C 19.599999999999998 137 19.599999999999998 119 43 119 A 85 85 0 0 1 119 43 C 119 19.599999999999998 137 19.599999999999998 137 43 Z"/><path d="M 135 73 A 55 55 0 0 1 183 121 C 201.2 121 201.2 135 183 135 A 55 55 0 0 1 135 183 C 135 201.2 121 201.2 121 183 A 55 55 0 0 1 73 135 C 54.8 135 54.8 121 73 121 A 55 55 0 0 1 121 73 C 121 54.8 135 54.8 135 73 Z"/><path d="M 133 101 A 27 27 0 0 1 155 123 C 168 123 168 133 155 133 A 27 27 0 0 1 133 155 C 133 168 123 168 123 155 A 27 27 0 0 1 101 133 C 88 133 88 123 101 123 A 27 27 0 0 1 123 101 C 123 88 133 88 133 101 Z"/></g></svg>
