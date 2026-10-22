@@ -23,6 +23,7 @@ const snapshot = {
   handoffs: [],
 };
 const harness = `<!doctype html><html><body><main id="root">${template}</main><script>
+window.onerror=(message,source,line,column,error)=>document.body.dataset.scTestError=String(message)+" at "+line+":"+column+" "+error?.stack;
 const root=document.getElementById("root");
 let toggleAdds=0,toggleRemoves=0;
 const add=root.addEventListener.bind(root),remove=root.removeEventListener.bind(root);
@@ -60,12 +61,19 @@ const snapshotDebug=structuredClone(next);snapshotDebug.debug=true;window.render
 const debugInSnapshot={hidden:root.querySelector('[data-sc-play-animation]').hidden,replay:!!root.querySelector('.is-manual-replay')};
 const supplied=structuredClone(next),payload='<img src=x onerror="window.qaInjected=true">';
 supplied.work_unit={project_name:'kyojin',project_mcps:['codegraph','CodeGraph','filesystem',payload,42,'  '],target:'明确目标',task_type:'界面调整',roles:['dev','qa'],role_selection_reason:'仅实现和验收；此说明专门用于验证长文本始终在元数据值列内自然换行，且不会挤占左侧标签列。',summary:payload,scope:['当前任务视图'],acceptance:['QA 唯一出口'],environment:'Windows Chrome'};
-supplied.role_details.req.agent_name='req-agent';supplied.role_details.dev={agent_name:'dev-agent'};supplied.role_details.cr.agent_name='cr-agent';
+supplied.work_unit.metrics={elapsed_ms:90061000,total_tokens:12345};
+supplied.role_details.req.agent_name='req-agent';supplied.role_details.dev={agent_name:'dev-agent',metrics:{elapsed_ms:65000,total_tokens:2345}};supplied.role_details.cr.agent_name='cr-agent';
 supplied.role_details.qa.agent_name=payload;
 window.renderSurveyCorpsTaskView(root,supplied);
 const summary=root.querySelector('[data-sc-task-summary]');
 const metadata=root.querySelector('.sc-task-view__metadata'),taskTypeLabel=metadata.querySelector('dt'),taskTypeValue=metadata.querySelector('dd'),reasonValue=metadata.querySelector('[data-sc-field=role_selection_reason]'),metadataRect=metadata.getBoundingClientRect(),taskTypeLabelRect=taskTypeLabel.getBoundingClientRect(),taskTypeValueRect=taskTypeValue.getBoundingClientRect(),reasonValueRect=reasonValue.getBoundingClientRect(),metadataStyles=getComputedStyle(metadata),reasonStyles=getComputedStyle(reasonValue),metadataLayout={className:metadata.className,gridTemplateColumns:metadataStyles.gridTemplateColumns,alignItems:metadataStyles.alignItems,labelTextAlign:getComputedStyle(taskTypeLabel).textAlign,labelValueTopDelta:Math.abs(taskTypeLabelRect.top-taskTypeValueRect.top),valueStartsAfterLabel:taskTypeValueRect.left>=taskTypeLabelRect.right,reasonWraps:reasonValueRect.height>parseFloat(reasonStyles.lineHeight),reasonFits:reasonValueRect.right<=metadataRect.right+1};
 const projectMcps=root.querySelector('[data-sc-project-mcps]'),provided={headerText:root.querySelector('.sc-task-view__header').innerText,taskType:root.querySelector('[data-sc-field=task_type]').textContent,selected:root.querySelector('[data-sc-selected-roles]').textContent,reason:root.querySelector('[data-sc-field=role_selection_reason]').textContent,summary:summary.textContent,summaryOutsideFlow:!summary.closest('[data-sc-flow]'),summaryAfterQA:!!(root.querySelector('[data-sc-role=qa]').compareDocumentPosition(summary)&Node.DOCUMENT_POSITION_FOLLOWING),roleCount:root.querySelectorAll('details[data-sc-role]').length,contextRemoved:!root.querySelector('[data-sc-context]'),namesRemoved:!root.querySelector('[data-sc-agent-name]'),projectMcps:{hidden:projectMcps.hidden,open:projectMcps.open,count:root.querySelector('[data-sc-project-mcp-count]').textContent,names:[...root.querySelectorAll('[data-sc-project-mcp-list] li')].map(node=>node.textContent)},injectedElements:root.querySelectorAll('img').length,metadataLayout};
+provided.metrics={taskElapsed:root.querySelector('[data-sc-metric=task-elapsed]').textContent,taskTokens:root.querySelector('[data-sc-metric=task-tokens]').textContent,devElapsed:root.querySelector('[data-sc-role=dev] .sc-task-view__role-metrics dd:nth-of-type(1)').textContent,devTokens:root.querySelector('[data-sc-role=dev] .sc-task-view__role-metrics dd:nth-of-type(2)').textContent};
+supplied.work_unit.metrics={elapsed_ms:-1,total_tokens:'999'};supplied.role_details.dev.metrics={elapsed_ms:1.5,total_tokens:-2};window.renderSurveyCorpsTaskView(root,supplied);
+const invalidMetrics=[root.querySelector('[data-sc-metric=task-elapsed]').textContent,root.querySelector('[data-sc-metric=task-tokens]').textContent,...[...root.querySelectorAll('[data-sc-role=dev] .sc-task-view__role-metrics dd')].map(node=>node.textContent)];
+delete supplied.work_unit.metrics;delete supplied.role_details.dev.metrics;window.renderSurveyCorpsTaskView(root,supplied);
+const missingMetrics=[root.querySelector('[data-sc-metric=task-elapsed]').textContent,root.querySelector('[data-sc-metric=task-tokens]').textContent,...[...root.querySelectorAll('[data-sc-role=dev] .sc-task-view__role-metrics dd')].map(node=>node.textContent)];
+supplied.work_unit.metrics={elapsed_ms:90061000,total_tokens:12345};supplied.role_details.dev.metrics={elapsed_ms:65000,total_tokens:2345};window.renderSurveyCorpsTaskView(root,supplied);
 delete supplied.role_details.qa.agent_name;delete supplied.work_unit.summary;delete supplied.work_unit.project_mcps;window.renderSurveyCorpsTaskView(root,supplied);
 const removed={headerText:root.querySelector('.sc-task-view__header').innerText,contextRemoved:!root.querySelector('[data-sc-context]'),namesRemoved:!root.querySelector('[data-sc-agent-name]'),projectMcpsHidden:root.querySelector('[data-sc-project-mcps]').hidden,summary:root.querySelector('[data-sc-task-summary]').textContent,summaryClass:root.querySelector('[data-sc-task-summary]').className};
 const roleCases={pending:'待开始',not_started:'待开始',running:'进行中',preparing:'进行中',in_progress:'进行中',working:'进行中',active:'进行中',started:'进行中',started_working:'进行中',completed:'已完成',complete:'已完成',done:'已完成',success:'已完成',successful:'已完成',succeeded:'已完成',passed:'已通过',qa_passed:'已通过',qa_success:'已通过',workflow_ready:'已通过',failed:'失败',blocked:'已阻断',paused:'已暂停',cancelled:'已取消',canceled:'已取消',skipped:'已跳过',waiting:'等待中'};
@@ -109,7 +117,8 @@ window.renderSurveyCorpsTaskView(root,{state:'dev_in_progress',work_unit:{roles:
 const invalidStates=[];for(const state of [null,[],{}, {toString:null},true,42,'__proto__']){window.renderSurveyCorpsTaskView(root,{state,work_unit:{roles:['dev']}});invalidStates.push(observe().state);}
 window.renderSurveyCorpsTaskView(root,{state:'planned'});const emptyView=observe();
 window.renderSurveyCorpsTaskView(root,snapshot);const recovered=observe();
-const result={boundaries,excludedFallback,invalidStates,emptyView,recovered,initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,progress,waitingActive,finishedDevActive,flow,defaults,debugTrue,debugString,debugDefault,debugFalse,debugInSnapshot,provided,payload,removed,roleCases,roleStatuses,roleStatusClasses,globalCases,globalStatuses,globalStatusClasses,unknown,prototypeFallbacks,legacySubskills,skills,skillFields,skillSafety,nestedOpen,outerAfterNested,skillUpdated,invalidSkills,fieldFiltering,validListFiltering,subskillUnknown,subskillsRemoved,toggleAdds,toggleRemoves,activeToggleListeners};
+const elapsedBoundaries=[];for(const elapsed of [0,1,999,1000]){const sample={work_unit:{metrics:{elapsed_ms:elapsed},roles:[]}};window.renderSurveyCorpsTaskView(root,sample);elapsedBoundaries.push(root.querySelector('[data-sc-metric=task-elapsed]').textContent);}
+const result={boundaries,excludedFallback,invalidStates,emptyView,recovered,initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,progress,waitingActive,finishedDevActive,flow,defaults,debugTrue,debugString,debugDefault,debugFalse,debugInSnapshot,provided,invalidMetrics,missingMetrics,elapsedBoundaries,payload,removed,roleCases,roleStatuses,roleStatusClasses,globalCases,globalStatuses,globalStatusClasses,unknown,prototypeFallbacks,legacySubskills,skills,skillFields,skillSafety,nestedOpen,outerAfterNested,skillUpdated,invalidSkills,fieldFiltering,validListFiltering,subskillUnknown,subskillsRemoved,toggleAdds,toggleRemoves,activeToggleListeners};
 document.body.dataset.scTestResult=JSON.stringify(result);
 </script></body></html>`;
 
@@ -165,6 +174,10 @@ try {
   assert.equal(result.provided.headerText.includes("sc-task-view:"), false, "view identifiers must not render in the header");
   assert.equal(result.provided.taskType, "界面调整");
   assert.equal(result.provided.selected, "DEV → QA", "selection must come from the orchestrator rather than all cards");
+  assert.deepEqual(result.provided.metrics,{taskElapsed:"1天 01小时 01分 01秒",taskTokens:"12,345",devElapsed:"1分 05秒",devTokens:"2,345"},"measured task and per-role metrics must render with explicit units");
+  assert.deepEqual(result.invalidMetrics,["未提供","未提供","未提供","未提供"],"negative, fractional and nonnumeric metrics must never render as actual usage");
+  assert.deepEqual(result.missingMetrics,["未提供","未提供","未提供","未提供"],"legacy snapshots without metrics must show an explicit placeholder");
+  assert.deepEqual(result.elapsedBoundaries,["0毫秒","1毫秒","999毫秒","1秒"],"subsecond elapsed values must preserve measured precision");
   assert.deepEqual(result.provided.projectMcps, { hidden:false, open:false, count:"(2)", names:["codegraph","filesystem"] }, "project MCPs must be deduplicated, default-collapsed and rendered safely from the snapshot");
   assert.equal(result.provided.reason, "仅实现和验收；此说明专门用于验证长文本始终在元数据值列内自然换行，且不会挤占左侧标签列。");
   assert.equal(result.provided.metadataLayout.className, "sc-task-view__metadata");

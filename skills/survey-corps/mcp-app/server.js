@@ -11,7 +11,9 @@ const TEMPLATE_PATH = path.join(__dirname, "assets", "sc-task-view.html");
 const MAX_FRAME_BYTES = 256 * 1024;
 const MAX_SNAPSHOT_BYTES = 200 * 1024;
 const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", "2025-11-25"]);
-const SNAPSHOT_SCHEMA = { type: "object", required: ["view_id"], properties: { state: { type: "string" }, view_id: { type: "string", minLength: 1, description: "Stable logical view identifier; not displayed in the UI or used as a path or resource URI." } } };
+const METRIC_SCHEMA = { type: "object", additionalProperties: false, properties: { elapsed_ms: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, description: "Measured elapsed time in milliseconds; omitted when unavailable." }, total_tokens: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, description: "Measured total token usage; omitted when unavailable." } } };
+const ROLE_DETAIL_SCHEMA = { type: "object", properties: { metrics: METRIC_SCHEMA } };
+const SNAPSHOT_SCHEMA = { type: "object", required: ["view_id"], properties: { state: { type: "string" }, view_id: { type: "string", minLength: 1, description: "Stable logical view identifier; not displayed in the UI or used as a path or resource URI." }, work_unit: { type: "object", properties: { metrics: METRIC_SCHEMA } }, role_details: { type: "object", properties: { req: ROLE_DETAIL_SCHEMA, dev: ROLE_DETAIL_SCHEMA, cr: ROLE_DETAIL_SCHEMA, qa: ROLE_DETAIL_SCHEMA }, additionalProperties: true } } };
 const EMPTY_SNAPSHOT = Object.freeze({ view_id: "sc-task-view:empty", state: "unknown" });
 let latestSnapshot = null;
 
