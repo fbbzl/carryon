@@ -98,7 +98,7 @@
   <script>
     "use strict";
     (() => {
-      const labels={confirmed:"已确认",planned:"计划",dev_in_progress:"开发中",ready_for_cr:"等待审查",cr_blocked:"审查阻断",ready_for_qa:"等待测试",qa_failed:"测试失败",qa_conditional:"测试条件通过",qa_passed:"测试通过",workflow_ready:"任务完成",completed:"已完成",success:"已完成",succeeded:"已完成",needs_user_confirm:"等待用户确认",needs_revalidation:"需要重新验证",needs_revision:"需要修订",blocked:"已阻断"};
+      const labels={confirmed:"已确认",planned:"计划",dev_in_progress:"开发中",ready_for_cr:"等待审查",cr_blocked:"审查阻断",ready_for_qa:"等待测试",qa_failed:"测试失败",qa_conditional:"测试条件通过",qa_passed:"测试通过",workflow_ready:"任务完成",completed:"已完成",complete:"已完成",done:"已完成",success:"已完成",successful:"已完成",succeeded:"已完成",failed:"失败",paused:"已暂停",waiting:"等待中",cancelled:"已取消",canceled:"已取消",needs_user_confirm:"等待用户确认",needs_revalidation:"需要重新验证",needs_revision:"需要修订",blocked:"已阻断"};
       const roles=["req","dev","cr","qa"],roleLabels={req:"REQ",dev:"DEV",cr:"CR",qa:"QA"};
       const stateRole={dev_in_progress:"dev"};
       const activeRoleStates=new Set(["running","preparing","in_progress","working","active","started","started_working"]);
@@ -107,7 +107,7 @@
       const safeText=value=>value===undefined||value===null||value===""?"未提供":typeof value==="object"?JSON.stringify(value):String(value);
       const missing=value=>value===undefined||value===null||value==="";
       const stateText=value=>typeof value==="string"&&Object.hasOwn(labels,value)?labels[value]:"未知状态";
-      const stateTones={confirmed:"completed",planned:"pending",dev_in_progress:"active",ready_for_cr:"waiting",cr_blocked:"danger",ready_for_qa:"waiting",qa_failed:"danger",qa_conditional:"revision",qa_passed:"passed",workflow_ready:"passed",completed:"completed",success:"completed",succeeded:"completed",needs_user_confirm:"waiting",needs_revalidation:"revision",needs_revision:"revision",blocked:"danger"};
+      const stateTones={confirmed:"completed",planned:"pending",dev_in_progress:"active",ready_for_cr:"waiting",cr_blocked:"danger",ready_for_qa:"waiting",qa_failed:"danger",qa_conditional:"revision",qa_passed:"passed",workflow_ready:"passed",completed:"completed",complete:"completed",done:"completed",success:"completed",successful:"completed",succeeded:"completed",failed:"danger",paused:"waiting",waiting:"waiting",cancelled:"pending",canceled:"pending",needs_user_confirm:"waiting",needs_revalidation:"revision",needs_revision:"revision",blocked:"danger"};
       const toneClass=(tones,value)=>`sc-task-view__state--${typeof value==="string"&&Object.hasOwn(tones,value)?tones[value]:"unknown"}`;
       const stateClass=value=>toneClass(stateTones,value);
       const normalizedStatus=value=>safeText(value).trim().toLowerCase().replace(/[ -]+/g,"_");

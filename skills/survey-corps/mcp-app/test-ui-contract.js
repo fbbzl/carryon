@@ -6,6 +6,8 @@ const path = require("node:path");
 const appTemplate = fs.readFileSync(path.join(__dirname, "assets", "sc-task-view.html"), "utf8");
 const skill = fs.readFileSync(path.join(__dirname, "..", "SKILL.md"), "utf8");
 const stateRoleLiteral = appTemplate.match(/const stateRole=\{([^}]*)\}/)?.[1] || "";
+const stateLabelsLiteral = appTemplate.match(/const labels=\{([^}]*)\}/)?.[1] || "";
+const stateTonesLiteral = appTemplate.match(/const stateTones=\{([^}]*)\}/)?.[1] || "";
 const snapshotExample = skill.match(/### 任务视图数据契约[\s\S]*?```yaml\r?\n([\s\S]*?)\r?\n```/)?.[1] || "";
 const workUnitExample = snapshotExample.match(/^work_unit:\r?\n([\s\S]*?)(?=^[^\s#][^:\r\n]*:)/m)?.[1] || "";
 
@@ -64,6 +66,10 @@ assert.match(appTemplate, /root\.__scResolvedActiveRole=activeRole/, "rerender m
 assert.match(appTemplate, /stateRole=\{dev_in_progress:"dev"\}/, "only an actively executing workflow state may map to an active role");
 for (const state of ["confirmed", "planned", "ready_for_cr", "ready_for_qa", "cr_blocked", "qa_failed", "qa_conditional", "qa_passed", "workflow_ready", "needs_user_confirm", "needs_revalidation", "needs_revision", "blocked"]) {
   assert.doesNotMatch(stateRoleLiteral, new RegExp(`(?:^|,)${state}:`), `${state} must not guess an active role`);
+}
+for (const [state, label, tone] of [["paused", "已暂停", "waiting"], ["waiting", "等待中", "waiting"], ["failed", "失败", "danger"], ["cancelled", "已取消", "pending"], ["canceled", "已取消", "pending"], ["complete", "已完成", "completed"], ["done", "已完成", "completed"], ["successful", "已完成", "completed"]]) {
+  assert.match(stateLabelsLiteral, new RegExp(`${state}:"${label}"`), `${state} must display its supported global state label`);
+  assert.match(stateTonesLiteral, new RegExp(`${state}:"${tone}"`), `${state} must use its supported global state tone`);
 }
 assert.match(appTemplate, /detailField\(body,"摘要".*detailField\(body,"必要证据".*detailField\(body,"风险".*detailField\(body,"下一步"/, "role cards must contain only the compact task fields");
 assert.doesNotMatch(appTemplate, /data-sc-field="resume_state"|data-sc-state-reference|复验入口/, "minimal UI must not render the state machine or resume_state");
