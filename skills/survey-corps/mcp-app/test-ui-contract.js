@@ -35,12 +35,15 @@ assert.doesNotMatch(appTemplate, /task-tokens|total_tokens|Token|formatTokens/, 
 assert.match(appTemplate, /function formatElapsed\(value\)/, "elapsed time must use a deterministic formatter");
 assert.match(appTemplate, /const validMetric=value=>Number\.isSafeInteger\(value\)&&value>=0/, "metrics must reject missing, fractional and negative values");
 assert.match(appTemplate, /function renderRoleMetrics\(body,value\)/, "role cards must expose per-role measured usage");
-assert.match(appTemplate, /renderTaskMetrics\(root,work\)/, "task metrics must be refreshed on every snapshot");
+assert.match(appTemplate, /renderTaskMetrics\(root,work,state\)/, "task metrics must be refreshed on every snapshot");
 if (skill) assert.match(workUnitExample, /^  metrics:.*elapsed_ms/m, "snapshot example must nest elapsed time as a direct work_unit field");
 assert.doesNotMatch(snapshotExample, /\nwork_unit\.metrics:/, "snapshot example must not document task metrics as a root-level dotted key");
 assertSkillMatch(/role_details:\s+# 可选，以 req\/dev\/cr\/qa 为键[\s\S]*?metrics:.*elapsed_ms/, "snapshot contract must document role elapsed time");
 assertSkillMatch(/服务端.*累计/, "the server must own elapsed time accumulation");
 assertSkillMatch(/视图不得自行计时、推算/, "view must not invent elapsed time");
+assertSkillMatch(/work_unit\.roles` 只列本轮实际执行的角色，不沿用历史工作单元的角色链/, "role selection must be scoped to the current work unit");
+assertSkillMatch(/已登记 Bug 的默认链路为 `dev -> cr -> qa`.*才前置 `req`/, "registered bugs must not add REQ unless requirement clarification is necessary");
+assertSkillMatch(/启动所选角色前，先提交.*status=running.*再启动对应 subagent/, "the role timer must start before subagent work begins");
 assert.match(appTemplate, /border-radius:8px/, "task view must use a restrained rounded outer surface");
 assert.match(appTemplate, /border-radius:6px/, "cards must use restrained rounded corners");
 assert.match(appTemplate, /transition:box-shadow 160ms ease/, "cards must use short hover transitions");
@@ -104,6 +107,3 @@ assert.match(appTemplate, /workflow_ready:"任务完成"/, "workflow_ready must 
 assert.match(appTemplate, /workflow_ready:"已通过"/, "the completed QA workflow state must display as passed in role cards");
 
 console.log(skill ? "SC minimal task-flow UI contract passed." : "SC minimal task-flow UI contract passed (repository Skill checks skipped outside the source tree).");
-assertSkillMatch(/work_unit\\.roles` 只列本轮实际执行的角色，不沿用历史工作单元的角色链/, "role selection must be scoped to the current work unit");
-assertSkillMatch(/已登记 Bug 的默认链路为 `dev -> cr -> qa`.*才前置 `req`/, "registered bugs must not add REQ unless requirement clarification is necessary");
-assertSkillMatch(/启动所选角色前，先提交.*status=running.*再启动对应 subagent/, "the role timer must start before subagent work begins");
