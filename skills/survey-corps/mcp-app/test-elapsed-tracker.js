@@ -43,14 +43,35 @@ assert.equal(elapsed(tracker.update(seeded)), 3000, "clock rollback must not sub
 time += 500;
 assert.equal(elapsed(tracker.update(seeded)), 3000, "a rolled-back clock must not count a repeated interval");
 
-const fallback = sample("fallback", "dev_in_progress", { dev: undefined });
-tracker.update(fallback);
-time += 25;
-assert.equal(roleElapsed(tracker.update(fallback), "dev"), 25);
+for (const missing of [undefined, null, ""]) {
+  const explicitQa = sample("explicit-qa:" + String(missing), "dev_in_progress", { dev: missing, qa: "running" });
+  tracker.update(explicitQa);
+  time += 25;
+  result = tracker.update(explicitQa);
+  assert.equal(roleElapsed(result, "dev"), 0, "task state must not start DEV without running status");
+  assert.equal(roleElapsed(result, "qa"), 25);
+  assert.equal(elapsed(result), 25);
+}
+for (const role of ["req", "dev", "cr", "qa"]) {
+  const running = sample("running:" + role, "planned", { [role]: " RUNNING " });
+  tracker.update(running);
+  time += 25;
+  assert.equal(roleElapsed(tracker.update(running), role), 25, "each selected running role must count");
+  running.role_details[role].status = "pending";
+  tracker.update(running);
+  time += 25;
+  assert.equal(elapsed(tracker.update(running)), 25, "leaving running settles and freezes the interval");
+}
+for (const value of [undefined, null, "", "preparing", "in_progress", "working", "active", "started", "started_working"]) {
+  const idle = sample("not-running:" + String(value), "dev_in_progress", { dev: value });
+  tracker.update(idle);
+  time += 25;
+  assert.equal(elapsed(tracker.update(idle)), 0, "only running starts a timer: " + String(value));
+}
 const explicitPending = sample("pending", "dev_in_progress", { dev: "pending" });
 tracker.update(explicitPending);
 time += 25;
-assert.equal(elapsed(tracker.update(explicitPending)), 0, "explicit non-active role status overrides DEV fallback");
+assert.equal(elapsed(tracker.update(explicitPending)), 0, "pending role status must not start a timer");
 const unknown = sample("unknown", "mystery", { dev: "mystery" });
 tracker.update(unknown);
 time += 25;

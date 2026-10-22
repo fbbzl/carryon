@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const { setTimeout: delay } = require("node:timers/promises");
 const { startServer } = require("./test-stdio-helper");
 
-// User requirement: elapsed time is automatic; waiting and finished work do not accrue time.
+// User requirement (P1): only selected roles with running status accrue time; global stops take precedence.
 // Observe the public stdio tool, independently of the tracker's injected-clock unit tests.
 const clients = [];
 function client() {
@@ -94,7 +94,7 @@ async function main() {
   const seeded = await show(baseline);
   assert.equal(elapsed(seeded), 500, "first valid elapsed input remains a compatibility baseline");
   assert.equal(roleElapsed(seeded, "dev"), 200);
-  const bRunning = task(b, "dev_in_progress", { dev: " In Progress ", qa: "pending" });
+  const bRunning = task(b, "dev_in_progress", { dev: " RUNNING ", qa: "pending" });
   bRunning.work_unit.roles = [" DEV ", "dev", "qa"];
   await show(bRunning);
   await delay(60);
@@ -102,6 +102,41 @@ async function main() {
   const bStopped = await show(task(b, "paused", { dev: "running", qa: "pending" }));
   assert.ok(elapsed(bStopped) >= 520, "another view must continue accumulating while it is not the latest snapshot");
   assert.equal(elapsed(bStopped) - roleElapsed(bStopped, "dev"), 300, "normalized duplicate role names must not count twice");
+
+  // P1 regression: a stale task-level DEV state must not activate DEV while only QA is running.
+  for (const [index, missing] of [undefined, null, ""].entries()) {
+    const id = "qa-elapsed-explicit-qa-" + index;
+    await show(task(id, "dev_in_progress", { dev: missing, qa: "running" }));
+    await delay(60);
+    const qaOnly = await show();
+    assert.equal(roleElapsed(qaOnly, "dev"), 0, "missing DEV status must not inherit task-level activity");
+    assert.ok(roleElapsed(qaOnly, "qa") >= 20, "explicit QA running must accrue time");
+    assert.equal(elapsed(qaOnly), roleElapsed(qaOnly, "qa"));
+    const stopped = await show(task(id, "dev_in_progress", { dev: missing, qa: "pending" }));
+    await delay(60);
+    assert.deepEqual(await show(), stopped, "leaving running must freeze both task and roles");
+  }
+
+  // P1 regression: UI activity aliases must not start timers; only running may resume them.
+  const aliasId = "qa-elapsed-non-running";
+  for (const status of ["preparing", "in_progress", "working", "active", "started", "started_working"]) {
+    await show(task(aliasId, "dev_in_progress", { dev: status, qa: "pending" }));
+    await delay(60);
+    const idle = await show();
+    assert.equal(elapsed(idle), 0, "non-running alias must not activate task time: " + status);
+    assert.equal(roleElapsed(idle, "dev"), 0, "non-running alias must not activate role time: " + status);
+  }
+  await show(task(aliasId, "dev_in_progress", { dev: "running", qa: "pending" }));
+  await delay(60);
+  const aliasStopped = await show(task(aliasId, "dev_in_progress", { dev: "working", qa: "pending" }));
+  assert.ok(roleElapsed(aliasStopped, "dev") >= 20, "running must resume after inactive aliases");
+  assert.equal(elapsed(aliasStopped), roleElapsed(aliasStopped, "dev"));
+  await delay(60);
+  assert.deepEqual(await show(), aliasStopped, "running to an activity alias must settle and stop time");
+  await show(task(aliasId, "dev_in_progress", { dev: "running", qa: "pending" }));
+  await delay(60);
+  const aliasResumed = await show(task(aliasId, "paused", { dev: "running", qa: "pending" }));
+  assert.ok(elapsed(aliasResumed) >= elapsed(aliasStopped) + 20, "running must add a fresh interval after an alias stopped it");
 
   const excluded = task("qa-elapsed-excluded", "planned", { req: "running", dev: "pending" });
   excluded.work_unit.roles = ["dev"];

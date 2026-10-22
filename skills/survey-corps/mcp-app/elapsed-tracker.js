@@ -2,7 +2,6 @@
 const { performance } = require("node:perf_hooks");
 
 const ROLES = new Set(["req", "dev", "cr", "qa"]);
-const ACTIVE = new Set(["running", "preparing", "in_progress", "working", "active", "started", "started_working"]);
 const STOPPED = new Set(["needs_user_confirm", "paused", "waiting", "blocked", "qa_passed", "workflow_ready", "completed", "complete", "done", "success", "successful", "succeeded", "failed", "cancelled", "canceled"]);
 const object = value => value !== null && typeof value === "object" && !Array.isArray(value);
 const record = value => object(value) ? value : {};
@@ -14,11 +13,7 @@ const selectedRoles = value => [...new Set((Array.isArray(value) ? value : [valu
 function activeRoles(snapshot, selected) {
   if (STOPPED.has(status(snapshot.state))) return new Set();
   const details = record(snapshot.role_details);
-  return new Set(selected.filter(role => {
-    const value = record(details[role]).status;
-    if (ACTIVE.has(status(value))) return true;
-    return role === "dev" && snapshot.state === "dev_in_progress" && (value === undefined || value === null || value === "");
-  }));
+  return new Set(selected.filter(role => status(record(details[role]).status) === "running"));
 }
 function advance(timer, delta) {
   if (timer.active) timer.elapsed = Math.min(Number.MAX_SAFE_INTEGER, timer.elapsed + delta);
