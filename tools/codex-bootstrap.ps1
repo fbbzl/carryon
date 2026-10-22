@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
   [ValidateSet("Install", "Update", "Uninstall")]
   [string]$Action = "Update",

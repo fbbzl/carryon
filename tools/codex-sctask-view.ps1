@@ -1,11 +1,12 @@
-[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
+﻿[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
 param(
   [ValidateSet("Install", "Update", "Uninstall")]
   [string]$Action = "Update",
-  [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
+  [string]$RepositoryRoot
 )
 
 $ErrorActionPreference = "Stop"
+if (-not $RepositoryRoot) { $RepositoryRoot = Split-Path -Parent $PSScriptRoot }
 $root = (Resolve-Path $RepositoryRoot).Path
 $marketplacePath = Join-Path $root ".agents\plugins\marketplace.json"
 $pluginPath = Join-Path $root "skills\survey-corps\mcp-app"
