@@ -6,6 +6,8 @@ const path = require("node:path");
 const appTemplate = fs.readFileSync(path.join(__dirname, "assets", "sc-task-view.html"), "utf8");
 const skill = fs.readFileSync(path.join(__dirname, "..", "SKILL.md"), "utf8");
 const stateRoleLiteral = appTemplate.match(/const stateRole=\{([^}]*)\}/)?.[1] || "";
+const snapshotExample = skill.match(/### 任务视图数据契约[\s\S]*?```yaml\r?\n([\s\S]*?)\r?\n```/)?.[1] || "";
+const workUnitExample = snapshotExample.match(/^work_unit:\r?\n([\s\S]*?)(?=^[^\s#][^:\r\n]*:)/m)?.[1] || "";
 
 assert.match(appTemplate, /font:13px\/1\.6 "Segoe UI Variable","Microsoft YaHei UI","Microsoft YaHei","PingFang SC",system-ui,sans-serif/, "task view body copy must prefer readable system CJK sans-serif fonts");
 assert.doesNotMatch(appTemplate, /font:13px\/1\.5 ui-monospace/, "task view body copy must not default to a monospace font");
@@ -24,7 +26,8 @@ assert.match(appTemplate, /function formatElapsed\(value\)/, "elapsed time must 
 assert.match(appTemplate, /const validMetric=value=>Number\.isSafeInteger\(value\)&&value>=0/, "metrics must reject missing, fractional and negative values");
 assert.match(appTemplate, /function renderRoleMetrics\(body,value\)/, "role cards must expose per-role measured usage");
 assert.match(appTemplate, /renderTaskMetrics\(root,work\)/, "task metrics must be refreshed on every snapshot");
-assert.match(skill, /work_unit\.metrics:.*elapsed_ms、total_tokens/, "snapshot contract must document task metrics");
+assert.match(workUnitExample, /^  metrics:\s+# 可选；仅记录来源可核验的实测值：elapsed_ms、total_tokens，UI 展示任务总计/m, "snapshot example must nest task metrics as a direct work_unit field");
+assert.doesNotMatch(snapshotExample, /\nwork_unit\.metrics:/, "snapshot example must not document task metrics as a root-level dotted key");
 assert.match(skill, /role_details:\s+# 可选，以 req\/dev\/cr\/qa 为键[\s\S]*?metrics:\s+# 可选；仅记录该角色实测 elapsed_ms、total_tokens/, "snapshot contract must document role metrics");
 assert.match(skill, /视图不得计时、推算/, "view must not invent usage metrics");
 assert.match(appTemplate, /border-radius:8px/, "task view must use a restrained rounded outer surface");

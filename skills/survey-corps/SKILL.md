@@ -45,10 +45,10 @@ work_unit:
   risks: []
   evidence: []
   next_action:
+  metrics:                # 可选；仅记录来源可核验的实测值：elapsed_ms、total_tokens，UI 展示任务总计
 view_id:                 # 必填；稳定逻辑 ID，格式为 sc-task-view:<work_unit_id>，UI 不展示
 state:                   # 必填；编排者计算的唯一当前状态，不由 handoffs 数组推断
 resume_state:            # state=needs_revalidation 时必填，表示从何处恢复复验
-work_unit.metrics:       # 可选；仅记录来源可核验的实测值：elapsed_ms、total_tokens，UI 展示任务总计
 role_details:            # 可选，以 req/dev/cr/qa 为键
   req:
     status:              # 可选；角色自身快照，交接记录不能替代它
