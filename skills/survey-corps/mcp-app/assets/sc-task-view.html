@@ -88,7 +88,6 @@
         <dt>参与角色</dt><dd data-sc-selected-roles>尚未选择</dd>
         <dt>选择原因</dt><dd data-sc-field="role_selection_reason">未提供</dd>
         <dt>累计耗时</dt><dd data-sc-metric="task-elapsed">未提供</dd>
-        <dt>累计 Token</dt><dd data-sc-metric="task-tokens">未提供</dd>
       </dl>
     </article>
     <div class="sc-task-view__roles" data-sc-roles aria-label="REQ、DEV、CR、QA 顺序任务"></div>
@@ -118,7 +117,6 @@
       const roleStatusClass=value=>toneClass(roleStatusTones,normalizedStatus(value));
       const optionalText=value=>typeof value==="string"?value.trim():"";
       const validMetric=value=>Number.isSafeInteger(value)&&value>=0;
-      const formatTokens=value=>validMetric(value)?new Intl.NumberFormat("zh-CN").format(value):"未提供";
       function formatElapsed(value) {
         if (!validMetric(value)) return "未提供";
         if (value<1000) return `${value}毫秒`;
@@ -140,7 +138,6 @@
       function renderTaskMetrics(root,work) {
         const metrics=asObject(work.metrics);
         setMetric(root.querySelector('[data-sc-metric="task-elapsed"]'),metrics.elapsed_ms,formatElapsed);
-        setMetric(root.querySelector('[data-sc-metric="task-tokens"]'),metrics.total_tokens,formatTokens);
       }
       const projectMcpName=value=>{ const name=optionalText(value).toLowerCase(); return /^[a-z][a-z0-9._-]{0,63}$/.test(name)?name:""; };
       function renderProjectMcps(root,work) {
@@ -165,14 +162,12 @@
       function detailField(body,label,value) { const heading=document.createElement("h3"),content=document.createElement("div"); heading.textContent=label; renderList(content,value); body.append(heading,content); }
       function renderRoleMetrics(body,value) {
         const metrics=asObject(value),heading=document.createElement("h3"),list=document.createElement("dl");
-        heading.textContent="实际用量";
+        heading.textContent="执行耗时";
         list.className="sc-task-view__role-metrics";
-        [["角色耗时",metrics.elapsed_ms,formatElapsed],["Token 用量",metrics.total_tokens,formatTokens]].forEach(([label,amount,format])=>{
-          const term=document.createElement("dt"),definition=document.createElement("dd");
-          term.textContent=label;
-          setMetric(definition,amount,format);
-          list.append(term,definition);
-        });
+        const term=document.createElement("dt"),definition=document.createElement("dd");
+        term.textContent="角色耗时";
+        setMetric(definition,metrics.elapsed_ms,formatElapsed);
+        list.append(term,definition);
         body.append(heading,list);
       }
       const subskillNames={req:["align-with-visuals","grill-with-docs"],dev:["tech-select","refactor-with-goal","bug-fix","bug-cause","optimize"],cr:["review-with-goal"],qa:["test-with-goal"]};

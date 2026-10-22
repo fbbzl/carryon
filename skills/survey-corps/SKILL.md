@@ -45,14 +45,14 @@ work_unit:
   risks: []
   evidence: []
   next_action:
-  metrics:                # 可选；仅记录来源可核验的实测值：elapsed_ms、total_tokens，UI 展示任务总计
+  metrics:                # 服务端自动填充 elapsed_ms；首次可提供实测基线，UI 展示任务累计耗时
 view_id:                 # 必填；稳定逻辑 ID，格式为 sc-task-view:<work_unit_id>，UI 不展示
 state:                   # 必填；编排者计算的唯一当前状态，不由 handoffs 数组推断
 resume_state:            # state=needs_revalidation 时必填，表示从何处恢复复验
 role_details:            # 可选，以 req/dev/cr/qa 为键
   req:
     status:              # 可选；角色自身快照，交接记录不能替代它
-    metrics:             # 可选；仅记录该角色实测 elapsed_ms、total_tokens
+    metrics:             # 服务端自动填充该角色 elapsed_ms；首次可提供实测基线
     summary:
     evidence: []
     risks: []
@@ -63,9 +63,11 @@ handoffs: []             # 权威交接记录；不在 UI 中逐条展示
 
 角色名称标记固定为：REQ 为 Hange、DEV 为 Eren、CR 为 Armin、QA 为 Mikasa。名称仅用于角色标记，不在任务视图中展示，不代表 subagent 名称或身份，不参与状态、交接、权限或完成门禁。视图标题仅显示 REQ、DEV、CR、QA。
 
-编排者每次构建快照时，按当前任务填写 `task_type`、实际参与的 `roles` 和 `role_selection_reason`；顶部不展示项目名、视图 ID 或 subagent 名称。`work_unit.metrics` 和 `role_details.<role>.metrics` 接受非负安全整数 `elapsed_ms`（耗时毫秒）和 `total_tokens`（实际 token 总量），只记录运行环境提供的实测值；缺少来源、值无效或旧快照未包含时显示“未提供”，视图不得计时、推算、求和或将输入/输出 token 重复累计。若提供任务总值，由权威记录来源填写。`project_mcps` 只填写已在当前项目生效的 MCP 名称（例如 `codegraph`）：必须同时具备当前项目已初始化的证据和当前会话工具可用性，缺任一项都不填写；不填写地址、参数、密钥或未经确认的候选项。名称会转为小写，且仅接受字母开头、由字母、数字、`.`、`_`、`-` 组成的 1–64 字符标识。有效值在左上角以默认折叠的“项目 MCP”展示，无值时完全隐藏，视图不得读取或推断本机宿主配置。参与角色只展示 `work_unit.roles` 中规范化、去重后的 req/dev/cr/qa，未提供有效角色时显示“尚未选择”，不根据状态猜测参与链。任务上下文中的 `scope`、`acceptance`、`environment` 保留在权威快照中但不在 UI 展示。主流程仍止于 QA 卡，QA 下方的无边框任务总结只读展示 `work_unit.summary`，不是额外角色或完成门禁。
+编排者每次构建快照时，按当前任务填写 `task_type`、实际参与的 `roles` 和 `role_selection_reason`；顶部不展示项目名、视图 ID 或 subagent 名称。MCP server 为包含 object `work_unit` 的快照自动填充 `work_unit.metrics.elapsed_ms` 和选中角色的 `role_details.<role>.metrics.elapsed_ms`，使用当前服务会话的单调时钟。任务耗时累计各角色活动时段的并集，不能把并行角色数字相加作为任务总量；角色耗时分别累计。活动角色使用上述活动白名单与缺失 DEV 状态时的 `dev_in_progress` 映射；显式等待用户、暂停、等待、全局 blocked、测试通过、完成、失败或取消状态会停止全部计时；cr_blocked、qa_failed、qa_conditional 下若有显式活动角色，仍累计返修耗时，无活动角色则不累计，其他未知状态不自行推断活动角色。首次观测的任务或角色可以用非负安全整数 `elapsed_ms` 作实测基线，无效或未提供时从 0 开始；后续回传值不覆盖服务端累计值，避免重复累计。Token 用量不再采集或展示；旧 `total_tokens` 字段仅兼容透传。视图不得自行计时、推算或求和。`project_mcps` 只填写已在当前项目生效的 MCP 名称（例如 `codegraph`）：必须同时具备当前项目已初始化的证据和当前会话工具可用性，缺任一项都不填写；不填写地址、参数、密钥或未经确认的候选项。名称会转为小写，且仅接受字母开头、由字母、数字、`.`、`_`、`-` 组成的 1–64 字符标识。有效值在左上角以默认折叠的“项目 MCP”展示，无值时完全隐藏，视图不得读取或推断本机宿主配置。参与角色只展示 `work_unit.roles` 中规范化、去重后的 req/dev/cr/qa，未提供有效角色时显示“尚未选择”，不根据状态猜测参与链。任务上下文中的 `scope`、`acceptance`、`environment` 保留在权威快照中但不在 UI 展示。主流程仍止于 QA 卡，QA 下方的无边框任务总结只读展示 `work_unit.summary`，不是额外角色或完成门禁。
 
-任务视图将当前 `snapshot.state` 和角色 `status` 映射为中文标签，不显示英文状态值；未知值显示“未知状态”，缺失角色状态显示“状态未提供”，权威快照值不变。任务累计耗时和累计 token 用量展示在任务元数据中，角色耗时和 token 用量展示在对应角色详情中；毫秒与非负整数 token 分别格式化，非法或缺失值显示“未提供”。任务累计值由权威记录来源提供，不能把并行角色数字相加作为任务总量。卡片使用克制圆角和短过渡；尊重 `prefers-reduced-motion`。不展示状态机、状态参考集、复验入口或 `resume_state`。`resume_state` 仍是 `state=needs_revalidation` 时的必填权威工作流字段，只是不进入该极简 UI。全部外部展示值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
+耗时在角色启动、状态变化与空参数恢复视图时结算，不使用页面定时器或轮询；必须及时发送暂停和结束快照，服务端无法知道未上报的状态变化。相同 `view_id` 在当前服务会话中恢复不会重置，最多保留 128 个计时记录；达到上限后明确拒绝新任务，不静默淘汰旧记录。记录只存内存，服务重启后不能恢复未保存的历史时段，只能从重新提供的实测基线或 0 开始。无 object `work_unit` 的纯视图快照保持原样，不生成新计时记录；但同一 `view_id` 的显式停止状态仍会结算并暂停已有计时，纯快照不启动或恢复计时。
+
+任务视图将当前 `snapshot.state` 和角色 `status` 映射为中文标签，不显示英文状态值；未知值显示“未知状态”，缺失角色状态显示“状态未提供”，权威快照值不变。任务累计耗时展示在任务元数据中，角色耗时展示在对应角色详情的“执行耗时”中；毫秒值格式化为天、小时、分、秒，直接渲染旧快照时非法或缺失值显示“未提供”。卡片使用克制圆角和短过渡；尊重 `prefers-reduced-motion`。不展示状态机、状态参考集、复验入口或 `resume_state`。`resume_state` 仍是 `state=needs_revalidation` 时的必填权威工作流字段，只是不进入该极简 UI。全部外部展示值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
 
 `role_details.<role>.subskills` 是可选数组，每项包含 `name`、`status` 及可选字符串 `goal`、`summary`、`question`、`result`，`options` 和 `evidence` 只接收字符串数组。只记录该角色实际调用的子技能：REQ 支持 `align-with-visuals`、`grill-with-docs`；DEV 支持 `tech-select`、`refactor-with-goal`、`bug-fix`、`bug-cause`、`optimize`；CR 支持 `review-with-goal`；QA 支持 `test-with-goal`。非法名称、角色不匹配、错误类型和空白内容不展示；只有名称或状态、没有任务内容的项也不展示。候选选项仅随有效问题展示。
 

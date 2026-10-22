@@ -4,10 +4,14 @@
 
 这是 SC 任务视图的唯一渲染路径。项目不生成或打开本地 `visualizations` HTML，也不提供文本或其他替代视图。若 MCP tool 不可用或调用失败，SC 工作单元将进入 `blocked`，直到插件和 MCP Apps 能力恢复。
 
+任务和角色耗时由服务端在当前会话内自动统计：活动角色开始后累计，等待用户、暂停、全局 blocked 或结束时停止，任务总值按活动时段并集计算，不叠加并行角色。状态变化或空参数恢复视图时结算，页面不轮询；未上报的暂停/结束无法自动识别。包含 object `work_unit` 的快照才创建或启动计时；纯 `{view_id,state}` 快照保持原样，但显式暂停或结束仍停止同一 view 的已有计时。首次可以提供有效的 `metrics.elapsed_ms` 作为历史基线，后续回传不会重复累计。计时记录按 `view_id` 隔离，内存最多保存 128 个任务，满后明确拒绝新 ID；服务重启不会保留历史时段。Token 用量不再采集或展示，旧 `total_tokens` 仅兼容透传。
+
 ## 本地验证
 
 ```powershell
 node .\skills\survey-corps\mcp-app\test-server.js
+node .\skills\survey-corps\mcp-app\test-elapsed-tracker.js
+node .\skills\survey-corps\mcp-app\test-elapsed-integration.js
 node .\skills\survey-corps\mcp-app\test-cr-contract.js
 node .\skills\survey-corps\mcp-app\test-app-bridge-contract.js
 node .\skills\survey-corps\mcp-app\test-thread-entrypoint-contract.js
@@ -32,8 +36,8 @@ marketplace 将该插件标为 `AVAILABLE`、`ON_INSTALL` 和 `Productivity`；�
 
 ## 安全与边界
 
-- 请求帧上限为 256 KiB，快照上限为 200 KiB（均按 UTF-8 字节计算，快照预算为响应封装预留空间）。快照仅接受 JSON object，`view_id` 必须是非空字符串；可选的 `state` 必须是字符串。所有快照值由原模板以 `textContent` 输出。
+- 请求帧上限为 256 KiB，输入及加入耗时后的快照上限为 200 KiB（均按 UTF-8 字节计算，快照预算为响应封装预留空间）。超限会拒绝且不改变缓存和计时记录。快照仅接受 JSON object，`view_id` 必须是非空字符串；可选的 `state` 必须是字符串。所有快照值由原模板以 `textContent` 输出。
 - 角色卡只展示 `work_unit.roles` 中的有效参与角色；未选择角色时不生成角色卡。角色名称标记不在视图中展示。
-- server 本身不联网、不写入磁盘，快照仅在当前 server 进程内缓存最近一份，无轮询或后台服务；marketplace 元数据不是运行时隔离保证。
+- server 本身不联网、不写入磁盘，快照仅在当前 server 进程内缓存最近一份，另保存最多 128 个任务的计时记录，无轮询或后台服务；marketplace 元数据不是运行时隔离保证。
 - 工具展示不改变 SC 权威状态、交接或完成门禁。
 - 已在当前验证环境完成 MCP App 注册与工具调用验收；`show_sc_task_view` 状态更新调用成功并返回 `structuredContent.snapshot`。不同 Codex Desktop 版本仍需单独确认宿主面板的视觉渲染。

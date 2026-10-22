@@ -4,6 +4,7 @@
 // Minimal, dependency-free MCP stdio server for the SC task view.
 const fs = require("node:fs");
 const path = require("node:path");
+const { createElapsedTracker } = require("./elapsed-tracker");
 
 const APP_URI = "ui://survey-corps/task-view";
 const APP_MIME = "text/html;profile=mcp-app";
@@ -11,11 +12,12 @@ const TEMPLATE_PATH = path.join(__dirname, "assets", "sc-task-view.html");
 const MAX_FRAME_BYTES = 256 * 1024;
 const MAX_SNAPSHOT_BYTES = 200 * 1024;
 const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", "2025-11-25"]);
-const METRIC_SCHEMA = { type: "object", additionalProperties: false, properties: { elapsed_ms: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, description: "Measured elapsed time in milliseconds; omitted when unavailable." }, total_tokens: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, description: "Measured total token usage; omitted when unavailable." } } };
+const METRIC_SCHEMA = { type: "object", additionalProperties: false, properties: { elapsed_ms: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, description: "Active elapsed time in milliseconds, measured by the server in this session. A supplied value seeds the first observation only." }, total_tokens: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, deprecated: true, description: "Legacy compatibility field; not collected or displayed." } } };
 const ROLE_DETAIL_SCHEMA = { type: "object", properties: { metrics: METRIC_SCHEMA } };
 const SNAPSHOT_SCHEMA = { type: "object", required: ["view_id"], properties: { state: { type: "string" }, view_id: { type: "string", minLength: 1, description: "Stable logical view identifier; not displayed in the UI or used as a path or resource URI." }, work_unit: { type: "object", properties: { metrics: METRIC_SCHEMA } }, role_details: { type: "object", properties: { req: ROLE_DETAIL_SCHEMA, dev: ROLE_DETAIL_SCHEMA, cr: ROLE_DETAIL_SCHEMA, qa: ROLE_DETAIL_SCHEMA }, additionalProperties: true } } };
 const EMPTY_SNAPSHOT = Object.freeze({ view_id: "sc-task-view:empty", state: "unknown" });
 let latestSnapshot = null;
+const elapsedTracker = createElapsedTracker();
 
 function send(message) {
   const line = `${JSON.stringify(message)}\n`;
@@ -24,6 +26,9 @@ function send(message) {
   process.stdout.write(fallback);
 }
 function failure(id, code, message) { send({ jsonrpc: "2.0", id, error: { code, message } }); }
+function viewResponse(id, snapshot, message) {
+  return { jsonrpc: "2.0", id, result: { content: [{ type: "text", text: message }], structuredContent: { snapshot } } };
+}
 function readTemplate() { return fs.readFileSync(TEMPLATE_PATH, "utf8"); }
 function appHtml() {
   return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body><main id="sc-task-view-root">${readTemplate()}</main><script>(()=>{
@@ -75,10 +80,21 @@ function handle(id, method, params) {
       const snapshotError = validateSnapshot(args.snapshot);
       if (snapshotError) return failure(id, -32602, snapshotError);
     }
-    if (hasSnapshot) latestSnapshot = args.snapshot;
-    const snapshot = hasSnapshot ? args.snapshot : latestSnapshot || EMPTY_SNAPSHOT;
     const message = hasSnapshot ? "SC Agent Tree 已更新。" : latestSnapshot ? "SC Agent Tree 已恢复。" : "SC Agent Tree 尚未收到任务快照。";
-    return send({ jsonrpc: "2.0", id, result: { content: [{ type: "text", text: message }], structuredContent: { snapshot } } });
+    let snapshot, frameExceeded = false;
+    const acceptSnapshot = candidate => {
+      if (Buffer.byteLength(JSON.stringify(candidate), "utf8") > MAX_SNAPSHOT_BYTES) return false;
+      frameExceeded = Buffer.byteLength(`${JSON.stringify(viewResponse(id, candidate, message))}\n`, "utf8") > MAX_FRAME_BYTES;
+      return !frameExceeded;
+    };
+    try { snapshot = elapsedTracker.update(hasSnapshot ? args.snapshot : latestSnapshot || EMPTY_SNAPSHOT, acceptSnapshot); }
+    catch (error) {
+      if (error instanceof RangeError) return failure(id, -32000, error.message);
+      throw error;
+    }
+    if (!snapshot) return failure(id, frameExceeded ? -32603 : -32602, frameExceeded ? "Response exceeds 256 KiB" : "snapshot exceeds 200 KiB after adding elapsed time");
+    if (hasSnapshot) latestSnapshot = snapshot;
+    return send(viewResponse(id, snapshot, message));
   }
   failure(id, -32601, `Method not found: ${method}`);
 }
