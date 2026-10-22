@@ -4,11 +4,17 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const appTemplate = fs.readFileSync(path.join(__dirname, "assets", "sc-task-view.html"), "utf8");
-const skill = fs.readFileSync(path.join(__dirname, "..", "SKILL.md"), "utf8");
+const skillPath = path.join(__dirname, "..", "SKILL.md");
+const repositoryRoot = path.resolve(__dirname, "..", "..", "..");
+const isSourceTree = fs.existsSync(path.join(repositoryRoot, ".agents", "plugins", "marketplace.json"));
+assert.ok(!isSourceTree || fs.existsSync(skillPath), "repository Skill is missing from the source tree");
+const skill = isSourceTree ? fs.readFileSync(skillPath, "utf8") : null;
 const stateRoleLiteral = appTemplate.match(/const stateRole=\{([^}]*)\}/)?.[1] || "";
 const stateLabelsLiteral = appTemplate.match(/const labels=\{([^}]*)\}/)?.[1] || "";
 const stateTonesLiteral = appTemplate.match(/const stateTones=\{([^}]*)\}/)?.[1] || "";
-const snapshotExample = skill.match(/### 任务视图数据契约[\s\S]*?```yaml\r?\n([\s\S]*?)\r?\n```/)?.[1] || "";
+const assertSkillMatch = (pattern, message) => { if (skill) assert.match(skill, pattern, message); };
+const assertSkillDoesNotMatch = (pattern, message) => { if (skill) assert.doesNotMatch(skill, pattern, message); };
+const snapshotExample = skill?.match(/### 任务视图数据契约[\s\S]*?```yaml\r?\n([\s\S]*?)\r?\n```/)?.[1] || "";
 const workUnitExample = snapshotExample.match(/^work_unit:\r?\n([\s\S]*?)(?=^[^\s#][^:\r\n]*:)/m)?.[1] || "";
 
 assert.match(appTemplate, /font:13px\/1\.6 "Segoe UI Variable","Microsoft YaHei UI","Microsoft YaHei","PingFang SC",system-ui,sans-serif/, "task view body copy must prefer readable system CJK sans-serif fonts");
@@ -28,11 +34,11 @@ assert.match(appTemplate, /function formatElapsed\(value\)/, "elapsed time must 
 assert.match(appTemplate, /const validMetric=value=>Number\.isSafeInteger\(value\)&&value>=0/, "metrics must reject missing, fractional and negative values");
 assert.match(appTemplate, /function renderRoleMetrics\(body,value\)/, "role cards must expose per-role measured usage");
 assert.match(appTemplate, /renderTaskMetrics\(root,work\)/, "task metrics must be refreshed on every snapshot");
-assert.match(workUnitExample, /^  metrics:.*elapsed_ms/m, "snapshot example must nest elapsed time as a direct work_unit field");
+if (skill) assert.match(workUnitExample, /^  metrics:.*elapsed_ms/m, "snapshot example must nest elapsed time as a direct work_unit field");
 assert.doesNotMatch(snapshotExample, /\nwork_unit\.metrics:/, "snapshot example must not document task metrics as a root-level dotted key");
-assert.match(skill, /role_details:\s+# 可选，以 req\/dev\/cr\/qa 为键[\s\S]*?metrics:.*elapsed_ms/, "snapshot contract must document role elapsed time");
-assert.match(skill, /服务端.*累计/, "the server must own elapsed time accumulation");
-assert.match(skill, /视图不得自行计时、推算/, "view must not invent elapsed time");
+assertSkillMatch(/role_details:\s+# 可选，以 req\/dev\/cr\/qa 为键[\s\S]*?metrics:.*elapsed_ms/, "snapshot contract must document role elapsed time");
+assertSkillMatch(/服务端.*累计/, "the server must own elapsed time accumulation");
+assertSkillMatch(/视图不得自行计时、推算/, "view must not invent elapsed time");
 assert.match(appTemplate, /border-radius:8px/, "task view must use a restrained rounded outer surface");
 assert.match(appTemplate, /border-radius:6px/, "cards must use restrained rounded corners");
 assert.match(appTemplate, /transition:box-shadow 160ms ease/, "cards must use short hover transitions");
@@ -47,10 +53,10 @@ assert.match(appTemplate, /data-sc-field="state" aria-live="polite"[\s\S]*?heade
 assert.match(appTemplate, /<details class="sc-task-view__project-mcps" data-sc-project-mcps hidden>[\s\S]*?项目 MCP[\s\S]*?data-sc-project-mcp-list/, "project MCP names must render as a default-collapsed left header section");
 assert.match(appTemplate, /function renderProjectMcps\(root,work\)[\s\S]*?work\.project_mcps[\s\S]*?section\.hidden=!mcps\.length[\s\S]*?item\.textContent=name/, "project MCPs must be supplied by the snapshot, hidden when absent, and rendered as text only");
 assert.match(appTemplate, /projectMcpName=value=>\{ const name=optionalText\(value\)\.toLowerCase\(\); return \/\^\[a-z\]/, "project MCP names must be normalized and restricted to safe identifiers");
-assert.match(skill, /project_mcps: \[\].*当前项目已生效的 MCP 名称/, "snapshot contract must declare explicit project MCP names");
-assert.match(skill, /视图不得读取或推断本机宿主配置/, "project MCP display must not scan local host configuration");
+assertSkillMatch(/project_mcps: \[\].*当前项目已生效的 MCP 名称/, "snapshot contract must declare explicit project MCP names");
+assertSkillMatch(/视图不得读取或推断本机宿主配置/, "project MCP display must not scan local host configuration");
 assert.match(appTemplate, /@media \(max-width:560px\)[\s\S]*?\.sc-task-view__header \{ flex-direction:column/, "the header must keep a responsive single-column layout on narrow screens");
-assert.match(skill, /project_name:\s+# 可选；当前会话所属项目名称，UI 不展示，不得猜测/, "the optional project name must remain in the snapshot contract without rendering");
+assertSkillMatch(/project_name:\s+# 可选；当前会话所属项目名称，UI 不展示，不得猜测/, "the optional project name must remain in the snapshot contract without rendering");
 assert.doesNotMatch(appTemplate, /data-sc-agent-name|sc-task-view__agent-name/, "subagent names must not render in role cards");
 assert.match(appTemplate, /data-sc-play-animation hidden/, "animation replay is a hidden debug control by default");
 assert.match(appTemplate, /data-sc-subskill-field|dataset\.scSubskillField/, "called subskills must expose their read-only fields");
@@ -73,10 +79,10 @@ for (const [state, label, tone] of [["paused", "已暂停", "waiting"], ["waitin
 }
 assert.match(appTemplate, /detailField\(body,"摘要".*detailField\(body,"必要证据".*detailField\(body,"风险".*detailField\(body,"下一步"/, "role cards must contain only the compact task fields");
 assert.doesNotMatch(appTemplate, /data-sc-field="resume_state"|data-sc-state-reference|复验入口/, "minimal UI must not render the state machine or resume_state");
-assert.match(skill, /不展示状态机、状态参考集、复验入口或 `resume_state`/, "skill must keep resume_state authoritative but out of the UI");
-assert.doesNotMatch(skill, /needs_revalidation` 时必须展示 `resume_state`/, "skill must not require resume_state rendering");
-assert.match(skill, /handoffs: \[\].*权威交接记录.*不在 UI 中逐条展示/, "skill must keep handoffs authoritative but out of the minimal UI");
-assert.doesNotMatch(skill, /handoffs: \[\].*每条均展示|handoffs?.*(session log|Session log|逐条展示其自身)/, "skill must not require handoff or session-log rendering");
+assertSkillMatch(/不展示状态机、状态参考集、复验入口或 `resume_state`/, "skill must keep resume_state authoritative but out of the UI");
+assertSkillDoesNotMatch(/needs_revalidation` 时必须展示 `resume_state`/, "skill must not require resume_state rendering");
+assertSkillMatch(/handoffs: \[\].*权威交接记录.*不在 UI 中逐条展示/, "skill must keep handoffs authoritative but out of the minimal UI");
+assertSkillDoesNotMatch(/handoffs: \[\].*每条均展示|handoffs?.*(session log|Session log|逐条展示其自身)/, "skill must not require handoff or session-log rendering");
 
 for (const tone of ["pending", "active", "completed", "passed", "danger", "waiting", "revision", "unknown"]) assert.match(appTemplate, new RegExp(`sc-task-view__state--${tone} \\{[^}]*color:`), `${tone} must define a semantic status color`);
 assert.match(appTemplate, /--unknown:#fff/, "unknown and missing status text must be white");
@@ -91,4 +97,4 @@ assert.match(appTemplate, /@keyframes sc-running-pulse/, "the running role anima
 assert.match(appTemplate, /workflow_ready:"任务完成"/, "workflow_ready must present completion without changing its state semantics");
 assert.match(appTemplate, /workflow_ready:"已通过"/, "the completed QA workflow state must display as passed in role cards");
 
-console.log("SC minimal task-flow UI contract passed.");
+console.log(skill ? "SC minimal task-flow UI contract passed." : "SC minimal task-flow UI contract passed (repository Skill checks skipped outside the source tree).");
