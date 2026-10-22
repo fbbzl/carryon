@@ -15,9 +15,12 @@ node .\skills\survey-corps\mcp-app\test-plugin-structure.js
 node .\skills\survey-corps\mcp-app\test-motion-contract.js
 node .\skills\survey-corps\mcp-app\test-ui-contract.js
 node .\skills\survey-corps\mcp-app\test-ui-behavior.js
+node .\skills\survey-corps\mcp-app\test-protocol-boundaries.js
+node .\skills\survey-corps\mcp-app\test-failure-detection.js
+node .\tools\test-codex-lifecycle.js
 ```
 
-仓库提供一行引导命令：`& ([scriptblock]::Create((irm https://raw.githubusercontent.com/fbbzl/kyojin/main/tools/codex-bootstrap.ps1))) -Action Install`。它会自动克隆或更新本地仓库，再调用 `tools/codex-sctask-view.ps1` 完成生命周期操作。`Install` 注册并验证插件，`Update` 验证当前代码并提示重载，`Uninstall -Confirm` 移除本仓库 marketplace 注册。脚本不删除插件源代码，也不能代替 Codex Desktop 的宿主重载操作。
+仓库提供一行引导命令：`& ([scriptblock]::Create((irm https://raw.githubusercontent.com/fbbzl/kyojin/main/tools/codex-bootstrap.ps1))) -Action Install`。它会自动克隆或更新本地仓库，再调用 `tools/codex-sctask-view.ps1` 完成生命周期操作。`Install` 注册并验证插件，`Update` 验证当前代码并提示重载，`Uninstall -Confirm` 移除本仓库 marketplace 注册。本地脚本卸载不调用 Git，也不要求 Node 或插件源码完整；若需离线卸载，直接运行本地脚本。两个入口均支持 `-WhatIf` 和 `-Confirm`；引导脚本统一确认一次，拒绝或预演不更新仓库、不写入注册。注册前验证失败不会留下新注册，同名来源冲突会明确拒绝。脚本不删除插件源代码，也不能代替 Codex Desktop 的宿主重载操作。
 
 ## 注册（需用户自行授权）
 
@@ -29,7 +32,8 @@ marketplace 将该插件标为 `AVAILABLE`、`ON_INSTALL` 和 `Productivity`；�
 
 ## 安全与边界
 
-- 输入仅接受 JSON object，限制为 256 KiB；所有快照值由原模板以 `textContent` 输出。
+- 请求帧上限为 256 KiB，快照上限为 200 KiB（均按 UTF-8 字节计算，快照预算为响应封装预留空间）。快照仅接受 JSON object，`view_id` 必须是非空字符串；可选的 `state` 必须是字符串。所有快照值由原模板以 `textContent` 输出。
+- 角色卡只展示 `work_unit.roles` 中的有效参与角色；未选择角色时不生成角色卡。角色名称标记不在视图中展示。
 - server 本身不联网、不写入磁盘，快照仅在当前 server 进程内缓存最近一份，无轮询或后台服务；marketplace 元数据不是运行时隔离保证。
 - 工具展示不改变 SC 权威状态、交接或完成门禁。
 - 已在当前验证环境完成 MCP App 注册与工具调用验收；`show_sc_task_view` 状态更新调用成功并返回 `structuredContent.snapshot`。不同 Codex Desktop 版本仍需单独确认宿主面板的视觉渲染。

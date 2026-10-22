@@ -10,7 +10,7 @@ const stateRoleLiteral = appTemplate.match(/const stateRole=\{([^}]*)\}/)?.[1] |
 assert.match(appTemplate, /font:13px\/1\.6 "Segoe UI Variable","Microsoft YaHei UI","Microsoft YaHei","PingFang SC",system-ui,sans-serif/, "task view body copy must prefer readable system CJK sans-serif fonts");
 assert.doesNotMatch(appTemplate, /font:13px\/1\.5 ui-monospace/, "task view body copy must not default to a monospace font");
 assert.match(appTemplate, /const roles=\["req","dev","cr","qa"\]/, "task flow must retain the canonical role set");
-assert.match(appTemplate, /selectedRoles\.length\?selectedRoles:roles/, "task flow must render selected roles in declared order");
+assert.match(appTemplate, /orderedRoles=selectedRoles;/, "task flow must render selected roles in declared order");
 assert.doesNotMatch(appTemplate, /data-sc-exit|sc-task-view__exit|QA · 唯一任务出口/, "QA exit must not render a separate node or retain its styles");
 assert.match(appTemplate, /roleName\.textContent=roleLabels\[role\]/, "role titles must use the plain role label without a QA exit suffix");
 assert.match(appTemplate, /data-sc-task-summary>暂无总结</, "task summary must default to no supplied summary");
@@ -37,7 +37,7 @@ assert.match(appTemplate, /data-sc-play-animation hidden/, "animation replay is 
 assert.match(appTemplate, /data-sc-subskill-field|dataset\.scSubskillField/, "called subskills must expose their read-only fields");
 assert.doesNotMatch(appTemplate, /data-sc-subskill-submit|data-sc-subskill-approve|data-sc-subskill-choice/, "subskill records must not imply a reply or approval channel");
 assert.doesNotMatch(appTemplate, /data-sc-tree-gate|回到 SC|data-sc-state-reference|sc-task-view__console|data-sc-events|Session log/, "nonessential or post-QA views must not be rendered");
-assert.match(appTemplate, /const explicit=roles\.filter\(role=>isActiveRoleStatus\(asObject\(details\[role\]\)\.status\)\); if \(explicit\.length\) return explicit\.at\(-1\); const mapped=stateRole\[state\]; return mapped&&!missing\(asObject\(details\[mapped\]\)\.status\)\?null:mapped\|\|null/, "explicit activity and completed role status must take precedence over the global state mapping");
+assert.match(appTemplate, /const explicit=selectedRoles\.filter/, "activity must be resolved only from selected roles");
 assert.match(appTemplate, /node\.open=role===openRole/, "role expansion must follow the preserved or newly resolved open role");
 assert.match(appTemplate, /const active=role===activeRole/, "role cards must compare against one resolved active role");
 assert.match(appTemplate, /querySelectorAll\("details\[data-sc-role\]\[open\]"\).*if \(node!==opened\) node\.open=false/, "opening one role must close every other role");

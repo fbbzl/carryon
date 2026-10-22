@@ -1,46 +1,28 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const { spawn } = require("node:child_process");
-const path = require("node:path");
-
-const server = spawn(process.execPath, [path.join(__dirname, "server.js")], { stdio: ["pipe", "pipe", "pipe"] });
-let buffer = "";
+const { startServer } = require("./test-stdio-helper");
+const { server, complete } = startServer({ onReply: reply => {
+  const check = checks.get(reply.id);
+  if (!check) throw new Error("unexpected reply " + reply.id);
+  checks.delete(reply.id);
+  check(reply);
+  if (!checks.size) finish();
+} });
 const checks = new Map();
 let finished = false;
 
-function finish(error) {
+function finish() {
   if (finished) return;
   finished = true;
-  server.kill();
-  if (error) {
-    console.error(error);
-    process.exitCode = 1;
-  } else {
-    console.log("MCP App thread entrypoint contract test passed.");
-  }
+  console.log("MCP App thread entrypoint contract test passed.");
+  complete();
 }
 
 function request(id, params, check) {
   checks.set(id, check);
   server.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id, method: "tools/call", params })}\n`);
 }
-
-server.stdout.on("data", data => {
-  buffer += data;
-  let end;
-  while ((end = buffer.indexOf("\n")) >= 0) {
-    const reply = JSON.parse(buffer.slice(0, end));
-    buffer = buffer.slice(end + 1);
-    const check = checks.get(reply.id);
-    if (!check) return finish(new Error(`unexpected reply ${reply.id}`));
-    checks.delete(reply.id);
-    try { check(reply); } catch (error) { return finish(error); }
-    if (!checks.size) finish();
-  }
-});
-server.stderr.on("data", data => finish(new Error(data.toString())));
-server.on("error", finish);
 
 request(1, { name: "show_sc_task_view", arguments: {} }, reply => {
   assert.equal(reply.result.structuredContent.snapshot.view_id, "sc-task-view:empty");

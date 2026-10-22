@@ -18,7 +18,7 @@ const profile = path.join(temp, "chrome-profile");
 const snapshot = {
   view_id: "sc-task-view:QA-SC-MOTION-001",
   state: "ready_for_cr",
-  work_unit: { work_unit_id: "QA-SC-MOTION-001", target: "accordion rerender", reference_version: "748c46b" },
+  work_unit: { work_unit_id: "QA-SC-MOTION-001", target: "accordion rerender", reference_version: "748c46b", roles: ["req", "dev", "cr", "qa"] },
   role_details: { req: { status: "completed", progress: "25" }, cr: { status: "running", progress: 120 }, qa: { status: "not_started", progress: -25 } },
   handoffs: [],
 };
@@ -102,7 +102,14 @@ invalidFields.role_details.dev.subskills[0]={name:'tech-select',question:'选择
 const validListFiltering={options:[...root.querySelectorAll('[data-sc-subskill-field=options] li')].map(node=>node.textContent),evidence:[...root.querySelectorAll('[data-sc-subskill-field=evidence] li')].map(node=>node.textContent)};
 const subskillUnknown=[];for(const status of ['constructor','__proto__','unknown']){invalidFields.role_details.dev.subskills[0].status=status;window.renderSurveyCorpsTaskView(root,invalidFields);subskillUnknown.push(root.querySelector('[data-sc-subskill] > summary').textContent.includes('未知状态'));}
 delete invalidFields.role_details.dev.subskills;window.renderSurveyCorpsTaskView(root,invalidFields);const subskillsRemoved=root.querySelectorAll('[data-sc-subskills]').length;
-const result={initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,progress,waitingActive,finishedDevActive,flow,defaults,debugTrue,debugString,debugDefault,debugFalse,debugInSnapshot,provided,payload,removed,roleCases,roleStatuses,roleStatusClasses,globalCases,globalStatuses,globalStatusClasses,unknown,prototypeFallbacks,legacySubskills,skills,skillFields,skillSafety,nestedOpen,outerAfterNested,skillUpdated,invalidSkills,fieldFiltering,validListFiltering,subskillUnknown,subskillsRemoved,toggleAdds,toggleRemoves,activeToggleListeners};
+const boundaries=[];
+const observe=()=>({roles:[...root.querySelectorAll('details[data-sc-role]')].map(n=>n.dataset.scRole),active:[...root.querySelectorAll('details.is-active')].map(n=>n.dataset.scRole),open:openRoles(),state:root.querySelector('[data-sc-field=state]').textContent});
+for(const roles of [[],['invalid'],['dev','cr'],['qa','dev']]){window.renderSurveyCorpsTaskView(root,{work_unit:{roles},role_details:{dev:{status:'running'},qa:{status:'running'}},state:'dev_in_progress'});boundaries.push(observe());}
+window.renderSurveyCorpsTaskView(root,{state:'dev_in_progress',work_unit:{roles:['qa']}});const excludedFallback=observe();
+const invalidStates=[];for(const state of [null,[],{}, {toString:null},true,42,'__proto__']){window.renderSurveyCorpsTaskView(root,{state,work_unit:{roles:['dev']}});invalidStates.push(observe().state);}
+window.renderSurveyCorpsTaskView(root,{state:'planned'});const emptyView=observe();
+window.renderSurveyCorpsTaskView(root,snapshot);const recovered=observe();
+const result={boundaries,excludedFallback,invalidStates,emptyView,recovered,initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,progress,waitingActive,finishedDevActive,flow,defaults,debugTrue,debugString,debugDefault,debugFalse,debugInSnapshot,provided,payload,removed,roleCases,roleStatuses,roleStatusClasses,globalCases,globalStatuses,globalStatusClasses,unknown,prototypeFallbacks,legacySubskills,skills,skillFields,skillSafety,nestedOpen,outerAfterNested,skillUpdated,invalidSkills,fieldFiltering,validListFiltering,subskillUnknown,subskillsRemoved,toggleAdds,toggleRemoves,activeToggleListeners};
 document.body.dataset.scTestResult=JSON.stringify(result);
 </script></body></html>`;
 
@@ -141,11 +148,16 @@ try {
   const encoded = run.stdout.match(/data-sc-test-result="([^"]+)"/)?.[1];
   assert.ok(encoded, "Chrome did not emit the SC behavior result");
   const result = JSON.parse(encoded.replaceAll("&quot;", '"').replaceAll("&amp;", "&"));
+  assert.deepEqual(result.boundaries.map(item=>[item.roles,item.active,item.open]), [[[],[],[]],[[],[],[]],[['dev','cr'],['dev'],['dev']],[['qa','dev'],['dev'],['dev']]], "excluded roles must not affect activity or expansion");
+  assert.deepEqual(result.excludedFallback.active, [], "global state cannot activate an excluded role");
+  assert.ok(result.invalidStates.every(state=>state==='未知状态'), "malformed state values must render safely");
+  assert.deepEqual(result.emptyView.roles, [], "empty snapshots must not invent participants");
+  assert.deepEqual(result.recovered.active, ['cr'], "valid updates must recover after malformed input");
   assert.deepEqual(result.flow, { roles: ["req", "dev", "cr", "qa"], titles: ["REQ", "DEV", "CR", "QA"], lastRole: "qa", extraExitNodes: 0, exitTextCount: 0, connectorCount: 4 }, "four role cards must end at QA without a separate exit label");
   assert.equal(result.defaults.connectorGeometry.length, 4, "every role card must have a connector");
   assert.ok(result.defaults.connectorGeometry.every(({before,after,afterTransform})=>before!=="none"&&after!=="none"&&afterTransform!=="none"), "connectors must expose a visible stem and arrowhead in the browser");
   const {connectorGeometry,...defaultValues}=result.defaults;
-  assert.deepEqual(defaultValues, { summary: "暂无总结", selected: "尚未选择", contextRemoved: true, namesRemoved: true, projectMcpsHidden: true, debugHidden: true, autoMotion: false }, "task context, agent names, absent project MCPs and automatic entrance motion must remain absent");
+  assert.deepEqual(defaultValues, { summary: "暂无总结", selected: "REQ → DEV → CR → QA", contextRemoved: true, namesRemoved: true, projectMcpsHidden: true, debugHidden: true, autoMotion: false }, "task context, agent names, absent project MCPs and automatic entrance motion must remain absent");
   assert.deepEqual(result.debugTrue, { hidden: false, replay: true }, "strict debug true must expose and enable replay");
   for (const mode of [result.debugString, result.debugDefault, result.debugFalse, result.debugInSnapshot]) assert.deepEqual(mode, { hidden: true, replay: false }, "only options.debug true may enable replay; nondebug programmatic clicks must not replay");
   assert.equal(result.provided.headerText.includes("SURVEY CORPS"), false, "header must omit the removed metadata row");

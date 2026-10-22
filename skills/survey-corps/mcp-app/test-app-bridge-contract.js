@@ -2,23 +2,18 @@
 const assert = require("node:assert/strict");
 const path = require("node:path");
 const vm = require("node:vm");
-const { spawn } = require("node:child_process");
+const { startServer } = require("./test-stdio-helper");
 
 function readResource() {
-  const server = spawn(process.execPath, [path.join(__dirname, "server.js")], { stdio: ["pipe", "pipe", "pipe"] });
   return new Promise((resolve, reject) => {
-    let buffer = "";
-    const finish = (error, html) => { server.kill(); error ? reject(error) : resolve(html); };
-    server.stderr.on("data", data => finish(new Error(data.toString())));
-    server.stdout.on("data", data => {
-      buffer += data;
-      const end = buffer.indexOf("\n");
-      if (end < 0) return;
-      try {
-        const reply = JSON.parse(buffer.slice(0, end));
-        if (reply.id !== 1) return finish(new Error("unexpected resource response"));
-        finish(null, reply.result.contents[0].text);
-      } catch (error) { finish(error); }
+    const { server, complete } = startServer({
+      onFailure: reject,
+      onReply: reply => {
+        assert.equal(reply.id, 1, "unexpected resource response");
+        const html = reply.result.contents[0].text;
+        complete();
+        resolve(html);
+      },
     });
     server.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "resources/read", params: { uri: "ui://survey-corps/task-view" } })}\n`);
   });
