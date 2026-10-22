@@ -12,6 +12,8 @@ const skill = isSourceTree ? fs.readFileSync(skillPath, "utf8") : null;
 const stateRoleLiteral = appTemplate.match(/const stateRole=\{([^}]*)\}/)?.[1] || "";
 const stateLabelsLiteral = appTemplate.match(/const labels=\{([^}]*)\}/)?.[1] || "";
 const stateTonesLiteral = appTemplate.match(/const stateTones=\{([^}]*)\}/)?.[1] || "";
+const roleStatusLabelsLiteral = appTemplate.match(/const roleStatusLabels=\{([^}]*)\}/)?.[1] || "";
+const roleStatusTonesLiteral = appTemplate.match(/const roleStatusTones=\{([^}]*)\}/)?.[1] || "";
 const assertSkillMatch = (pattern, message) => { if (skill) assert.match(skill, pattern, message); };
 const assertSkillDoesNotMatch = (pattern, message) => { if (skill) assert.doesNotMatch(skill, pattern, message); };
 const snapshotExample = skill?.match(/### 任务视图数据契约[\s\S]*?```yaml\r?\n([\s\S]*?)\r?\n```/)?.[1] || "";
@@ -77,6 +79,8 @@ for (const [state, label, tone] of [["paused", "已暂停", "waiting"], ["waitin
   assert.match(stateLabelsLiteral, new RegExp(`${state}:"${label}"`), `${state} must display its supported global state label`);
   assert.match(stateTonesLiteral, new RegExp(`${state}:"${tone}"`), `${state} must use its supported global state tone`);
 }
+assert.match(roleStatusLabelsLiteral, /waiting_user:"等待用户确认"/, "waiting_user role status must display the user-confirmation label");
+assert.match(roleStatusTonesLiteral, /waiting_user:"waiting"/, "waiting_user role status must use the waiting tone");
 assert.match(appTemplate, /detailField\(body,"摘要".*detailField\(body,"必要证据".*detailField\(body,"风险".*detailField\(body,"下一步"/, "role cards must contain only the compact task fields");
 assert.doesNotMatch(appTemplate, /data-sc-field="resume_state"|data-sc-state-reference|复验入口/, "minimal UI must not render the state machine or resume_state");
 assertSkillMatch(/不展示状态机、状态参考集、复验入口或 `resume_state`/, "skill must keep resume_state authoritative but out of the UI");

@@ -73,7 +73,7 @@ handoffs: []             # 权威交接记录；不在 UI 中逐条展示
 
 耗时在角色启动、状态变化与空参数恢复视图时结算，不使用页面定时器或轮询；必须及时发送暂停和结束快照，服务端无法知道未上报的状态变化。相同 `view_id` 在当前服务会话中恢复不会重置，最多保留 128 个计时记录；达到上限后明确拒绝新任务，不静默淘汰旧记录。记录只存内存，服务重启后不能恢复未保存的历史时段，只能从重新提供的实测基线或 0 开始。无 object `work_unit` 的纯视图快照保持原样，不生成新计时记录；但同一 `view_id` 的显式停止状态仍会结算并暂停已有计时，纯快照不启动或恢复计时。
 
-任务视图将当前 `snapshot.state` 和角色 `status` 映射为中文标签，不显示英文状态值；未知值显示“未知状态”，缺失角色状态显示“状态未提供”，权威快照值不变。任务累计耗时展示在任务元数据中，角色耗时展示在对应角色详情的“执行耗时”中；毫秒值格式化为天、小时、分、秒，直接渲染旧快照时非法或缺失值显示“未提供”。卡片使用克制圆角和短过渡；尊重 `prefers-reduced-motion`。不展示状态机、状态参考集、复验入口或 `resume_state`。`resume_state` 仍是 `state=needs_revalidation` 时的必填权威工作流字段，只是不进入该极简 UI。全部外部展示值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
+任务视图将当前 `snapshot.state` 和角色 `status` 映射为中文标签，不显示英文状态值；角色状态支持 `waiting_user`（等待用户确认），未知值显示“未知状态”，缺失角色状态显示“状态未提供”，权威快照值不变。任务累计耗时展示在任务元数据中，角色耗时展示在对应角色详情的“执行耗时”中；毫秒值格式化为天、小时、分、秒，直接渲染旧快照时非法或缺失值显示“未提供”。卡片使用克制圆角和短过渡；尊重 `prefers-reduced-motion`。不展示状态机、状态参考集、复验入口或 `resume_state`。`resume_state` 仍是 `state=needs_revalidation` 时的必填权威工作流字段，只是不进入该极简 UI。全部外部展示值须经 DOM `textContent` 输出；模板不得联网、引入第三方依赖、保存远端数据、执行状态变更或嵌入示例定时轮播。
 
 `role_details.<role>.subskills` 是可选数组，每项包含 `name`、`status` 及可选字符串 `goal`、`summary`、`question`、`result`，`options` 和 `evidence` 只接收字符串数组。只记录该角色实际调用的子技能：REQ 支持 `align-with-visuals`、`grill-with-docs`；DEV 支持 `tech-select`、`refactor-with-goal`、`bug-fix`、`bug-cause`、`optimize`；CR 支持 `review-with-goal`；QA 支持 `test-with-goal`。非法名称、角色不匹配、错误类型和空白内容不展示；只有名称或状态、没有任务内容的项也不展示。候选选项仅随有效问题展示。
 
