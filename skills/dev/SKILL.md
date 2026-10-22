@@ -2,7 +2,7 @@
 name: dev
 description: "Use when a confirmed software change needs implementation across UI, API, backend logic, data, migrations, observability, or recovery inputs."
 metadata:
-  version: 1.9.2
+  version: 1.9.3
 ---
 
 # dev 子代理剧本
@@ -50,13 +50,6 @@ metadata:
 - 当 `qa` 已登记可复现 Bug，而根因尚不明确或需要单独保留因果证据时，调用 [bug-cause](../subskills/bug-cause/SKILL.md)；它可作为 `bug-fix` 的诊断阶段，但不登记、关闭或复测 Bug。
 - 仅当 `cr` 将带证据、目标和验收条件的优化审查项反馈给 `dev` 时，调用 [optimize](../subskills/optimize/SKILL.md)。用户直接提出或 `dev` 自行识别的优化机会先交 `cr` 形成审查项；优化完成后交回原 Goal 复审。
 - 仅当 `dev` 正在与用户对齐实现方案，且需要用户决定或确认技术、库、组件或集成模式时，调用 [tech-select](../subskills/tech-select/SKILL.md)。方案已确认后的例行内部选择不调用；涉及平台、安全、数据、外部账户、公共契约或发布模型的变化，仍须升级 `survey-corps` 确认。
-
-## 按需图示
-
-- 架构、模块依赖、数据流、状态转换、时序或业务规则的关系难以用文字清楚表达，或用户明确要求规范图示时，调用 [diagram-design](../diagram-design/SKILL.md)。简单实现不默认出图；已有图能表达当前关系时优先更新。
-- 按当前需求、契约和代码绘图，区分现状、拟议方案与未确认假设；图中关键关系应能追溯到对应文件、接口或规则。图示辅助实现说明，不替代契约、代码、测试或方案确认。
-- 按 `diagram-design` 的类型、布局和导出规则生成产物，使用其自检脚本并查看实际渲染，核对文字、连线、方向和裁切；只交付需要的 HTML/SVG/PNG，运行依赖见其 [本机运行说明](../diagram-design/LOCAL-RUNTIME.md)。
-- 需要用户裁决需求时交回 `req`，由其按 `align-with-visuals` 对齐；本能力不改变角色边界，也不用于替代 SC 的 MCP 任务视图。
 
 ## 渐进实现
 
