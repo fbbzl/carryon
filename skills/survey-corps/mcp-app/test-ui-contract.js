@@ -61,7 +61,7 @@ assert.match(appTemplate, /node\.open=role===openRole/, "role expansion must fol
 assert.match(appTemplate, /const active=role===activeRole/, "role cards must compare against one resolved active role");
 assert.match(appTemplate, /querySelectorAll\("details\[data-sc-role\]\[open\]"\).*if \(node!==opened\) node\.open=false/, "opening one role must close every other role");
 assert.match(appTemplate, /userOpenRole=root\.querySelector\("details\[data-sc-role\]\[open\]"\)\?\.dataset\.scRole/, "rerender must capture the user's currently open role before replacing nodes");
-assert.match(appTemplate, /root\.__scResolvedActiveRole===activeRole\?userOpenRole:activeRole/, "same active role must preserve the user's selection while a changed active role must follow the new snapshot");
+assert.match(appTemplate, /root\.__scViewId===input\.view_id&&root\.__scResolvedActiveRole===activeRole&&\(userOpenRole===undefined\|\|selectedRoles\.includes\(userOpenRole\)\)\?userOpenRole:activeRole/, "only the same task and active role may preserve a still-valid manual selection");
 assert.match(appTemplate, /root\.__scResolvedActiveRole=activeRole/, "rerender must remember the resolved active role for the next snapshot");
 assert.match(appTemplate, /stateRole=\{dev_in_progress:"dev"\}/, "only an actively executing workflow state may map to an active role");
 for (const state of ["confirmed", "planned", "ready_for_cr", "ready_for_qa", "cr_blocked", "qa_failed", "qa_conditional", "qa_passed", "workflow_ready", "needs_user_confirm", "needs_revalidation", "needs_revision", "blocked"]) {

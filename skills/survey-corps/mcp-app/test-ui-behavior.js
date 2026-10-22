@@ -32,6 +32,41 @@ root.removeEventListener=(type,listener,options)=>{if(type==="toggle")toggleRemo
 const snapshot=${JSON.stringify(snapshot)};
 const openRoles=()=>[...root.querySelectorAll("details[data-sc-role][open]")].map(node=>node.dataset.scRole);
 const hasProgress=role=>!!root.querySelector('details[data-sc-role="'+role+'"] [role="progressbar"]');
+const stateRoot=root.cloneNode(true);stateRoot.removeAttribute('id');document.body.append(stateRoot);
+const lifecycleSnapshot={view_id:'lifecycle:A',state:'dev_in_progress',work_unit:{roles:['req','dev']},role_details:{req:{status:'completed'},dev:{status:'running'}}};
+const observeLifecycle=()=>({active:[...stateRoot.querySelectorAll('[data-sc-role].is-active')].map(n=>n.dataset.scRole),open:[...stateRoot.querySelectorAll('[data-sc-role][open]')].map(n=>n.dataset.scRole),current:[...stateRoot.querySelectorAll('[aria-current=step]')].map(n=>n.dataset.scRole)});
+const lifecycleBefore=JSON.stringify(lifecycleSnapshot),lifecycle={stops:{},repairs:{}};
+for(const state of ['needs_user_confirm','paused','waiting','blocked','qa_passed','workflow_ready','completed','complete','done','success','successful','succeeded','failed','cancelled','canceled']){window.renderSurveyCorpsTaskView(stateRoot,{...lifecycleSnapshot,state});lifecycle.stops[state]=observeLifecycle();}
+for(const state of ['cr_blocked','qa_failed','qa_conditional']){window.renderSurveyCorpsTaskView(stateRoot,{...lifecycleSnapshot,state});lifecycle.repairs[state]=observeLifecycle();}
+window.renderSurveyCorpsTaskView(stateRoot,lifecycleSnapshot);
+stateRoot.querySelector('[data-sc-role=dev]').open=false;stateRoot.querySelector('[data-sc-role=req]').open=true;
+window.renderSurveyCorpsTaskView(stateRoot,lifecycleSnapshot);lifecycle.sameView=observeLifecycle();
+stateRoot.querySelector('[data-sc-role=req]').open=false;
+window.renderSurveyCorpsTaskView(stateRoot,lifecycleSnapshot);lifecycle.manuallyClosed=observeLifecycle();
+const switched={...lifecycleSnapshot,view_id:'lifecycle:B'};window.renderSurveyCorpsTaskView(stateRoot,switched);lifecycle.newView=observeLifecycle();
+stateRoot.querySelector('[data-sc-role=dev]').open=false;stateRoot.querySelector('[data-sc-role=req]').open=true;
+window.renderSurveyCorpsTaskView(stateRoot,{...switched,work_unit:{roles:['dev']}});lifecycle.removedSelection=observeLifecycle();
+window.renderSurveyCorpsTaskView(stateRoot,{...switched,state:'paused'});lifecycle.paused=observeLifecycle();
+window.renderSurveyCorpsTaskView(stateRoot,switched);lifecycle.resumed=observeLifecycle();
+lifecycle.unchanged=JSON.stringify(lifecycleSnapshot)===lifecycleBefore;
+const focusSnapshot={...switched,role_details:{dev:{status:'running',subskills:[{name:'tech-select',summary:'方案记录'}]}}},focus={};
+const focusRole=()=>stateRoot.querySelector('[data-sc-role=dev] > summary'),focusSkill=()=>stateRoot.querySelector('[data-sc-subskill=tech-select] > summary');
+window.renderSurveyCorpsTaskView(stateRoot,focusSnapshot);focusRole().focus();focus.initial=document.activeElement===focusRole();
+window.renderSurveyCorpsTaskView(stateRoot,focusSnapshot);focus.role=document.activeElement===focusRole();
+focusSkill().focus();focus.skillInitial=document.activeElement===focusSkill();
+window.renderSurveyCorpsTaskView(stateRoot,focusSnapshot);focus.skill=document.activeElement===focusSkill();
+focusSnapshot.role_details.dev.subskills.push({name:'tech-select',summary:'第二轮方案记录'});window.renderSurveyCorpsTaskView(stateRoot,focusSnapshot);
+stateRoot.querySelectorAll('[data-sc-subskill=tech-select] > summary')[1].focus();window.renderSurveyCorpsTaskView(stateRoot,focusSnapshot);focus.repeatedSkill=document.activeElement===stateRoot.querySelectorAll('[data-sc-subskill=tech-select] > summary')[1];
+focusSnapshot.role_details.dev.subskills.pop();
+window.renderSurveyCorpsTaskView(stateRoot,{...focusSnapshot,role_details:{dev:{status:'running'}}});focus.removedSkill=document.activeElement===focusRole();
+window.renderSurveyCorpsTaskView(stateRoot,focusSnapshot);focusSkill().focus();
+window.renderSurveyCorpsTaskView(stateRoot,{...focusSnapshot,state:'paused'});focus.hiddenSkill=document.activeElement===focusRole();
+window.renderSurveyCorpsTaskView(stateRoot,focusSnapshot);focusRole().focus();
+window.renderSurveyCorpsTaskView(stateRoot,{...focusSnapshot,work_unit:{roles:[]}});focus.removedRole=!stateRoot.contains(document.activeElement);
+window.renderSurveyCorpsTaskView(stateRoot,focusSnapshot);focusRole().focus();
+window.renderSurveyCorpsTaskView(stateRoot,{...focusSnapshot,view_id:'focus:new-task'});focus.newTask=!stateRoot.contains(document.activeElement);
+const outside=document.createElement('button');document.body.append(outside);outside.focus();window.renderSurveyCorpsTaskView(stateRoot,focusSnapshot);focus.outside=document.activeElement===outside;outside.remove();
+stateRoot.remove();
 window.renderSurveyCorpsTaskView(root,snapshot);
 const initial=openRoles(),progress={req:hasProgress("req"),dev:hasProgress("dev"),cr:hasProgress("cr"),qa:hasProgress("qa")};
 const waitingSnapshot=structuredClone(snapshot);waitingSnapshot.state="ready_for_qa";waitingSnapshot.role_details={req:{status:"completed"},dev:{status:"completed"},cr:{status:"pending"},qa:{status:"pending"}};window.renderSurveyCorpsTaskView(root,waitingSnapshot);const waitingActive=[...root.querySelectorAll('details[data-sc-role].is-active')].map(node=>node.dataset.scRole);window.renderSurveyCorpsTaskView(root,snapshot);
@@ -118,7 +153,7 @@ const invalidStates=[];for(const state of [null,[],{}, {toString:null},true,42,'
 window.renderSurveyCorpsTaskView(root,{state:'planned'});const emptyView=observe();
 window.renderSurveyCorpsTaskView(root,snapshot);const recovered=observe();
 const elapsedBoundaries=[];for(const elapsed of [0,1,999,1000]){const sample={work_unit:{metrics:{elapsed_ms:elapsed},roles:[]}};window.renderSurveyCorpsTaskView(root,sample);elapsedBoundaries.push(root.querySelector('[data-sc-metric=task-elapsed]').textContent);}
-const result={boundaries,excludedFallback,invalidStates,emptyView,recovered,initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,progress,waitingActive,finishedDevActive,flow,defaults,debugTrue,debugString,debugDefault,debugFalse,debugInSnapshot,provided,invalidMetrics,missingMetrics,elapsedBoundaries,payload,removed,roleCases,roleStatuses,roleStatusClasses,globalCases,globalStatuses,globalStatusClasses,unknown,prototypeFallbacks,legacySubskills,skills,skillFields,skillSafety,nestedOpen,outerAfterNested,skillUpdated,invalidSkills,fieldFiltering,validListFiltering,subskillUnknown,subskillsRemoved,toggleAdds,toggleRemoves,activeToggleListeners};
+const result={focus,lifecycle,boundaries,excludedFallback,invalidStates,emptyView,recovered,initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,progress,waitingActive,finishedDevActive,flow,defaults,debugTrue,debugString,debugDefault,debugFalse,debugInSnapshot,provided,invalidMetrics,missingMetrics,elapsedBoundaries,payload,removed,roleCases,roleStatuses,roleStatusClasses,globalCases,globalStatuses,globalStatusClasses,unknown,prototypeFallbacks,legacySubskills,skills,skillFields,skillSafety,nestedOpen,outerAfterNested,skillUpdated,invalidSkills,fieldFiltering,validListFiltering,subskillUnknown,subskillsRemoved,toggleAdds,toggleRemoves,activeToggleListeners};
 document.body.dataset.scTestResult=JSON.stringify(result);
 </script></body></html>`;
 
@@ -157,6 +192,17 @@ try {
   const encoded = run.stdout.match(/data-sc-test-result="([^"]+)"/)?.[1];
   assert.ok(encoded, "Chrome did not emit the SC behavior result");
   const result = JSON.parse(encoded.replaceAll("&quot;", '"').replaceAll("&amp;", "&"));
+  for(const [scenario,preserved] of Object.entries(result.focus)) assert.equal(preserved,true,scenario+' must retain valid same-task focus without stealing focus for removed, hidden or unrelated controls');
+  for(const [state,observed] of Object.entries(result.lifecycle.stops)) {
+    assert.deepEqual(observed.active,[],state+' must suppress stale running activity');
+    assert.deepEqual(observed.current,[],state+' must remove the active accessibility marker');
+  }
+  for(const [state,observed] of Object.entries(result.lifecycle.repairs)) assert.deepEqual(observed.active,['dev'],state+' must retain explicit repair activity');
+  assert.deepEqual(result.lifecycle.sameView.open,['req'],'same task must preserve a valid manual selection');
+  assert.deepEqual(result.lifecycle.manuallyClosed.open,[],'same task must preserve manually collapsed cards');
+  for(const field of ['newView','removedSelection','resumed']) assert.deepEqual(result.lifecycle[field].open,['dev'],field+' must open the current active role');
+  assert.deepEqual(result.lifecycle.paused,{active:[],open:[],current:[]},'pausing must clear activity and automatic expansion');
+  assert.equal(result.lifecycle.unchanged,true,'rendering must not mutate the authoritative snapshot');
   assert.deepEqual(result.boundaries.map(item=>[item.roles,item.active,item.open]), [[[],[],[]],[[],[],[]],[['dev','cr'],['dev'],['dev']],[['qa','dev'],['dev'],['dev']]], "excluded roles must not affect activity or expansion");
   assert.deepEqual(result.excludedFallback.active, [], "global state cannot activate an excluded role");
   assert.ok(result.invalidStates.every(state=>state==='未知状态'), "malformed state values must render safely");
