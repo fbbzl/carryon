@@ -289,8 +289,12 @@ Render **the original HTML** (not the extracted SVG) and screenshot only the `<s
 
 ### Detection
 
-Before running anything, verify Playwright is installed in the Python interpreter
-you will use for the export. Try:
+Prefer an explicitly supplied interpreter or the project's documented runtime;
+for this checkout, see [LOCAL-RUNTIME.md](../LOCAL-RUNTIME.md). Verify it with
+`<selected-python> -c "import playwright"` and keep that interpreter for export.
+If a configured runtime fails this check, report the failure and stop.
+
+When no runtime is configured, try:
 
 ```
 python3 -c "import playwright"
@@ -298,7 +302,7 @@ python3 -c "import playwright"
 
 If that fails, try `python -c "import playwright"` (the usual command on
 Windows). Use whichever interpreter passes the import for the rasterization
-command below. If both imports fail, surface this exact instruction to the user
+command below. If neither passes, surface this exact instruction to the user
 and stop:
 
 > Playwright is not available. PNG export requires an approved Playwright
@@ -313,8 +317,12 @@ Don't auto-install. The user asked for one feature, not a system change.
 Keep the user's project directory as the working directory so relative input and
 output paths still resolve there. Invoke the packaged renderer by its absolute
 path under the resolved skill directory with the interpreter that passed
-detection: `python3 <skill-dir>/scripts/export_png.py <src.html> <out.png> [scale]`
-or `python <skill-dir>/scripts/export_png.py <src.html> <out.png> [scale]`.
+detection: `<selected-python> <skill-dir>/scripts/export_png.py <src.html> <out.png> [scale]`.
+
+For a supplied or documented installed-browser channel, append
+`--browser-channel chrome` or `--browser-channel msedge`. Omit the option when
+using provisioned Playwright Chromium. A failure to launch the selected browser
+is an export failure; report it without silently switching browsers or installing dependencies.
 
 If the `networkidle` wait times out (a stalled font or stylesheet behind a proxy), the helper cancels the outstanding load with `window.stop()` and captures with fallback typography, printing a warning to stderr — pass that warning on to the user. Any other error propagates and fails the export normally. The helper requests the complete static motion frame, waits for font readiness, and rejects a motion root that has not reached `data-frame="static"`; ordinary script-free diagrams need no motion root.
 

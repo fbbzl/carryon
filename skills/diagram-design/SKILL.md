@@ -171,7 +171,7 @@ Type-specific anti-patterns live in each type reference linked in the guide.
 
 **The design system is skinnable.** [`references/style-guide.md`](references/style-guide.md) is the single source of truth for colors, typography, tokens, and the default palette; this file names semantic roles (`paper`, `ink`, `muted`, `accent`, `link`, …). To apply a brand, edit `style-guide.md` or run the URL-based flow in [`references/onboarding.md`](references/onboarding.md).
 
-> When specs below or in type references mention "ink", "accent", "muted", etc., look up the current hex value in `style-guide.md`.
+> When specs below or in type references mention "ink", "accent", "muted", etc., look up the current hex value in the active style guide. Literal font-family names describe the default skin; the active guide's typography roles take precedence, including approved brand families.
 
 Type-reference snippets write roles as placeholders: `{ink}`, `{ink @ 0.40}` for a role at an opacity, and `{node-name}`, `{sublabel}`, `{eyebrow}`, `{arrow-label}`, `{title}`, `{callout}` for fonts. Resolve every placeholder against `style-guide.md` before emitting.
 
@@ -291,7 +291,7 @@ Run before producing any diagram.
 - [ ] **§6 rule 4:** a distinct attach point per connector on a shared edge, 12px or more apart, none hiding another?
 - [ ] **§6 rule 5:** no transit behind a non-endpoint box, except the unavoidable case (dashed, label at the visible end)?
 - [ ] **§6 rule 6:** no label mask overlapping a node drawn after it? (From a repository checkout, run `python3 <repo-root>/scripts/verify-geometry.py <file>`.)
-- [ ] Every arrow label has an opaque `fill="#f5f5f5"` rect behind it?
+- [ ] Every arrow label has an opaque rect matching its current background surface, resolved from the active style guide?
 - [ ] Legend is a horizontal bottom strip, not floating?
 - [ ] No vertical `writing-mode` text?
 - [ ] `viewBox` expanded for the legend strip (~60px)?
@@ -303,11 +303,11 @@ Run before producing any diagram.
 **Typography:**
 
 - [ ] Brand match uses exact public families/weights, verified via `getComputedStyle`; fallbacks disclosed?
-- [ ] Human-readable names in Geist sans, not Geist Mono?
-- [ ] Technical sublabels (ports, commands, URLs) in Geist Mono?
-- [ ] Page title in Instrument Serif?
-- [ ] Annotation callouts (if any) in *italic* Instrument Serif? (see [primitive-annotation.md](references/primitive-annotation.md))
-- [ ] No JetBrains Mono anywhere?
+- [ ] Human-readable names use the active `node-name` font (default: Geist sans)?
+- [ ] Technical sublabels (ports, commands, URLs) use the active `sublabel` font (default: Geist Mono)?
+- [ ] Page title uses the active `title` font (default: Instrument Serif)?
+- [ ] Annotation callouts (if any) use the active `callout` font in italics? (see [primitive-annotation.md](references/primitive-annotation.md))
+- [ ] No blanket "dev" monospace styling overriding the active typography roles?
 
 ---
 
