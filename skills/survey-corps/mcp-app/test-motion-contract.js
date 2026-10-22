@@ -1,6 +1,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
 
 const appTemplate = fs.readFileSync(path.join(__dirname, "assets", "sc-task-view.html"), "utf8");
 
@@ -28,5 +29,61 @@ assert.match(appTemplate, /root\.__scManualMotionCleanup\?\.\(\); root\.__scManu
 assert.match(appTemplate, /\.sc-task-view__node \{[^}]*transition:box-shadow 160ms ease,transform 160ms ease/, "cards must use a short hover transition");
 assert.match(appTemplate, /\.sc-task-view summary \{[^}]*transition:background-color 160ms ease/, "summaries must transition their hover state");
 assert.match(appTemplate, /border-radius:6px/, "card corners must remain restrained");
+assert.match(appTemplate, /\[data-sc-detail-body\]\.is-detail-revealing \{ animation:sc-detail-reveal 180ms ease-out 1;/, "detail reveal must be one finite short animation on the content body");
+assert.match(appTemplate, /@keyframes sc-detail-reveal \{ from \{ opacity:0; transform:translateY\(-4px\); \} to \{ opacity:1; transform:translateY\(0\); \} \}/, "detail reveal must finish as fully visible content");
+assert.match(appTemplate, /openStates\.set\(details,details\.open\)/, "detail motion must establish the initial open state before queued native toggle events");
+assert.match(appTemplate, /if \(!details\.open\|\|wasOpen\|\|prefersReducedMotion\(\)\) return;/, "only a new opening may reveal content, and reduced motion must stay static");
+assert.match(appTemplate, /if \(event&&event\.target!==node\) return;/, "nested animation events must not end a parent's animation");
+
+const script = appTemplate.match(/<script>([\s\S]*?)<\/script>/)[1];
+let reduced = false;
+const context = { window: {}, matchMedia: () => ({ matches: reduced }) };
+vm.runInNewContext(script.replace(/\}\)\(\);\s*$/, "window.testDetailReveal=bindDetailReveal;})();"), context);
+function eventNode() {
+  const listeners = new Map(), classes = new Set();
+  return {
+    offsetWidth: 12,
+    classList: { add: name => classes.add(name), remove: name => classes.delete(name), contains: name => classes.has(name) },
+    addEventListener(type, listener) { if (!listeners.has(type)) listeners.set(type, new Set()); listeners.get(type).add(listener); },
+    removeEventListener(type, listener) { listeners.get(type)?.delete(listener); },
+    emit(type, target = this) { [...(listeners.get(type) || [])].forEach(listener => listener({ target })); }
+  };
+}
+function detailNode(open = false) {
+  const body = eventNode();
+  return { open, body, children: [], matches: () => true, querySelector: () => body, contains(target) { return target === body || this.children.some(child => child.contains(target)); } };
+}
+const role = detailNode(true), skill = detailNode();
+role.children.push(skill);
+const root = Object.assign(eventNode(), { querySelectorAll: () => [role, skill] });
+const reveal = node => node.body.classList.contains("is-detail-revealing");
+const toggle = (node, open) => { node.open = open; root.emit("toggle", node); };
+context.window.testDetailReveal(root);
+root.emit("toggle", role);
+assert.equal(reveal(role), false, "queued initial-open toggles must stay static");
+toggle(role, false); toggle(role, true);
+assert.equal(reveal(role), true, "opening a previously closed role must reveal its content");
+role.body.emit("animationend", skill.body);
+assert.equal(reveal(role), true, "a nested animation end must not clean the parent");
+role.body.emit("animationend");
+assert.equal(reveal(role), false, "the body's own end must remove its transient class");
+toggle(skill, true);
+assert.equal(reveal(skill), true, "subskill content must reveal independently");
+toggle(role, false);
+assert.equal(reveal(skill), false, "closing the role must clean descendant transient motion");
+toggle(role, true);
+role.body.emit("animationcancel");
+assert.equal(reveal(role), false, "cancellation must leave ordinary visible body styles");
+toggle(role, false); toggle(role, true);
+context.window.testDetailReveal(root);
+assert.equal(reveal(role), false, "rebinding after a snapshot must clear the prior transient animation");
+root.emit("toggle", role);
+assert.equal(reveal(role), false, "an unchanged open state after refresh must not replay");
+reduced = true;
+toggle(role, false); toggle(role, true);
+assert.equal(reveal(role), false, "reduced motion must leave new openings static");
+reduced = false;
+root.emit("toggle", role);
+assert.equal(reveal(role), false, "leaving reduced motion must not backfill an opening");
 
 console.log("SC task view motion contract passed.");

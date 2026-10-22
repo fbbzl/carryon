@@ -30,6 +30,11 @@ const marked=root=>({flows:root.querySelectorAll('.is-handoff-flow').length,rece
 const inspect=root=>{const connector=root.querySelector('.is-handoff-flow'),receiver=root.querySelector('.is-handoff-receiving');const flow=connector&&getComputedStyle(connector,'::before'),head=connector&&getComputedStyle(connector,'::after'),receive=receiver&&getComputedStyle(receiver,'::after');return {...marked(root),from:connector?.dataset.scConnectorFrom,to:connector?.dataset.scConnectorTo,hidden:connector?.getAttribute('aria-hidden'),flowAnimation:flow?.animationName,flowDuration:flow?.animationDuration,flowIterations:flow?.animationIterationCount,flowDirection:flow?.animationDirection,headTransform:head?.transform,receiveAnimation:receive?.animationName,receiveDuration:receive?.animationDuration,receiveDelay:receive?.animationDelay,receiveIterations:receive?.animationIterationCount,receivePointerEvents:receive?.pointerEvents,activeAnimation:receiver&&getComputedStyle(receiver).animationName};};
 const fresh=()=>{const root=makeRoot(),value=snapshot();render(root,value);return {root,value};};
 const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const settle=async()=>{await wait(0);await new Promise(requestAnimationFrame);await wait(0);};
+const revealAnimations=root=>root.getAnimations({subtree:true}).filter(animation=>animation.animationName==='sc-detail-reveal'&&animation.effect.target.checkVisibility()&&getComputedStyle(animation.effect.target).animationName==='sc-detail-reveal');
+const revealState=root=>({marked:root.querySelectorAll('.is-detail-revealing').length,animations:revealAnimations(root).map(animation=>({duration:animation.effect.getTiming().duration,iterations:animation.effect.getTiming().iterations,role:animation.effect.target.closest('[data-sc-role]').dataset.scRole,skill:animation.effect.target.closest('[data-sc-subskill]')?.dataset.scSubskill||null}))});
+let keySequence=0;
+const nativeKey=key=>new Promise(resolve=>{const id=++keySequence;const done=event=>{if(event.source!==parent||event.data.scInputDone!==id)return;window.removeEventListener('message',done);resolve();};window.addEventListener('message',done);parent.postMessage({scInputKey:{id,key}},'*');});
 (async()=>{
   const {root,value}=fresh();results.initial=marked(root);
   value.handoffs.push(handoff('forward'));const before=JSON.stringify(value);render(root,value);results.forward=inspect(root);results.unchanged=JSON.stringify(value)===before;
@@ -65,11 +70,11 @@ const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
   {const sample=fresh();const nativeMatchMedia=window.matchMedia;window.matchMedia=query=>query==='(prefers-reduced-motion:reduce)'?{matches:true}:nativeMatchMedia(query);sample.value.handoffs.push(handoff('reduced-consumed'));render(sample.root,sample.value);results.preferenceSuppressed=marked(sample.root);window.matchMedia=nativeMatchMedia;render(sample.root,sample.value);results.preferenceResumed=marked(sample.root);}
   {const sample=fresh();sample.root.querySelector('[data-sc-role=cr]').open=false;const req=sample.root.querySelector('[data-sc-role=req]');req.open=true;req.querySelector('summary').focus();sample.value.handoffs.push(handoff('focus'));render(sample.root,sample.value);results.focus={open:[...sample.root.querySelectorAll('[data-sc-role][open]')].map(node=>node.dataset.scRole),role:document.activeElement.closest('[data-sc-role]')?.dataset.scRole};}
   const finiteAnimations=root=>root.getAnimations({subtree:true}).filter(animation=>['sc-handoff-flow','sc-handoff-receive'].includes(animation.animationName));
-  const cleanup=fresh();results.endEvents=[];cleanup.root.addEventListener('animationend',event=>results.endEvents.push(event.animationName+'/'+event.pseudoElement));
+  const cleanup=fresh();results.endEvents=[];const onHandoffEnd=event=>results.endEvents.push(event.animationName+'/'+event.pseudoElement);cleanup.root.addEventListener('animationend',onHandoffEnd);
   cleanup.value.handoffs.push(handoff('cleanup'));render(cleanup.root,cleanup.value);results.beforeCleanup=inspect(cleanup.root);
   cleanup.root.scrollIntoView({block:'start'});
   const ending=finiteAnimations(cleanup.root);await Promise.all(ending.map(animation=>animation.finished));await new Promise(requestAnimationFrame);await wait(0);
-  results.afterCleanup=marked(cleanup.root);render(cleanup.root,cleanup.value);results.afterCleanupUpdate=marked(cleanup.root);
+  results.afterCleanup=marked(cleanup.root);cleanup.root.removeEventListener('animationend',onHandoffEnd);render(cleanup.root,cleanup.value);results.afterCleanupUpdate=marked(cleanup.root);
   const again=structuredClone(cleanup.value);again.handoffs.push(handoff('next'));render(cleanup.root,again);results.nextEvent=marked(cleanup.root);
   const cancel=fresh();results.cancelEvents=[];cancel.root.addEventListener('animationcancel',event=>results.cancelEvents.push(event.animationName+'/'+event.pseudoElement));
   cancel.value.role_details.cr.status='completed';cancel.value.role_details.dev.status='running';cancel.value.handoffs.push(handoff('cancel','cr','dev'));render(cancel.root,cancel.value);results.beforeCancel=inspect(cancel.root);
@@ -77,13 +82,39 @@ const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
   results.cancelClock=cancelling.map(animation=>({start:animation.startTime,time:animation.currentTime}));
   const stopStyle=document.createElement('style');stopStyle.textContent='#'+cancel.root.id+' .is-handoff-flow::before,#'+cancel.root.id+' .is-handoff-receiving::after{animation-name:none}';cancel.root.append(stopStyle);void cancel.root.offsetWidth;
   await new Promise(requestAnimationFrame);await wait(0);results.afterCancel=marked(cancel.root);
+  // Requirement source: approved detail opening transition; use native details toggles and real CSS events.
+  const detail=fresh(),detailResult=results.detail={starts:[],ends:[]};
+  detail.value.role_details.dev.subskills=[{name:'tech-select',summary:'方案记录'},{name:'refactor-with-goal',summary:'等价证据'}];render(detail.root,detail.value);
+  detail.root.addEventListener('animationstart',event=>{if(event.animationName==='sc-detail-reveal')detailResult.starts.push(event.target.closest('[data-sc-subskill]')?.dataset.scSubskill||event.target.closest('[data-sc-role]')?.dataset.scRole);});
+  detail.root.addEventListener('animationend',event=>{if(event.animationName==='sc-detail-reveal')detailResult.ends.push(event.target.closest('[data-sc-subskill]')?.dataset.scSubskill||event.target.closest('[data-sc-role]')?.dataset.scRole);});
+  detail.root.scrollIntoView({block:'start'});await settle();detailResult.initial=revealState(detail.root);detailResult.initialStarts=detailResult.starts.length;
+  const role=()=>detail.root.querySelector('[data-sc-role=dev]'),summary=()=>role().querySelector(':scope > summary'),skills=()=>[...role().querySelectorAll('[data-sc-subskill]')];
+  const finishReveal=async()=>{await Promise.all(revealAnimations(detail.root).map(animation=>animation.finished));await settle();};
+  summary().focus();summary().click();await settle();detailResult.manual=revealState(detail.root);detailResult.manualStarts=detailResult.starts.length;detailResult.manualFocus=document.activeElement===summary();
+  const parentAnimation=revealAnimations(detail.root)[0];if(parentAnimation){parentAnimation.pause();await parentAnimation.ready;}
+  skills()[0].querySelector('summary').click();await settle();detailResult.child=revealState(skills()[0]);
+  await Promise.all(revealAnimations(skills()[0]).map(animation=>animation.finished));await settle();
+  detailResult.childEndKeepsParent=revealState(role()).marked===(reduced?0:1);
+  if(parentAnimation&&role().querySelector(':scope > [data-sc-detail-body]').classList.contains('is-detail-revealing')){parentAnimation.play();await parentAnimation.finished;}await settle();
+  detailResult.afterEnd=revealState(detail.root);detailResult.firstStarts=[...detailResult.starts];detailResult.firstEnds=[...detailResult.ends];
+  summary().focus();await nativeKey('Enter');await settle();detailResult.enterClosed=!role().open&&revealState(detail.root).marked===0;if(role().open)throw new Error('Native Enter did not close the focused DEV summary');
+  await nativeKey('Space');await settle();detailResult.keyboard=revealState(detail.root);detailResult.keyboardFocus=document.activeElement===summary();detailResult.spaceOpened=role().open;if(!role().open)throw new Error('Native Space did not open the focused DEV summary');await finishReveal();
+  skills()[1].querySelector('summary').click();await settle();detailResult.secondChild=revealState(skills()[1]);detailResult.independentSkills=skills().every(node=>node.open);await finishReveal();
+  summary().click();await settle();summary().click();await settle();const oldBody=role().querySelector(':scope > [data-sc-detail-body]');summary().focus();render(detail.root,detail.value);await settle();
+  detailResult.refresh={...revealState(detail.root),oldClean:!oldBody.classList.contains('is-detail-revealing'),open:role().open,focus:document.activeElement===summary()};
+  detail.root.querySelector('[data-sc-role=req] > summary').click();await settle();detail.root.querySelector('[data-sc-role=cr] > summary').click();await settle();
+  detailResult.switch={...revealState(detail.root),open:[...detail.root.querySelectorAll('[data-sc-role][open]')].map(node=>node.dataset.scRole)};
+  detail.root.querySelector('[data-sc-role=cr] > summary').click();detailResult.closeImmediate=!detail.root.querySelector('[data-sc-role=cr]').open;await settle();detailResult.closed=revealState(detail.root);
+  const closedBody=detail.root.querySelector('[data-sc-role=cr] > [data-sc-detail-body]');detailResult.closedHidden=!closedBody.checkVisibility();detailResult.closedAnimation=getComputedStyle(closedBody).animationName;
+  const coexist=fresh();coexist.value.handoffs.push(handoff('detail-coexist'));render(coexist.root,coexist.value);coexist.root.scrollIntoView({block:'start'});
+  coexist.root.querySelector('[data-sc-role=cr] > summary').click();await settle();coexist.root.querySelector('[data-sc-role=cr] > summary').click();await settle();detailResult.coexist={...revealState(coexist.root),handoff:inspect(coexist.root)};
   results.reduced=reduced;parent.postMessage({scHandoffResult:results},'*');
 })().catch(error=>{document.body.dataset.scTestError=error.stack;parent.postMessage({scHandoffError:error.stack},'*');});
 </script></body></html>`;
 
 async function readResult(width, reduced) {
   const srcdoc = harness.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-  const wrapper = `<!doctype html><html><body><script>window.addEventListener('message',event=>{if(event.source===document.querySelector('iframe').contentWindow){if(event.data.scHandoffResult)document.body.dataset.scTestResult=JSON.stringify(event.data.scHandoffResult);if(event.data.scHandoffError)document.body.dataset.scTestError=event.data.scHandoffError;}});</script><iframe style="border:0;width:${width}px;height:900px" srcdoc="${srcdoc}"></iframe></body></html>`;
+  const wrapper = `<!doctype html><html><body><script>window.addEventListener('message',event=>{if(event.source===document.querySelector('iframe').contentWindow){if(event.data.scHandoffResult)document.body.dataset.scTestResult=JSON.stringify(event.data.scHandoffResult);if(event.data.scHandoffError)document.body.dataset.scTestError=event.data.scHandoffError;if(event.data.scInputKey)document.body.dataset.scTestInput=JSON.stringify(event.data.scInputKey);}});</script><iframe style="border:0;width:${width}px;height:900px" srcdoc="${srcdoc}"></iframe></body></html>`;
   fs.writeFileSync(page, wrapper, "utf8");
   // Real CSS animation events need compositor time; only control this test's isolated Chrome over inherited pipes.
   const args = ["--headless=new", "--disable-gpu", "--no-sandbox", "--no-first-run", "--remote-debugging-pipe", `--user-data-dir=${path.join(temp, `profile-${width}-${reduced}`)}`, "--window-size=1000,1000"];
@@ -127,11 +158,11 @@ async function readResult(width, reduced) {
     await send("Target.activateTarget", { targetId });
     await send("Page.enable", {}, sessionId);
     await send("Page.navigate", { url: new URL(`file:///${page.replaceAll("\\", "/")}`).href }, sessionId);
-    const deadline = Date.now() + 15000;
+    const deadline = Date.now() + 15000;let lastInput=0;
     while (Date.now() < deadline) {
       let value;
       try {
-        const observation = await send("Runtime.evaluate", { expression: "document.body&&({result:document.body.dataset.scTestResult,error:document.body.dataset.scTestError})", returnByValue: true }, sessionId);
+        const observation = await send("Runtime.evaluate", { expression: "document.body&&({result:document.body.dataset.scTestResult,error:document.body.dataset.scTestError,input:document.body.dataset.scTestInput})", returnByValue: true }, sessionId);
         if (observation.exceptionDetails) throw new Error(observation.exceptionDetails.text);
         value = observation.result.value;
       } catch (error) {
@@ -139,9 +170,18 @@ async function readResult(width, reduced) {
       }
       assert.ok(!value?.error, `Handoff behavior harness failed: ${value?.error}`);
       if (value?.result) return JSON.parse(value.result);
+      const input=value?.input&&JSON.parse(value.input);
+      if(input&&input.id!==lastInput){
+        assert.ok(Number.isSafeInteger(input.id)&&input.id>lastInput&&['Enter','Space'].includes(input.key),'keyboard bridge accepts only ordered native Enter/Space requests from this fixture');lastInput=input.id;
+        const key=input.key==='Enter'?{key:'Enter',code:'Enter',windowsVirtualKeyCode:13}:{key:' ',code:'Space',windowsVirtualKeyCode:32};
+        const text=input.key==='Enter'?'\r':' ';
+        await send('Input.dispatchKeyEvent',{type:'keyDown',...key,text,unmodifiedText:text},sessionId);await send('Input.dispatchKeyEvent',{type:'keyUp',...key},sessionId);
+        await send('Runtime.evaluate',{expression:"document.querySelector('iframe').contentWindow.postMessage({scInputDone:"+input.id+"},'*')"},sessionId);
+      }
       await delay(20);
     }
-    throw new Error("Chrome did not emit the handoff behavior result within 15 seconds");
+    const diagnostic=await send('Runtime.evaluate',{expression:"JSON.stringify({input:document.body.dataset.scTestInput,focus:document.querySelector('iframe').contentDocument.activeElement?.outerHTML,animations:document.querySelector('iframe').contentDocument.getAnimations().filter(a=>a.animationName==='sc-detail-reveal').map(a=>({state:a.playState,time:a.currentTime,role:a.effect.target.closest('[data-sc-role]')?.dataset.scRole,skill:a.effect.target.closest('[data-sc-subskill]')?.dataset.scSubskill}))})",returnByValue:true},sessionId);
+    throw new Error("Chrome did not emit the handoff behavior result within 15 seconds: "+diagnostic.result.value);
   } finally {
     if (!processClosed && !terminalError) await send("Browser.close").catch(() => {});
     await Promise.race([closed, delay(1500)]);
@@ -173,6 +213,20 @@ function assertFlow(value, receiver, reverse, name) {
     assert.equal(result.layout.viewport, mode.width, "layout must run at the exact requested iframe viewport");
     assert.ok(result.layout.scrollWidth <= mode.width, "handoff feedback must not overflow narrow or wide task views");
     assert.equal(result.layout.roleCount, 4, "handoff feedback must not insert synthetic role cards");
+    const detail=result.detail,staticReveal={marked:0,animations:[]};
+    assert.deepEqual(detail.initial,staticReveal,'initially open role and queued native toggles must stay static');assert.equal(detail.initialStarts,0);
+    for(const field of ['manualFocus','childEndKeepsParent','enterClosed','keyboardFocus','spaceOpened','independentSkills','closeImmediate','closedHidden'])assert.equal(detail[field],true,field+' must retain native detail semantics');
+    assert.equal(detail.closedAnimation,'none','closed detail bodies must have no computed CSS animation');
+    assert.deepEqual(detail.afterEnd,staticReveal,'finite detail motion must clear after actual CSS animationend');assert.deepEqual(detail.closed,staticReveal,'closing details must immediately clear transient motion');
+    assert.deepEqual(detail.refresh,{...staticReveal,oldClean:true,open:true,focus:true},'same-task refresh must remove old motion, keep manual role selection and focus, and remain static');
+    assert.deepEqual(detail.switch.open,['cr'],'rapid role switching must preserve one-open accordion semantics');
+    for(const field of ['manual','child','keyboard','secondChild','switch','coexist']){
+      assert.equal(detail[field].marked,mode.reduced?0:1,field+' must animate only one opened detail body');
+      assert.equal(detail[field].animations.length,mode.reduced?0:1,field+' must create exactly one finite detail animation');
+      for(const animation of detail[field].animations){assert.ok(animation.duration>=140&&animation.duration<=200,field+' must use the approved 140–200 ms duration');assert.equal(animation.iterations,1);}
+    }
+    if(!mode.reduced){assert.deepEqual(detail.firstStarts.sort(),['dev','tech-select'],'manual role and child openings must each start only once');assert.deepEqual(detail.firstEnds.sort(),['dev','tech-select'],'child completion must not consume the parent completion listener');assertFlow(detail.coexist.handoff,'cr',false,'detail/handoff coexistence');assert.equal(detail.coexist.handoff.activeAnimation,'sc-running-pulse','detail reveal must preserve the running pulse');}
+    else {assert.deepEqual(detail.starts,[],'reduced motion must not create detail animationstart events');assert.deepEqual(detail.ends,[]);assertQuiet({flows:detail.coexist.handoff.flows,receivers:detail.coexist.handoff.receivers,reverse:detail.coexist.handoff.reverse},'reduced detail/handoff coexistence');}
     if (mode.reduced) {
       for (const field of ["forward", "reverse", "beforeCleanup"]) assertQuiet({ flows: result[field].flows, receivers: result[field].receivers, reverse: result[field].reverse }, field);
       assertQuiet(result.acceptedTransition, "acceptedTransition");

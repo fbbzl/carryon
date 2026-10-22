@@ -68,6 +68,7 @@ window.renderSurveyCorpsTaskView(stateRoot,{...focusSnapshot,view_id:'focus:new-
 const outside=document.createElement('button');document.body.append(outside);outside.focus();window.renderSurveyCorpsTaskView(stateRoot,focusSnapshot);focus.outside=document.activeElement===outside;outside.remove();
 stateRoot.remove();
 window.renderSurveyCorpsTaskView(root,snapshot);
+const initialToggleListeners=toggleAdds-toggleRemoves;
 const initial=openRoles(),progress={req:hasProgress("req"),dev:hasProgress("dev"),cr:hasProgress("cr"),qa:hasProgress("qa")};
 const waitingSnapshot=structuredClone(snapshot);waitingSnapshot.state="ready_for_qa";waitingSnapshot.role_details={req:{status:"completed"},dev:{status:"completed"},cr:{status:"pending"},qa:{status:"pending"}};window.renderSurveyCorpsTaskView(root,waitingSnapshot);const waitingActive=[...root.querySelectorAll('details[data-sc-role].is-active')].map(node=>node.dataset.scRole);window.renderSurveyCorpsTaskView(root,snapshot);
 const finishedDev=structuredClone(waitingSnapshot);finishedDev.state="dev_in_progress";window.renderSurveyCorpsTaskView(root,finishedDev);const finishedDevActive=[...root.querySelectorAll('details[data-sc-role].is-active')].map(node=>node.dataset.scRole);window.renderSurveyCorpsTaskView(root,snapshot);
@@ -153,7 +154,7 @@ const invalidStates=[];for(const state of [null,[],{}, {toString:null},true,42,'
 window.renderSurveyCorpsTaskView(root,{state:'planned'});const emptyView=observe();
 window.renderSurveyCorpsTaskView(root,snapshot);const recovered=observe();
 const elapsedBoundaries=[];for(const elapsed of [0,1,999,1000]){const sample={work_unit:{metrics:{elapsed_ms:elapsed},roles:[]}};window.renderSurveyCorpsTaskView(root,sample);elapsedBoundaries.push(root.querySelector('[data-sc-metric=task-elapsed]').textContent);}
-const result={focus,lifecycle,boundaries,excludedFallback,invalidStates,emptyView,recovered,initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,progress,waitingActive,finishedDevActive,flow,defaults,debugTrue,debugString,debugDefault,debugFalse,debugInSnapshot,provided,invalidMetrics,missingMetrics,elapsedBoundaries,payload,removed,roleCases,roleStatuses,roleStatusClasses,globalCases,globalStatuses,globalStatusClasses,unknown,prototypeFallbacks,legacySubskills,skills,skillFields,skillSafety,nestedOpen,outerAfterNested,skillUpdated,invalidSkills,fieldFiltering,validListFiltering,subskillUnknown,subskillsRemoved,toggleAdds,toggleRemoves,activeToggleListeners};
+const result={focus,lifecycle,boundaries,excludedFallback,invalidStates,emptyView,recovered,initial,sameSnapshot,changedActive,afterReplay,stateBefore,stateAfter,progress,waitingActive,finishedDevActive,flow,defaults,debugTrue,debugString,debugDefault,debugFalse,debugInSnapshot,provided,invalidMetrics,missingMetrics,elapsedBoundaries,payload,removed,roleCases,roleStatuses,roleStatusClasses,globalCases,globalStatuses,globalStatusClasses,unknown,prototypeFallbacks,legacySubskills,skills,skillFields,skillSafety,nestedOpen,outerAfterNested,skillUpdated,invalidSkills,fieldFiltering,validListFiltering,subskillUnknown,subskillsRemoved,toggleAdds,toggleRemoves,initialToggleListeners,activeToggleListeners};
 document.body.dataset.scTestResult=JSON.stringify(result);
 </script></body></html>`;
 
@@ -267,7 +268,8 @@ try {
   assert.deepEqual(result.changedActive, ["qa"], "changed active role must switch the open card to QA");
   assert.deepEqual(result.afterReplay, ["qa"], "animation replay must not change the accordion");
   assert.equal(result.stateAfter, result.stateBefore, "animation replay must not change task state");
-  assert.equal(result.activeToggleListeners, 1, "rerender must leave exactly one accordion toggle listener");
+  assert.ok(result.initialToggleListeners>0, "initial render must bind the native detail handlers");
+  assert.equal(result.activeToggleListeners, result.initialToggleListeners, "rerender must retain the initial toggle listener count without duplicate bindings");
   assert.deepEqual(result.progress, {req:false,dev:false,cr:false,qa:false}, "role cards must not render progress bars or percentages");
   assert.deepEqual(result.waitingActive, [], "waiting workflow states must not mark a role as actively animating");
   assert.deepEqual(result.finishedDevActive, [], "a completed DEV status must suppress a stale global in-progress fallback");
