@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">kyojin</title>
+  <desc id="desc">A geometric letter K with ascending teal facets on an ink-blue rounded square.</desc>
+  <rect width="256" height="256" rx="56" fill="#102A3A"/>
+  <path d="M60 56h32v144H60z" fill="#E4F5F2"/>
+  <path d="M104 118l60-62h40l-80 82z" fill="#52D6BA"/>
+  <path d="M104 138l22-23 78 85h-43z" fill="#22A88F"/>
+</svg>
