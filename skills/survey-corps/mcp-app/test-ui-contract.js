@@ -104,3 +104,6 @@ assert.match(appTemplate, /workflow_ready:"任务完成"/, "workflow_ready must 
 assert.match(appTemplate, /workflow_ready:"已通过"/, "the completed QA workflow state must display as passed in role cards");
 
 console.log(skill ? "SC minimal task-flow UI contract passed." : "SC minimal task-flow UI contract passed (repository Skill checks skipped outside the source tree).");
+assertSkillMatch(/work_unit\\.roles` 只列本轮实际执行的角色，不沿用历史工作单元的角色链/, "role selection must be scoped to the current work unit");
+assertSkillMatch(/已登记 Bug 的默认链路为 `dev -> cr -> qa`.*才前置 `req`/, "registered bugs must not add REQ unless requirement clarification is necessary");
+assertSkillMatch(/启动所选角色前，先提交.*status=running.*再启动对应 subagent/, "the role timer must start before subagent work begins");
