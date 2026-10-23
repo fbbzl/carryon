@@ -23,7 +23,7 @@ const seed=document.getElementById('seed'),pristine=seed.cloneNode(true),results
 let sequence=0;
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const makeRoot=()=>{const root=pristine.cloneNode(true);root.id='case-'+(++sequence);document.body.append(root);return root;};
-const snapshot=(id='task')=>({view_id:'sc-task-view:'+id,state:'ready_for_cr',work_unit:{work_unit_id:id,roles:['req','dev','cr','qa']},role_details:{req:{status:'completed'},dev:{status:'completed'},cr:{status:'running'},qa:{status:'pending'}},handoffs:[]});
+const snapshot=(id='task')=>({view_id:'sc-task-view:'+id,state:'ready_for_cr',work_unit:{work_unit_id:id,roles:['req','dev','cr','qa']},role_details:{req:{status:'passed'},dev:{status:'passed'},cr:{status:'running'},qa:{status:'pending'}},handoffs:[]});
 const handoff=(id,from='dev',to='cr',unit='task')=>({handoff_id:id,from,to,work_unit_id:unit,handoff_result:'accepted'});
 const render=(root,value)=>window.renderSurveyCorpsTaskView(root,value);
 const marked=root=>({flows:root.querySelectorAll('.is-handoff-flow').length,receivers:[...root.querySelectorAll('.is-handoff-receiving')].map(node=>node.dataset.scRole),reverse:root.querySelectorAll('.is-handoff-reverse').length});
@@ -40,7 +40,7 @@ const nativeKey=key=>new Promise(resolve=>{const id=++keySequence;const done=eve
   value.handoffs.push(handoff('forward'));const before=JSON.stringify(value);render(root,value);results.forward=inspect(root);results.unchanged=JSON.stringify(value)===before;
   results.layout={viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth,roleCount:root.querySelectorAll('[data-sc-role]').length};
   render(root,value);results.repeated=marked(root);
-  value.role_details.cr.status='completed';value.role_details.dev.status='running';render(root,value);results.activeOnly=marked(root);
+  value.role_details.cr.status='passed';value.role_details.dev.status='running';render(root,value);results.activeOnly=marked(root);
   value.handoffs.push(handoff('reverse','cr','dev'));render(root,value);results.reverse=inspect(root);
   const restored=makeRoot();render(restored,value);results.secondRoot=marked(restored);
   const refreshed=makeRoot();render(refreshed,structuredClone(value));results.refreshed=marked(refreshed);
@@ -56,7 +56,15 @@ const nativeKey=key=>new Promise(resolve=>{const id=++keySequence;const done=eve
   for(const [name,unit] of Object.entries({null:null,number:42,empty:'',whitespace:' ',boolean:false,array:[],object:{}})){const sample=fresh(),record=handoff('invalid-unit-'+name);record.work_unit_id=unit;sample.value.handoffs.push(record);render(sample.root,sample.value);results.invalid['explicit-unit-'+name]=marked(sample.root);delete record.work_unit_id;sample.value.handoffs=[];render(sample.root,sample.value);sample.value.handoffs=[record];render(sample.root,sample.value);results.invalid['invalid-unit-consumed-'+name]=marked(sample.root);}
   {const sample=fresh(),record=handoff('optional-unit');delete record.work_unit_id;sample.value.handoffs.push(record);render(sample.root,sample.value);results.optionalUnit=marked(sample.root);}
   for(const direction of ['absent-to-invalid','invalid-to-absent']){const sample=fresh(),record=handoff('unit-prefix-'+direction);if(direction==='absent-to-invalid')delete record.work_unit_id;else record.work_unit_id=null;sample.value.handoffs=[record];render(sample.root,sample.value);if(direction==='absent-to-invalid')record.work_unit_id=null;else delete record.work_unit_id;sample.value.handoffs.push(handoff('after-unit-rewrite'));render(sample.root,sample.value);results.invalid[direction]=marked(sample.root);}
-  for(const status of ['pending','waiting','preparing','working','completed']){const sample=fresh();sample.value.role_details.cr.status=status;sample.value.handoffs.push(handoff('not-running'));render(sample.root,sample.value);results.invalid['receiver-'+status]=marked(sample.root);sample.value.role_details.cr.status='running';render(sample.root,sample.value);results.invalid['receiver-resumed-'+status]=marked(sample.root);}
+  for(const status of ['pending','passed','blocked','needs_user_confirm','waiting','preparing','working','completed',' RUNNING ']){const sample=fresh();sample.value.role_details.cr.status=status;sample.value.handoffs.push(handoff('not-running'));render(sample.root,sample.value);results.invalid['receiver-'+status]=marked(sample.root);sample.value.role_details.cr.status='running';render(sample.root,sample.value);results.invalid['receiver-resumed-'+status]=marked(sample.root);}
+  {const sample=fresh();sample.value.role_details.dev.status='running';sample.value.handoffs.push(handoff('conflict'));render(sample.root,sample.value);results.invalid.conflict=marked(sample.root);sample.value.role_details.dev.status='passed';render(sample.root,sample.value);results.invalid.conflictRecovered=marked(sample.root);}
+  for(const status of ['pending','running','blocked','needs_user_confirm',undefined,'completed',' PASSED ']){
+    const sample=fresh();sample.value.state='ready_for_qa';sample.value.role_details.cr=status===undefined?{}:{status};sample.value.role_details.qa.status='running';
+    sample.value.handoffs.push(handoff('qa-before-cr','cr','qa'));render(sample.root,sample.value);results.invalid['qa-before-cr-'+String(status)]=marked(sample.root);
+    sample.value.role_details.cr.status='passed';render(sample.root,sample.value);results.invalid['qa-recovered-'+String(status)]=marked(sample.root);
+  }
+  {const sample=fresh();sample.value.state='ready_for_qa';sample.value.role_details.cr.status='passed';sample.value.role_details.qa.status='running';sample.value.work_unit.roles=['dev','qa'];sample.value.handoffs.push(handoff('qa-excluded-cr','dev','qa'));render(sample.root,sample.value);results.invalid.qaExcludedCr=marked(sample.root);sample.value.work_unit.roles=['dev','cr','qa'];render(sample.root,sample.value);results.invalid.qaIncludedCr=marked(sample.root);}
+  {const sample=fresh();sample.value.state='ready_for_qa';sample.value.role_details.cr.status='passed';sample.value.role_details.qa.status='running';sample.value.handoffs.push(handoff('qa-after-passed-cr','cr','qa'));render(sample.root,sample.value);results.qaForward=inspect(sample.root);}
   {const sample=fresh();sample.value.work_unit.roles=['dev','qa'];sample.value.handoffs.push(handoff('excluded'));render(sample.root,sample.value);results.invalid.excluded=marked(sample.root);}
   {const sample=fresh();sample.value.handoffs=[{...handoff('duplicate'),handoff_result:'pending'}];render(sample.root,sample.value);sample.value.handoffs.push(handoff('duplicate'));render(sample.root,sample.value);results.invalid.duplicateIds=marked(sample.root);}
   {const sample=fresh();sample.value.handoffs=[handoff('first'),handoff('second')];render(sample.root,sample.value);results.invalid.batchHistory=marked(sample.root);}
@@ -77,7 +85,7 @@ const nativeKey=key=>new Promise(resolve=>{const id=++keySequence;const done=eve
   results.afterCleanup=marked(cleanup.root);cleanup.root.removeEventListener('animationend',onHandoffEnd);render(cleanup.root,cleanup.value);results.afterCleanupUpdate=marked(cleanup.root);
   const again=structuredClone(cleanup.value);again.handoffs.push(handoff('next'));render(cleanup.root,again);results.nextEvent=marked(cleanup.root);
   const cancel=fresh();results.cancelEvents=[];cancel.root.addEventListener('animationcancel',event=>results.cancelEvents.push(event.animationName+'/'+event.pseudoElement));
-  cancel.value.role_details.cr.status='completed';cancel.value.role_details.dev.status='running';cancel.value.handoffs.push(handoff('cancel','cr','dev'));render(cancel.root,cancel.value);results.beforeCancel=inspect(cancel.root);
+  cancel.value.role_details.cr.status='passed';cancel.value.role_details.dev.status='running';cancel.value.handoffs.push(handoff('cancel','cr','dev'));render(cancel.root,cancel.value);results.beforeCancel=inspect(cancel.root);
   cancel.root.scrollIntoView({block:'start'});const cancelling=finiteAnimations(cancel.root);await Promise.all(cancelling.map(animation=>animation.ready));await wait(100);
   results.cancelClock=cancelling.map(animation=>({start:animation.startTime,time:animation.currentTime}));
   const stopStyle=document.createElement('style');stopStyle.textContent='#'+cancel.root.id+' .is-handoff-flow::before,#'+cancel.root.id+' .is-handoff-receiving::after{animation-name:none}';cancel.root.append(stopStyle);void cancel.root.offsetWidth;
@@ -228,7 +236,7 @@ function assertFlow(value, receiver, reverse, name) {
     if(!mode.reduced){assert.deepEqual(detail.firstStarts.sort(),['dev','tech-select'],'manual role and child openings must each start only once');assert.deepEqual(detail.firstEnds.sort(),['dev','tech-select'],'child completion must not consume the parent completion listener');assertFlow(detail.coexist.handoff,'cr',false,'detail/handoff coexistence');assert.equal(detail.coexist.handoff.activeAnimation,'sc-running-pulse','detail reveal must preserve the running pulse');}
     else {assert.deepEqual(detail.starts,[],'reduced motion must not create detail animationstart events');assert.deepEqual(detail.ends,[]);assertQuiet({flows:detail.coexist.handoff.flows,receivers:detail.coexist.handoff.receivers,reverse:detail.coexist.handoff.reverse},'reduced detail/handoff coexistence');}
     if (mode.reduced) {
-      for (const field of ["forward", "reverse", "beforeCleanup"]) assertQuiet({ flows: result[field].flows, receivers: result[field].receivers, reverse: result[field].reverse }, field);
+      for (const field of ["forward", "reverse", "qaForward", "beforeCleanup"]) assertQuiet({ flows: result[field].flows, receivers: result[field].receivers, reverse: result[field].reverse }, field);
       assertQuiet(result.acceptedTransition, "acceptedTransition");
       assertQuiet(result.optionalUnit, "optionalUnit");
       assertQuiet(result.nextEvent, "nextEvent");
@@ -237,6 +245,7 @@ function assertFlow(value, receiver, reverse, name) {
       continue;
     }
     assertFlow(result.forward, "cr", false, "forward");
+    assertFlow(result.qaForward, "qa", false, "CR passed before QA handoff");
     assertFlow(result.reverse, "dev", true, "reverse");
     assertFlow(result.acceptedTransition, "cr", false, "pending-to-accepted");
     assertFlow(result.optionalUnit, "cr", false, "an omitted optional work-unit identity");

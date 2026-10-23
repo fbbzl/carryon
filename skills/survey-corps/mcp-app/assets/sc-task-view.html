@@ -25,7 +25,7 @@
     .sc-task-view__metadata { display:grid; grid-template-columns:6em minmax(0,1fr); align-items:baseline; column-gap:12px; row-gap:6px; width:min(100%,560px); margin:12px auto 0; text-align:left; }
     .sc-task-view__metadata dt { color:var(--muted); text-align:right; }
     .sc-task-view__metadata dd { min-width:0; margin:0; overflow-wrap:anywhere; }
-    .sc-task-view__role-metrics { display:grid; grid-template-columns:6em minmax(0,1fr); column-gap:12px; row-gap:4px; margin:10px 0 12px; padding:8px 10px; border-left:2px solid var(--line); }
+    .sc-task-view__role-metrics { display:flex; align-items:baseline; gap:6px; margin:10px 0 12px; }
     .sc-task-view__role-metrics dt { color:var(--muted); }
     .sc-task-view__role-metrics dd { min-width:0; margin:0; overflow-wrap:anywhere; }
     .sc-task-view__role-name { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; min-width:0; }
@@ -96,7 +96,7 @@
         <dt>任务类型</dt><dd data-sc-field="task_type">未提供</dd>
         <dt>参与角色</dt><dd data-sc-selected-roles>尚未选择</dd>
         <dt>选择原因</dt><dd data-sc-field="role_selection_reason">未提供</dd>
-        <dt>累计耗时</dt><dd data-sc-metric="task-elapsed">未提供</dd>
+        <dt data-sc-task-elapsed-label hidden>累计耗时</dt><dd data-sc-metric="task-elapsed" hidden>未提供</dd>
       </dl>
     </article>
     <div class="sc-task-view__roles" data-sc-roles aria-label="REQ、DEV、CR、QA 顺序任务"></div>
@@ -107,24 +107,22 @@
   <script>
     "use strict";
     (() => {
-      const labels={confirmed:"已确认",planned:"计划",dev_in_progress:"开发中",ready_for_cr:"等待审查",cr_blocked:"审查阻断",ready_for_qa:"等待测试",qa_failed:"测试失败",qa_conditional:"测试条件通过",qa_passed:"测试通过",workflow_ready:"任务完成",completed:"已完成",complete:"已完成",done:"已完成",success:"已完成",successful:"已完成",succeeded:"已完成",failed:"失败",paused:"已暂停",waiting:"等待中",cancelled:"已取消",canceled:"已取消",needs_user_confirm:"等待用户确认",needs_revalidation:"需要重新验证",needs_revision:"需要修订",blocked:"已阻断"};
+      const taskStates={confirmed:["已确认","completed"],planned:["计划","pending"],dev_in_progress:["开发中","active"],ready_for_cr:["审查阶段","waiting"],cr_blocked:["审查阻断","danger"],ready_for_qa:["测试阶段","waiting"],qa_failed:["测试失败","danger"],qa_conditional:["测试条件通过","revision"],qa_passed:["测试通过","passed"],workflow_ready:["任务完成","passed"],completed:["已完成","completed"],complete:["已完成","completed"],done:["已完成","completed"],success:["已完成","completed"],successful:["已完成","completed"],succeeded:["已完成","completed"],failed:["失败","danger"],paused:["已暂停","waiting"],waiting:["等待中","waiting"],cancelled:["已取消","pending"],canceled:["已取消","pending"],needs_user_confirm:["等待用户确认","waiting"],needs_revalidation:["需要重新验证","revision"],needs_revision:["需要修订","revision"],blocked:["已阻断","danger"]};
       const roles=["req","dev","cr","qa"],roleLabels={req:"REQ",dev:"DEV",cr:"CR",qa:"QA"};
-      const stateRole={dev_in_progress:"dev"};
       const stoppedStates=new Set(["needs_user_confirm","paused","waiting","blocked","qa_passed","workflow_ready","completed","complete","done","success","successful","succeeded","failed","cancelled","canceled"]);
-      const activeRoleStates=new Set(["running","preparing","in_progress","working","active","started","started_working"]);
       const asObject=value=>value&&typeof value==="object"&&!Array.isArray(value)?value:{};
       const asList=value=>Array.isArray(value)?value:value===undefined||value===null||value===""?[]:[value];
       const safeText=value=>value===undefined||value===null||value===""?"未提供":typeof value==="object"?JSON.stringify(value):String(value);
       const missing=value=>value===undefined||value===null||value==="";
-      const stateText=value=>typeof value==="string"&&Object.hasOwn(labels,value)?labels[value]:"未知状态";
-      const stateTones={confirmed:"completed",planned:"pending",dev_in_progress:"active",ready_for_cr:"waiting",cr_blocked:"danger",ready_for_qa:"waiting",qa_failed:"danger",qa_conditional:"revision",qa_passed:"passed",workflow_ready:"passed",completed:"completed",complete:"completed",done:"completed",success:"completed",successful:"completed",succeeded:"completed",failed:"danger",paused:"waiting",waiting:"waiting",cancelled:"pending",canceled:"pending",needs_user_confirm:"waiting",needs_revalidation:"revision",needs_revision:"revision",blocked:"danger"};
-      const toneClass=(tones,value)=>`sc-task-view__state--${typeof value==="string"&&Object.hasOwn(tones,value)?tones[value]:"unknown"}`;
-      const stateClass=value=>toneClass(stateTones,value);
+      const stateText=value=>typeof value==="string"&&Object.hasOwn(taskStates,value)?taskStates[value][0]:"未知状态";
+      const toneClass=(states,value)=>`sc-task-view__state--${typeof value==="string"&&Object.hasOwn(states,value)?states[value][1]:"unknown"}`;
+      const stateClass=value=>toneClass(taskStates,value);
       const normalizedStatus=value=>safeText(value).trim().toLowerCase().replace(/[ -]+/g,"_");
-      const roleStatusLabels={pending:"待开始",not_started:"待开始",running:"进行中",preparing:"进行中",in_progress:"进行中",working:"进行中",active:"进行中",started:"进行中",started_working:"进行中",completed:"已完成",complete:"已完成",done:"已完成",success:"已完成",successful:"已完成",succeeded:"已完成",passed:"已通过",qa_passed:"已通过",qa_success:"已通过",workflow_ready:"已通过",failed:"失败",blocked:"已阻断",paused:"已暂停",cancelled:"已取消",canceled:"已取消",skipped:"已跳过",waiting:"等待中",waiting_user:"等待用户确认",needs_user_confirm:"等待用户确认",needs_revision:"需要修订"};
-      const roleStatusText=value=>value===undefined||value===null||value===""?"状态未提供":Object.hasOwn(roleStatusLabels,normalizedStatus(value))?roleStatusLabels[normalizedStatus(value)]:"未知状态";
-      const roleStatusTones={pending:"pending",not_started:"pending",running:"active",preparing:"active",in_progress:"active",working:"active",active:"active",started:"active",started_working:"active",completed:"completed",complete:"completed",done:"completed",success:"completed",successful:"completed",succeeded:"completed",passed:"passed",qa_passed:"passed",qa_success:"passed",workflow_ready:"passed",failed:"danger",blocked:"danger",paused:"waiting",cancelled:"pending",canceled:"pending",skipped:"pending",waiting:"waiting",waiting_user:"waiting",needs_user_confirm:"waiting",needs_revision:"revision"};
-      const roleStatusClass=value=>toneClass(roleStatusTones,normalizedStatus(value));
+      const subskillStates={pending:["待开始","pending"],not_started:["待开始","pending"],running:["进行中","active"],preparing:["进行中","active"],in_progress:["进行中","active"],working:["进行中","active"],active:["进行中","active"],started:["进行中","active"],started_working:["进行中","active"],completed:["已完成","completed"],complete:["已完成","completed"],done:["已完成","completed"],success:["已完成","completed"],successful:["已完成","completed"],succeeded:["已完成","completed"],passed:["已通过","passed"],qa_passed:["已通过","passed"],qa_success:["已通过","passed"],workflow_ready:["已通过","passed"],failed:["失败","danger"],blocked:["已阻断","danger"],paused:["已暂停","waiting"],cancelled:["已取消","pending"],canceled:["已取消","pending"],skipped:["已跳过","pending"],waiting:["等待中","waiting"],waiting_user:["等待用户确认","waiting"],needs_user_confirm:["等待用户确认","waiting"],needs_revision:["需要修订","revision"]};
+      const roleStates={pending:{label:"待开始",tone:"pending"},running:{label:"进行中",tone:"active"},passed:{label:"通过",tone:"passed"},blocked:{label:"阻断",tone:"danger"},needs_user_confirm:{label:"待用户确认",tone:"waiting"}};
+      const roleStatus=value=>typeof value==="string"&&Object.hasOwn(roleStates,value)?roleStates[value]:{label:missing(value)?"状态未提供":"未知状态",tone:"unknown"};
+      const subskillStatusText=value=>missing(value)?"状态未提供":Object.hasOwn(subskillStates,normalizedStatus(value))?subskillStates[normalizedStatus(value)][0]:"未知状态";
+      const subskillStatusClass=value=>toneClass(subskillStates,normalizedStatus(value));
       const optionalText=value=>typeof value==="string"?value.trim():"";
       const validMetric=value=>Number.isSafeInteger(value)&&value>=0;
       function formatElapsed(value) {
@@ -145,9 +143,13 @@
         node.textContent=valid?format(value):"未提供";
         node.classList.toggle("sc-task-view__placeholder",!valid);
       }
-      function renderTaskMetrics(root,work) {
+      const finishedStatuses=new Set(["completed","complete","done","success","successful","succeeded","passed","qa_passed","qa_success","workflow_ready","failed","cancelled","canceled","skipped"]);
+      function renderTaskMetrics(root,work,state) {
         const metrics=asObject(work.metrics);
         setMetric(root.querySelector('[data-sc-metric="task-elapsed"]'),metrics.elapsed_ms,formatElapsed);
+        const finished=finishedStatuses.has(normalizedStatus(state));
+        root.querySelector('[data-sc-metric="task-elapsed"]').hidden=!finished;
+        root.querySelector('[data-sc-task-elapsed-label]').hidden=!finished;
       }
       const projectMcpName=value=>{ const name=optionalText(value).toLowerCase(); return /^[a-z][a-z0-9._-]{0,63}$/.test(name)?name:""; };
       function renderProjectMcps(root,work) {
@@ -158,38 +160,44 @@
         count.textContent=`(${mcps.length})`;
         list.replaceChildren(...mcps.map(name=>{ const item=document.createElement("li"); item.textContent=name; return item; }));
       }
-      function renderRootMetadata(root,work) {
-        const selected=[...new Set(asList(work.roles).filter(value=>typeof value==="string").map(value=>value.trim().toLowerCase()).filter(value=>roles.includes(value)))];
+      function renderRootMetadata(root,work,selected) {
         const selectedNode=root.querySelector("[data-sc-selected-roles]"),summaryNode=root.querySelector("[data-sc-task-summary]"),summary=optionalText(work.summary);
         selectedNode.textContent=selected.length?selected.map(role=>roleLabels[role]).join(" → "):"尚未选择";
         selectedNode.classList.toggle("sc-task-view__placeholder",!selected.length);
         summaryNode.textContent=summary||"暂无总结";
         summaryNode.classList.toggle("sc-task-view__placeholder",!summary);
       }
-      const isActiveRoleStatus=value=>activeRoleStates.has(normalizedStatus(value));
-      function resolveActiveRole(details,state,selectedRoles) { if (stoppedStates.has(normalizedStatus(state))) return null; const explicit=selectedRoles.filter(role=>isActiveRoleStatus(asObject(details[role]).status)); if (explicit.length>1) return null; if (explicit.length) return explicit[0]; const mapped=typeof state==="string"&&Object.hasOwn(stateRole,state)?stateRole[state]:null; return selectedRoles.includes(mapped)&&missing(asObject(details[mapped]).status)?mapped:null; }
+      function resolveActiveRole(details,state,selectedRoles) {
+        if (stoppedStates.has(normalizedStatus(state))) return null;
+        const active=selectedRoles.filter(role=>asObject(details[role]).status==="running");
+        if (active.length!==1) return null;
+        if (active[0]==="qa"&&(!selectedRoles.includes("cr")||asObject(details.cr).status!=="passed")) return null;
+        return active[0];
+      }
       function renderList(container,value) { const values=asList(value); container.replaceChildren(); if (!values.length) { const empty=document.createElement("p"); empty.className="sc-task-view__empty"; empty.textContent="未提供"; container.append(empty); return; } const list=document.createElement("ul"); values.forEach(value=>{ const item=document.createElement("li"); item.textContent=safeText(value); item.classList.toggle("sc-task-view__placeholder",missing(value)); list.append(item); }); container.append(list); }
-      function detailField(body,label,value) { const heading=document.createElement("h3"),content=document.createElement("div"); heading.textContent=label; renderList(content,value); body.append(heading,content); }
-      function renderRoleMetrics(body,value) {
-        const metrics=asObject(value),heading=document.createElement("h3"),list=document.createElement("dl");
-        heading.textContent="执行耗时";
+      function detailField(body,label,value,field) {
+        const heading=document.createElement("h3"),content=document.createElement("div");
+        heading.textContent=label;
+        if (field!==undefined) content.dataset.scSubskillField=field;
+        renderList(content,value);
+        body.append(heading,content);
+      }
+      function renderRoleMetrics(body,value,status) {
+        const metrics=asObject(value),list=document.createElement("dl");
         list.className="sc-task-view__role-metrics";
+        list.hidden=status!=="passed";
         const term=document.createElement("dt"),definition=document.createElement("dd");
-        term.textContent="角色耗时";
+        term.textContent="执行耗时:";
         setMetric(definition,metrics.elapsed_ms,formatElapsed);
         list.append(term,definition);
-        body.append(heading,list);
+        body.append(list);
       }
       const subskillNames={req:["align-with-visuals","grill-with-docs"],dev:["tech-select","refactor-with-goal","bug-fix","bug-cause","optimize"],cr:["review-with-goal"],qa:["test-with-goal"]};
       const stringList=value=>Array.isArray(value)?value.map(optionalText).filter(Boolean):[];
       function subskillField(body,field,label,value) {
         const values=Array.isArray(value)?value:optionalText(value);
         if (!values.length) return;
-        const heading=document.createElement("h3"),content=document.createElement("div");
-        heading.textContent=label;
-        content.dataset.scSubskillField=field;
-        renderList(content,values);
-        body.append(heading,content);
+        detailField(body,label,values,field);
       }
       function subskillNode(role,input) {
         const item=asObject(input),name=optionalText(item.name);
@@ -200,8 +208,8 @@
         node.className="sc-task-view__subskill";
         node.dataset.scSubskill=name;
         title.textContent=name;
-        status.className=`sc-task-view__role-state ${roleStatusClass(item.status)}`;
-        status.textContent=roleStatusText(item.status);
+        status.className=`sc-task-view__role-state ${subskillStatusClass(item.status)}`;
+        status.textContent=subskillStatusText(item.status);
         summary.append(title,status);
         subskillField(body,"goal","目标",fields.goal);
         subskillField(body,"summary","摘要",fields.summary);
@@ -232,14 +240,39 @@
         box.append(heading,...nodes);
         body.append(box);
       }
-      function roleNode(role,detail,activeRole,openRole) { const node=document.createElement("details"),summary=document.createElement("summary"),name=document.createElement("span"),status=document.createElement("span"),body=document.createElement("div"); const active=role===activeRole; node.className=`sc-task-view__node${active?" is-active":""}`; node.open=role===openRole; node.dataset.scRole=role; if (active) node.setAttribute("aria-current","step"); name.className="sc-task-view__role-name"; const roleName=document.createElement("span"); roleName.textContent=roleLabels[role]; name.append(roleName); status.className=`sc-task-view__role-state ${roleStatusClass(detail.status)}`; status.textContent=roleStatusText(detail.status); summary.append(name,status); node.append(summary); body.className="sc-task-view__detail"; body.dataset.scDetailBody=""; renderRoleMetrics(body,detail.metrics); detailField(body,"摘要",detail.summary); detailField(body,"必要证据",detail.evidence); detailField(body,"风险",detail.risks); detailField(body,"下一步",detail.next_action); renderSubskills(body,role,detail.subskills); node.append(body); return node; }
+      function roleNode(role,detail,activeRole,openRole) {
+        const node=document.createElement("details"),summary=document.createElement("summary"),name=document.createElement("span"),status=document.createElement("span"),body=document.createElement("div");
+        const active=role===activeRole,state=roleStatus(detail.status);
+        node.className=`sc-task-view__node${active?" is-active":""}`;
+        node.open=role===openRole;
+        node.dataset.scRole=role;
+        if (active) node.setAttribute("aria-current","step");
+        name.className="sc-task-view__role-name";
+        const roleName=document.createElement("span");
+        roleName.textContent=roleLabels[role];
+        name.append(roleName);
+        status.className=`sc-task-view__role-state sc-task-view__state--${state.tone}`;
+        status.textContent=state.label;
+        summary.append(name,status);
+        node.append(summary);
+        body.className="sc-task-view__detail";
+        body.dataset.scDetailBody="";
+        renderRoleMetrics(body,detail.metrics,detail.status);
+        detailField(body,"摘要",detail.summary);
+        detailField(body,"必要证据",detail.evidence);
+        detailField(body,"风险",detail.risks);
+        detailField(body,"下一步",detail.next_action);
+        renderSubskills(body,role,detail.subskills);
+        node.append(body);
+        return node;
+      }
       function renderRoles(root,details,activeRole,openRole,selectedRoles,preserveFocus) {
-        const box=root.querySelector("[data-sc-roles]"),fragment=document.createDocumentFragment(),orderedRoles=selectedRoles;
+        const box=root.querySelector("[data-sc-roles]"),fragment=document.createDocumentFragment();
         const focused=preserveFocus&&box.contains(document.activeElement)?document.activeElement:null;
         const focusedRole=focused?.closest("[data-sc-role]")?.dataset.scRole,focusedSkill=focused?.closest("[data-sc-subskill]")?.dataset.scSubskill;
         const skillSelector=focusedSkill?`[data-sc-subskill="${focusedSkill}"] > summary`:null,skillIndex=skillSelector?[...focused.closest("[data-sc-role]").querySelectorAll(skillSelector)].indexOf(focused):-1;
-        box.setAttribute("aria-label",`${orderedRoles.map(role=>roleLabels[role]).join("、")} 顺序任务`);
-        orderedRoles.forEach((role,index)=>{ const connector=document.createElement("span"); connector.className="sc-task-view__connector"; connector.dataset.scConnectorFrom=orderedRoles[index-1]||"sc"; connector.dataset.scConnectorTo=role; connector.setAttribute("aria-hidden","true"); fragment.append(connector,roleNode(role,asObject(details[role]),activeRole,openRole)); });
+        box.setAttribute("aria-label",`${selectedRoles.map(role=>roleLabels[role]).join("、")} 顺序任务`);
+        selectedRoles.forEach((role,index)=>{ const connector=document.createElement("span"); connector.className="sc-task-view__connector"; connector.dataset.scConnectorFrom=selectedRoles[index-1]||"sc"; connector.dataset.scConnectorTo=role; connector.setAttribute("aria-hidden","true"); fragment.append(connector,roleNode(role,asObject(details[role]),activeRole,openRole)); });
         box.replaceChildren(fragment);
         if (!focused?.matches("summary")) return;
         const role=box.querySelector(`[data-sc-role="${focusedRole}"]`),summary=role?.querySelector(":scope > summary"),skill=skillSelector?role?.querySelectorAll(skillSelector)[skillIndex]:null;
@@ -270,7 +303,7 @@
         root.__scDetailRevealCleanup=()=>{ root.removeEventListener("toggle",onToggle,true); [...pending.values()].forEach(cleanups=>cleanups.forEach(cleanup=>cleanup())); };
       }
       function animateOnce(node,className,cleanups,onFinish) { if (!node) return; node.classList.remove(className); void node.offsetWidth; node.classList.add(className); const finish=event=>{ if (event&&event.target!==node) return; node.classList.remove(className); node.removeEventListener("animationend",finish); node.removeEventListener("animationcancel",finish); onFinish?.(); }; node.addEventListener("animationend",finish); node.addEventListener("animationcancel",finish); cleanups.push(finish); }
-      function observeHandoff(previous,input,selectedRoles) {
+      function observeHandoff(previous,input,selectedRoles,activeRole=resolveActiveRole(asObject(input.role_details),input.state,selectedRoles)) {
         const viewId=optionalText(input.view_id),sameView=!!viewId&&previous?.viewId===viewId;
         const seen=new Set(sameView?previous.seen:[]),records=Array.isArray(input.handoffs)?input.handoffs.map(value=>{
           const item=asObject(value);
@@ -283,8 +316,7 @@
         const ids=records?.map(item=>item.id).filter(Boolean)||[],unique=new Set(ids).size===ids.length;
         const fromIndex=selectedRoles.indexOf(candidate?.from),toIndex=selectedRoles.indexOf(candidate?.to);
         const valid=unique&&candidate?.id&&!seen.has(candidate.id)&&candidate.result==="accepted"&&fromIndex>=0&&toIndex>=0&&Math.abs(fromIndex-toIndex)===1&&(!candidate.hasUnit||(candidate.unit&&candidate.unit===optionalText(asObject(input.work_unit).work_unit_id)));
-        const running=normalizedStatus(asObject(asObject(input.role_details)[candidate?.to]).status)==="running";
-        const event=(appended||accepted)&&valid&&running&&!stoppedStates.has(normalizedStatus(input.state))?candidate:null;
+        const event=(appended||accepted)&&valid&&activeRole===candidate.to?candidate:null;
         records?.forEach(item=>{ if (item.id&&item.result==="accepted") seen.add(item.id); });
         // A restored or rewritten history becomes a baseline, never a replay queue.
         return {viewId,records,seen,event};
@@ -302,7 +334,33 @@
         root.__scHandoffMotionCleanup=()=>cleanups.forEach(cleanup=>cleanup());
       }
       function bindAnimationControls(root) { if (root.__scAnimationButtonBound) return; const button=root.querySelector("[data-sc-play-animation]"); if (!button) return; const onClick=()=>{ if (!root.__scDebugMode) return; root.__scManualMotionCleanup?.(); root.__scManualMotionCleanup=undefined; if (prefersReducedMotion()) return; const cleanups=[]; animateOnce(root.querySelector("details.is-active"),"is-manual-replay",cleanups); root.__scManualMotionCleanup=()=>cleanups.forEach(cleanup=>cleanup()); }; button.addEventListener("click",onClick); root.__scAnimationButtonBound=true; root.__scAnimationButtonCleanup=()=>button.removeEventListener("click",onClick); }
-      window.renderSurveyCorpsTaskView=(root,snapshot,options)=>{ if (!(root instanceof Element)) throw new TypeError("root 必须是一个 DOM 元素"); const input=asObject(snapshot),work=asObject(input.work_unit),details=asObject(input.role_details),state=input.state,selectedRoles=[...new Set(asList(work.roles).filter(value=>typeof value==="string").map(value=>value.trim().toLowerCase()).filter(value=>roles.includes(value)))],activeRole=resolveActiveRole(details,state,selectedRoles),userOpenRole=root.querySelector("details[data-sc-role][open]")?.dataset.scRole,openRole=root.__scViewId===input.view_id&&root.__scResolvedActiveRole===activeRole&&(userOpenRole===undefined||selectedRoles.includes(userOpenRole))?userOpenRole:activeRole,values={target:work.target,task_type:work.task_type,role_selection_reason:work.role_selection_reason}; Object.entries(values).forEach(([name,value])=>root.querySelectorAll(`[data-sc-field="${name}"]`).forEach(node=>{ node.textContent=safeText(value); node.classList.toggle("sc-task-view__placeholder",missing(value)); })); const status=root.querySelector('[data-sc-field="state"]'); if (status) { status.textContent=stateText(state); status.className=`sc-task-view__status ${stateClass(state)}`; } renderProjectMcps(root,work); renderRootMetadata(root,work); renderTaskMetrics(root,work); root.__scDebugMode=asObject(options).debug===true; const playButton=root.querySelector("[data-sc-play-animation]"); if (playButton) playButton.hidden=!root.__scDebugMode; if (!root.__scDebugMode) { root.__scManualMotionCleanup?.(); root.__scManualMotionCleanup=undefined; } renderRoles(root,details,activeRole,openRole,selectedRoles,root.__scViewId===input.view_id); const observation=observeHandoff(root.__scHandoffObservation,input,selectedRoles); root.__scHandoffObservation=observation; animateHandoff(root,observation.event); root.__scResolvedActiveRole=activeRole; root.__scViewId=input.view_id; enforceSingleOpen(root); bindDetailReveal(root); bindAnimationControls(root); };
+      window.renderSurveyCorpsTaskView=(root,snapshot,options)=>{
+        if (!(root instanceof Element)) throw new TypeError("root 必须是一个 DOM 元素");
+        const input=asObject(snapshot),work=asObject(input.work_unit),details=asObject(input.role_details),state=input.state;
+        const selectedRoles=[...new Set(asList(work.roles).filter(value=>typeof value==="string").map(value=>value.trim().toLowerCase()).filter(value=>roles.includes(value)))];
+        const activeRole=resolveActiveRole(details,state,selectedRoles),userOpenRole=root.querySelector("details[data-sc-role][open]")?.dataset.scRole;
+        const sameView=root.__scViewId===input.view_id,openRole=sameView&&root.__scResolvedActiveRole===activeRole&&(userOpenRole===undefined||selectedRoles.includes(userOpenRole))?userOpenRole:activeRole;
+        const values={target:work.target,task_type:work.task_type,role_selection_reason:work.role_selection_reason};
+        Object.entries(values).forEach(([name,value])=>root.querySelectorAll(`[data-sc-field="${name}"]`).forEach(node=>{ node.textContent=safeText(value); node.classList.toggle("sc-task-view__placeholder",missing(value)); }));
+        const status=root.querySelector('[data-sc-field="state"]');
+        if (status) { status.textContent=stateText(state); status.className=`sc-task-view__status ${stateClass(state)}`; }
+        renderProjectMcps(root,work);
+        renderRootMetadata(root,work,selectedRoles);
+        renderTaskMetrics(root,work,state);
+        root.__scDebugMode=asObject(options).debug===true;
+        const playButton=root.querySelector("[data-sc-play-animation]");
+        if (playButton) playButton.hidden=!root.__scDebugMode;
+        if (!root.__scDebugMode) { root.__scManualMotionCleanup?.(); root.__scManualMotionCleanup=undefined; }
+        renderRoles(root,details,activeRole,openRole,selectedRoles,sameView);
+        const observation=observeHandoff(root.__scHandoffObservation,input,selectedRoles,activeRole);
+        root.__scHandoffObservation=observation;
+        animateHandoff(root,observation.event);
+        root.__scResolvedActiveRole=activeRole;
+        root.__scViewId=input.view_id;
+        enforceSingleOpen(root);
+        bindDetailReveal(root);
+        bindAnimationControls(root);
+      };
     })();
   </script>
 </section>

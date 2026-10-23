@@ -6,8 +6,8 @@ const vm = require("node:vm");
 const appTemplate = fs.readFileSync(path.join(__dirname, "assets", "sc-task-view.html"), "utf8");
 
 assert.doesNotMatch(appTemplate, /is-entering|is-connection-entering|is-state-updated/, "mounting and ordinary state updates must not add entrance or state animations");
-assert.match(appTemplate, /activeRoleStates=new Set\(\["running","preparing","in_progress"/, "active role states must include the required statuses");
-for (const status of ["running", "preparing", "in_progress", "working", "active", "started", "started_working"]) assert.match(appTemplate, new RegExp(`activeRoleStates=new Set\\(\\[[^\\]]*"${status}"`), `${status} must keep a role card active`);
+assert.match(appTemplate, /selectedRoles\.filter\(role=>asObject\(details\[role\]\)\.status==="running"\)/, "only exact running in the selected chain may activate role motion");
+assert.doesNotMatch(appTemplate, /activeRoleStates=new Set/, "legacy aliases must not activate role cards");
 assert.match(appTemplate, /details\[data-sc-role\]\.is-active \{[^}]*animation:sc-running-pulse 1\.6s ease-in-out infinite/, "an active role card must visibly pulse continuously at the requested faster cadence");
 assert.match(appTemplate, /@keyframes sc-running-pulse \{[^}]*box-shadow:0 0 0 1px[^}]*/s, "the active role pulse must retain a visible resting glow");
 assert.match(appTemplate, /50% \{ box-shadow:0 0 0 5px[^}]*0 0 26px/s, "the active role pulse must reach a pronounced card glow");

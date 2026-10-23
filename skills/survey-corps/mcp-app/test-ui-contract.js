@@ -2,6 +2,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
 
 const appTemplate = fs.readFileSync(path.join(__dirname, "assets", "sc-task-view.html"), "utf8");
 const skillPath = path.join(__dirname, "..", "SKILL.md");
@@ -9,11 +10,11 @@ const repositoryRoot = path.resolve(__dirname, "..", "..", "..");
 const isSourceTree = fs.existsSync(path.join(repositoryRoot, ".agents", "plugins", "marketplace.json"));
 assert.ok(!isSourceTree || fs.existsSync(skillPath), "repository Skill is missing from the source tree");
 const skill = isSourceTree ? fs.readFileSync(skillPath, "utf8") : null;
-const stateRoleLiteral = appTemplate.match(/const stateRole=\{([^}]*)\}/)?.[1] || "";
-const stateLabelsLiteral = appTemplate.match(/const labels=\{([^}]*)\}/)?.[1] || "";
-const stateTonesLiteral = appTemplate.match(/const stateTones=\{([^}]*)\}/)?.[1] || "";
-const roleStatusLabelsLiteral = appTemplate.match(/const roleStatusLabels=\{([^}]*)\}/)?.[1] || "";
-const roleStatusTonesLiteral = appTemplate.match(/const roleStatusTones=\{([^}]*)\}/)?.[1] || "";
+const script = appTemplate.match(/<script>([\s\S]*?)<\/script>/)[1];
+const context = { window: {} };
+vm.runInNewContext(script.replace(/\}\)\(\);\s*$/, "window.statusContract={stateText,stateClass,subskillStatusText,subskillStatusClass};})();"), context, { timeout: 1000 });
+const { stateText, stateClass, subskillStatusText, subskillStatusClass } = context.window.statusContract;
+const roleStatesLiteral = appTemplate.match(/const roleStates=(\{[^\r\n]+\});/)?.[1] || "";
 const assertSkillMatch = (pattern, message) => { if (skill) assert.match(skill, pattern, message); };
 const assertSkillDoesNotMatch = (pattern, message) => { if (skill) assert.doesNotMatch(skill, pattern, message); };
 const snapshotExample = skill?.match(/### 任务视图数据契约[\s\S]*?```yaml\r?\n([\s\S]*?)\r?\n```/)?.[1] || "";
@@ -22,7 +23,7 @@ const workUnitExample = snapshotExample.match(/^work_unit:\r?\n([\s\S]*?)(?=^[^\
 assert.match(appTemplate, /font:13px\/1\.6 "Segoe UI Variable","Microsoft YaHei UI","Microsoft YaHei","PingFang SC",system-ui,sans-serif/, "task view body copy must prefer readable system CJK sans-serif fonts");
 assert.doesNotMatch(appTemplate, /font:13px\/1\.5 ui-monospace/, "task view body copy must not default to a monospace font");
 assert.match(appTemplate, /const roles=\["req","dev","cr","qa"\]/, "task flow must retain the canonical role set");
-assert.match(appTemplate, /orderedRoles=selectedRoles;/, "task flow must render selected roles in declared order");
+assert.match(appTemplate, /selectedRoles\.forEach\(\(role,index\)=>/, "task flow must render selected roles in declared order");
 assert.doesNotMatch(appTemplate, /data-sc-exit|sc-task-view__exit|QA · 唯一任务出口/, "QA exit must not render a separate node or retain its styles");
 assert.match(appTemplate, /roleName\.textContent=roleLabels\[role\]/, "role titles must use the plain role label without a QA exit suffix");
 assert.match(appTemplate, /data-sc-task-summary>暂无总结</, "task summary must default to no supplied summary");
@@ -34,7 +35,7 @@ assert.match(appTemplate, /data-sc-metric="task-elapsed"/, "task metadata must e
 assert.doesNotMatch(appTemplate, /task-tokens|total_tokens|Token|formatTokens/, "task and role cards must not render or format token usage");
 assert.match(appTemplate, /function formatElapsed\(value\)/, "elapsed time must use a deterministic formatter");
 assert.match(appTemplate, /const validMetric=value=>Number\.isSafeInteger\(value\)&&value>=0/, "metrics must reject missing, fractional and negative values");
-assert.match(appTemplate, /function renderRoleMetrics\(body,value\)/, "role cards must expose per-role measured usage");
+assert.match(appTemplate, /function renderRoleMetrics\(body,value,status\)/, "role cards must expose per-role measured usage");
 assert.match(appTemplate, /renderTaskMetrics\(root,work,state\)/, "task metrics must be refreshed on every snapshot");
 if (skill) assert.match(workUnitExample, /^  metrics:.*elapsed_ms/m, "snapshot example must nest elapsed time as a direct work_unit field");
 assert.doesNotMatch(snapshotExample, /\nwork_unit\.metrics:/, "snapshot example must not document task metrics as a root-level dotted key");
@@ -67,30 +68,31 @@ assert.match(appTemplate, /data-sc-play-animation hidden/, "animation replay is 
 assert.match(appTemplate, /data-sc-subskill-field|dataset\.scSubskillField/, "called subskills must expose their read-only fields");
 assert.doesNotMatch(appTemplate, /data-sc-subskill-submit|data-sc-subskill-approve|data-sc-subskill-choice/, "subskill records must not imply a reply or approval channel");
 assert.doesNotMatch(appTemplate, /data-sc-tree-gate|回到 SC|data-sc-state-reference|sc-task-view__console|data-sc-events|Session log/, "nonessential or post-QA views must not be rendered");
-assert.match(appTemplate, /const explicit=selectedRoles\.filter/, "activity must be resolved only from selected roles");
+assert.match(appTemplate, /const active=selectedRoles\.filter/, "activity must be resolved only from selected roles");
 assert.match(appTemplate, /node\.open=role===openRole/, "role expansion must follow the preserved or newly resolved open role");
 assert.match(appTemplate, /const active=role===activeRole/, "role cards must compare against one resolved active role");
 assert.match(appTemplate, /querySelectorAll\("details\[data-sc-role\]\[open\]"\).*if \(node!==opened\) node\.open=false/, "opening one role must close every other role");
 assert.match(appTemplate, /userOpenRole=root\.querySelector\("details\[data-sc-role\]\[open\]"\)\?\.dataset\.scRole/, "rerender must capture the user's currently open role before replacing nodes");
-assert.match(appTemplate, /root\.__scViewId===input\.view_id&&root\.__scResolvedActiveRole===activeRole&&\(userOpenRole===undefined\|\|selectedRoles\.includes\(userOpenRole\)\)\?userOpenRole:activeRole/, "only the same task and active role may preserve a still-valid manual selection");
+assert.match(appTemplate, /sameView&&root\.__scResolvedActiveRole===activeRole&&\(userOpenRole===undefined\|\|selectedRoles\.includes\(userOpenRole\)\)\?userOpenRole:activeRole/, "only the same task and active role may preserve a still-valid manual selection");
 assert.match(appTemplate, /root\.__scResolvedActiveRole=activeRole/, "rerender must remember the resolved active role for the next snapshot");
-assert.match(appTemplate, /stateRole=\{dev_in_progress:"dev"\}/, "only an actively executing workflow state may map to an active role");
-for (const state of ["confirmed", "planned", "ready_for_cr", "ready_for_qa", "cr_blocked", "qa_failed", "qa_conditional", "qa_passed", "workflow_ready", "needs_user_confirm", "needs_revalidation", "needs_revision", "blocked"]) {
-  assert.doesNotMatch(stateRoleLiteral, new RegExp(`(?:^|,)${state}:`), `${state} must not guess an active role`);
-}
+assert.doesNotMatch(appTemplate, /const stateRole=/, "task state must never supply a fallback active role");
+assert.match(appTemplate, /active\[0\]===\"qa\"&&\(!selectedRoles\.includes\(\"cr\"\)\|\|asObject\(details\.cr\)\.status!==\"passed\"\)/, "QA activity must require a selected, explicitly passed CR");
+assertSkillMatch(/CR 未通过时 QA 保持 `pending`，不得提前进行测试准备、异常复现或测试资产修复/, "QA preparation must obey the same CR gate as formal testing");
 for (const [state, label, tone] of [["paused", "已暂停", "waiting"], ["waiting", "等待中", "waiting"], ["failed", "失败", "danger"], ["cancelled", "已取消", "pending"], ["canceled", "已取消", "pending"], ["complete", "已完成", "completed"], ["done", "已完成", "completed"], ["successful", "已完成", "completed"]]) {
-  assert.match(stateLabelsLiteral, new RegExp(`${state}:"${label}"`), `${state} must display its supported global state label`);
-  assert.match(stateTonesLiteral, new RegExp(`${state}:"${tone}"`), `${state} must use its supported global state tone`);
+  assert.equal(stateText(state), label, `${state} must display its supported global state label`);
+  assert.equal(stateClass(state), `sc-task-view__state--${tone}`, `${state} must use its supported global state tone`);
 }
-assert.match(roleStatusLabelsLiteral, /waiting_user:"等待用户确认"/, "waiting_user role status must display the user-confirmation label");
-assert.match(roleStatusTonesLiteral, /waiting_user:"waiting"/, "waiting_user role status must use the waiting tone");
-assert.match(appTemplate, /detailField\(body,"摘要".*detailField\(body,"必要证据".*detailField\(body,"风险".*detailField\(body,"下一步"/, "role cards must contain only the compact task fields");
+assert.equal(roleStatesLiteral, '{pending:{label:"待开始",tone:"pending"},running:{label:"进行中",tone:"active"},passed:{label:"通过",tone:"passed"},blocked:{label:"阻断",tone:"danger"},needs_user_confirm:{label:"待用户确认",tone:"waiting"}}', "one canonical metadata table must define the five role labels and tones");
+assert.doesNotMatch(appTemplate, /roleStatusLabels|roleStatusTones|isActiveRoleStatus|roleStatusLabel|roleStatusTone/, "obsolete role-state helper layers must remain removed");
+assert.equal(stateText("ready_for_cr"), "审查阶段", "CR phase label must not imply waiting while CR is running");
+assert.equal(stateText("ready_for_qa"), "测试阶段", "QA phase label must not imply waiting while QA is running");
+assert.match(appTemplate, /detailField\(body,"摘要".*detailField\(body,"必要证据".*detailField\(body,"风险".*detailField\(body,"下一步"/s, "role cards must contain only the compact task fields");
 assert.doesNotMatch(appTemplate, /data-sc-field="resume_state"|data-sc-state-reference|复验入口/, "minimal UI must not render the state machine or resume_state");
 assertSkillMatch(/不展示状态机、状态参考集、复验入口或 `resume_state`/, "skill must keep resume_state authoritative but out of the UI");
 assertSkillDoesNotMatch(/needs_revalidation` 时必须展示 `resume_state`/, "skill must not require resume_state rendering");
 assertSkillMatch(/handoffs: \[\].*权威交接记录.*不在 UI 中逐条展示/, "skill must keep handoffs authoritative but out of the minimal UI");
 assertSkillDoesNotMatch(/handoffs: \[\].*每条均展示|handoffs?.*(session log|Session log|逐条展示其自身)/, "skill must not require handoff or session-log rendering");
-assert.match(appTemplate, /dataset\.scConnectorFrom=orderedRoles\[index-1\]\|\|"sc"; connector\.dataset\.scConnectorTo=role/, "decorative connectors must identify their actual adjacent endpoints");
+assert.match(appTemplate, /dataset\.scConnectorFrom=selectedRoles\[index-1\]\|\|"sc"; connector\.dataset\.scConnectorTo=role/, "decorative connectors must identify their actual adjacent endpoints");
 assertSkillMatch(/handoff_id/, "the snapshot contract must document stable optional handoff identity");
 
 for (const tone of ["pending", "active", "completed", "passed", "danger", "waiting", "revision", "unknown"]) assert.match(appTemplate, new RegExp(`sc-task-view__state--${tone} \\{[^}]*color:`), `${tone} must define a semantic status color`);
@@ -103,7 +105,8 @@ assert.match(appTemplate, /transform:rotate\(45deg\)/, "connector arrowhead must
 assert.doesNotMatch(appTemplate, /sc-task-view__progress|role="progressbar"|任务进度：|progress-label/, "role cards must not render progress bars or percentages");
 assert.match(appTemplate, /\.sc-task-view details\[data-sc-role\]\.is-active \{[^}]*border-color:var\(--active\);[^}]*animation:sc-running-pulse 1\.6s ease-in-out infinite/, "active role cards must retain a visible persistent running animation");
 assert.match(appTemplate, /@keyframes sc-running-pulse/, "the running role animation must be defined");
-assert.match(appTemplate, /workflow_ready:"任务完成"/, "workflow_ready must present completion without changing its state semantics");
-assert.match(appTemplate, /workflow_ready:"已通过"/, "the completed QA workflow state must display as passed in role cards");
+assert.equal(stateText("workflow_ready"), "任务完成", "workflow_ready must present completion without changing its state semantics");
+assert.equal(subskillStatusText("workflow_ready"), "已通过", "legacy workflow_ready mapping must remain available for subskills");
+assert.equal(subskillStatusClass("workflow_ready"), "sc-task-view__state--passed", "legacy workflow_ready subskill tone must remain passed");
 
 console.log(skill ? "SC minimal task-flow UI contract passed." : "SC minimal task-flow UI contract passed (repository Skill checks skipped outside the source tree).");

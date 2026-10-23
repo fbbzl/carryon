@@ -51,18 +51,34 @@ function chromeBehavior() {
     result.foldFocus={...observe(),focus:document.activeElement===root.querySelector('[data-sc-role=dev] > summary')};
     const crRunning=structuredClone(initial);
     crRunning.state='ready_for_cr';
-    crRunning.role_details={dev:{status:'completed'},cr:{status:'running'},qa:{status:'waiting'}};
+    crRunning.role_details={dev:{status:'passed'},cr:{status:'running'},qa:{status:'pending'}};
     const beforeCr=JSON.stringify(crRunning);render(crRunning);
     result.cr={dev:status('dev'),cr:status('cr'),qa:status('qa'),...observe(),unchanged:beforeCr===JSON.stringify(crRunning)};
     const qaRunning=structuredClone(crRunning);
     qaRunning.state='ready_for_qa';
-    qaRunning.role_details={dev:{status:'completed'},cr:{status:'completed'},qa:{status:'running'}};
+    qaRunning.role_details={dev:{status:'passed'},cr:{status:'passed'},qa:{status:'running'}};
     const beforeQa=JSON.stringify(qaRunning);render(qaRunning);
     result.qa={dev:status('dev'),cr:status('cr'),qa:status('qa'),...observe(),unchanged:beforeQa===JSON.stringify(qaRunning)};
     const conflict=structuredClone(qaRunning);
-    conflict.role_details={dev:{status:'running'},cr:{status:'in-progress'},qa:{status:'pending'}};
+    conflict.role_details={dev:{status:'running'},cr:{status:'running'},qa:{status:'pending'}};
     const beforeConflict=JSON.stringify(conflict);render(conflict);
     result.conflict={...observe(),unchanged:beforeConflict===JSON.stringify(conflict)};
+    result.qaGate=[];
+    for(const crStatus of ['pending','running','blocked','needs_user_confirm',undefined,'completed',' PASSED ']){
+      const invalid=structuredClone(qaRunning);invalid.role_details.cr=crStatus===undefined?{}:{status:crStatus};
+      const before=JSON.stringify(invalid);render(invalid);
+      result.qaGate.push({name:String(crStatus),...observe(),qa:status('qa'),unchanged:before===JSON.stringify(invalid)});
+    }
+    for(const roles of [['dev','qa'],['qa'],'qa']){
+      const invalid=structuredClone(qaRunning);invalid.work_unit.roles=roles;
+      const before=JSON.stringify(invalid);render(invalid);
+      result.qaGate.push({name:JSON.stringify(roles),...observe(),qa:status('qa'),unchanged:before===JSON.stringify(invalid)});
+    }
+    const missingCr=structuredClone(qaRunning);delete missingCr.role_details.cr;
+    const beforeMissingCr=JSON.stringify(missingCr);render(missingCr);
+    result.qaGate.push({name:'missing-cr-detail',...observe(),qa:status('qa'),unchanged:beforeMissingCr===JSON.stringify(missingCr)});
+    const scalar=structuredClone(initial);scalar.work_unit.roles=' DEV ';render(scalar);
+    result.scalarDev=observe();
     document.body.dataset.testResult=JSON.stringify(result);
   </script></body></html>`;
   fs.writeFileSync(page, harness, "utf8");
@@ -77,9 +93,11 @@ function chromeBehavior() {
   assert.deepEqual(result.dev, { dev: "进行中", cr: "待开始", qa: "待开始", active: ["dev"], open: ["dev"], current: ["dev"], unchanged: true });
   assert.deepEqual(result.phase, { dev: "进行中", cr: "待开始", qa: "待开始", active: ["dev"], open: ["dev"], current: ["dev"], unchanged: true });
   assert.deepEqual(result.foldFocus, { active: ["dev"], open: [], current: ["dev"], focus: true });
-  assert.deepEqual(result.cr, { dev: "已完成", cr: "进行中", qa: "等待中", active: ["cr"], open: ["cr"], current: ["cr"], unchanged: true });
-  assert.deepEqual(result.qa, { dev: "已完成", cr: "已完成", qa: "进行中", active: ["qa"], open: ["qa"], current: ["qa"], unchanged: true });
+  assert.deepEqual(result.cr, { dev: "通过", cr: "进行中", qa: "待开始", active: ["cr"], open: ["cr"], current: ["cr"], unchanged: true });
+  assert.deepEqual(result.qa, { dev: "通过", cr: "通过", qa: "进行中", active: ["qa"], open: ["qa"], current: ["qa"], unchanged: true });
   assert.deepEqual(result.conflict, { active: [], open: [], current: [], unchanged: true });
+  for(const item of result.qaGate) assert.deepEqual(item, {name:item.name,active:[],open:[],current:[],qa:'进行中',unchanged:true}, `${item.name}: invalid QA snapshots must stay inert and preserve their raw status`);
+  assert.deepEqual(result.scalarDev, {active:['dev'],open:['dev'],current:['dev']}, "scalar and array role selection must normalize consistently");
   console.log(`Serial workflow Chrome behavior passed; browser evidence: ${page}`);
 }
 
@@ -121,33 +139,31 @@ async function stdioContract() {
 
     const cr = structuredClone(dev);
     cr.state = "ready_for_cr";
-    cr.role_details = { dev: { status: "completed" }, cr: { status: "running" }, qa: { status: "waiting" } };
+    cr.role_details = { dev: { status: "passed" }, cr: { status: "running" }, qa: { status: "pending" } };
     const acceptedCr = await expectAccepted(cr);
     assert.equal(acceptedCr.role_details.cr.status, "running");
 
     const qa = structuredClone(cr);
-    qa.state = "ready_for_qa";
-    qa.role_details = { dev: { status: "completed" }, cr: { status: "completed" }, qa: { status: "running" } };
+    qa.state = "needs_user_confirm";
+    qa.role_details = { dev: { status: "passed" }, cr: { status: "passed" }, qa: { status: "running" } };
     const acceptedQa = await expectAccepted(qa);
     assert.equal(acceptedQa.role_details.qa.status, "running");
 
-    const activeAliases = ["preparing", "in-progress", "working", "active", "started", "started_working"];
-    for (const [index, alias] of activeAliases.entries()) {
-      const conflict = structuredClone(qa);
-      conflict.role_details = {
-        dev: { status: index % 2 ? " running " : "completed" },
-        cr: { status: index % 2 ? "pending" : ` ${alias} ` },
-        qa: { status: index % 2 ? ` ${alias} ` : " running " },
-      };
-      const rejected = await call(conflict);
-      assert.equal(rejected.error?.code, -32602, `two active statuses must be rejected: ${alias}`);
-      assert.match(rejected.error.message, /only one active role/i);
-      const restored = await latest();
-      assert.equal(restored.dev.status, "completed", "rejection must retain the latest valid DEV state");
-      assert.equal(restored.cr.status, "completed", "rejection must retain the latest valid CR state");
-      assert.equal(restored.qa.status, "running", "rejection must retain the latest valid QA state");
+    const conflict = structuredClone(qa);
+    conflict.role_details.cr.status = "running";
+    const rejectedConflict = await call(conflict);
+    assert.equal(rejectedConflict.error?.code, -32602);
+    assert.match(rejectedConflict.error.message, /only one active role/i);
+    const invalidStatuses = ["completed", "waiting", "not_started", "preparing", "in-progress", "in_progress", "working", "active", "started", "started_working", " RUNNING ", "running ", "", null, 42, false, {}, []];
+    for (const status of invalidStatuses) {
+      const invalid = structuredClone(qa);
+      invalid.role_details.cr.status = status;
+      const rejected = await call(invalid);
+      assert.equal(rejected.error?.code, -32602, "invalid role status: " + JSON.stringify(status));
+      assert.match(rejected.error.message, /status must be one of/i);
+      assert.deepEqual(await latest(), acceptedQa.role_details, "rejection must retain the latest valid roles and elapsed metrics");
     }
-    console.log(`Serial workflow stdio passed (DEV → CR → QA; ${activeAliases.length} alias conflict/recovery cases).`);
+    console.log("Serial workflow stdio passed (DEV → CR → QA; strict status rejection).");
   } finally {
     session.complete();
   }

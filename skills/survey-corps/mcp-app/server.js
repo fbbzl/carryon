@@ -13,7 +13,8 @@ const MAX_FRAME_BYTES = 256 * 1024;
 const MAX_SNAPSHOT_BYTES = 200 * 1024;
 const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", "2025-11-25"]);
 const METRIC_SCHEMA = { type: "object", additionalProperties: false, properties: { elapsed_ms: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, description: "Active elapsed time in milliseconds, measured by the server in this session. A supplied value seeds the first observation only." }, total_tokens: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER, deprecated: true, description: "Legacy compatibility field; not collected or displayed." } } };
-const ROLE_DETAIL_SCHEMA = { type: "object", properties: { metrics: METRIC_SCHEMA } };
+const ROLE_STATUSES = ["pending", "running", "passed", "blocked", "needs_user_confirm"];
+const ROLE_DETAIL_SCHEMA = { type: "object", properties: { status: { type: "string", enum: ROLE_STATUSES }, metrics: METRIC_SCHEMA } };
 const SNAPSHOT_SCHEMA = { type: "object", required: ["view_id"], properties: { state: { type: "string" }, view_id: { type: "string", minLength: 1, description: "Stable logical view identifier; not displayed in the UI or used as a path or resource URI." }, work_unit: { type: "object", properties: { metrics: METRIC_SCHEMA } }, role_details: { type: "object", properties: { req: ROLE_DETAIL_SCHEMA, dev: ROLE_DETAIL_SCHEMA, cr: ROLE_DETAIL_SCHEMA, qa: ROLE_DETAIL_SCHEMA }, additionalProperties: true } } };
 const EMPTY_SNAPSHOT = Object.freeze({ view_id: "sc-task-view:empty", state: "unknown" });
 let latestSnapshot = null;
@@ -62,13 +63,15 @@ function validateSnapshot(snapshot) {
   if (typeof snapshot.view_id !== "string" || snapshot.view_id.trim() === "") return "snapshot.view_id must be a non-empty string";
   if (Object.hasOwn(snapshot, "state") && typeof snapshot.state !== "string") return "snapshot.state must be a string";
   if (Buffer.byteLength(JSON.stringify(snapshot), "utf8") > MAX_SNAPSHOT_BYTES) return "snapshot exceeds 200 KiB";
-  const selected = Array.isArray(snapshot.work_unit?.roles) ? [...new Set(snapshot.work_unit.roles.filter(role => typeof role === "string").map(role => role.trim().toLowerCase()).filter(role => ["req", "dev", "cr", "qa"].includes(role)))] : [];
-  const activeStatuses = new Set(["running", "preparing", "in_progress", "working", "active", "started", "started_working"]);
-  const activeRoles = selected.filter(role => {
-    const status = snapshot.role_details?.[role]?.status;
-    return typeof status === "string" && activeStatuses.has(status.trim().toLowerCase().replace(/[ -]+/g, "_"));
-  });
+  const roles = snapshot.work_unit?.roles;
+  const selected = [...new Set((Array.isArray(roles) ? roles : [roles]).filter(role => typeof role === "string").map(role => role.trim().toLowerCase()).filter(role => ["req", "dev", "cr", "qa"].includes(role)))];
+  for (const role of ["req", "dev", "cr", "qa"]) {
+    const detail = snapshot.role_details?.[role];
+    if (isObject(detail) && Object.hasOwn(detail, "status") && !ROLE_STATUSES.includes(detail.status)) return `role_details.${role}.status must be one of: ${ROLE_STATUSES.join(", ")}`;
+  }
+  const activeRoles = selected.filter(role => snapshot.role_details?.[role]?.status === "running");
   if (activeRoles.length > 1) return "Serial workflow permits only one active role: " + activeRoles.join(", ");
+  if (activeRoles[0] === "qa" && (!selected.includes("cr") || snapshot.role_details?.cr?.status !== "passed")) return "QA can run only when selected CR has passed";
   return null;
 }
 function handle(id, method, params) {

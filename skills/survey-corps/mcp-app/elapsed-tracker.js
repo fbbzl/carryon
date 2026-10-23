@@ -10,10 +10,13 @@ const initialElapsed = metrics => Number.isSafeInteger(record(metrics).elapsed_m
 const stopwatch = metrics => ({ elapsed: initialElapsed(metrics), active: false });
 const selectedRoles = value => [...new Set((Array.isArray(value) ? value : [value]).filter(value => typeof value === "string").map(value => value.trim().toLowerCase()).filter(value => ROLES.has(value)))];
 
-function activeRoles(snapshot, selected) {
-  if (STOPPED.has(status(snapshot.state))) return new Set();
+function activeRole(snapshot, selected) {
+  if (STOPPED.has(status(snapshot.state))) return null;
   const details = record(snapshot.role_details);
-  return new Set(selected.filter(role => status(record(details[role]).status) === "running"));
+  const active = selected.filter(role => record(details[role]).status === "running");
+  if (active.length !== 1) return null;
+  if (active[0] === "qa" && (!selected.includes("cr") || record(details.cr).status !== "passed")) return null;
+  return active[0];
 }
 function advance(timer, delta) {
   if (timer.active) timer.elapsed = Math.min(Number.MAX_SAFE_INTEGER, timer.elapsed + delta);
@@ -50,16 +53,15 @@ function createElapsedTracker({ now = () => performance.now(), maxViews = 128 } 
     const observed = observedTime();
     // Rejected transport output must not change either the elapsed value or activity.
     const entry = previous ? settle(previous, observed) : { observed, task: stopwatch(snapshot.work_unit.metrics), roles: new Map() };
-    const selected = selectedRoles(snapshot.work_unit.roles), active = activeRoles(snapshot, selected);
+    const selected = selectedRoles(snapshot.work_unit.roles), active = activeRole(snapshot, selected);
     const details = record(snapshot.role_details), outputDetails = { ...details };
     for (const role of selected) {
       if (!entry.roles.has(role)) entry.roles.set(role, stopwatch(record(details[role]).metrics));
       const timer = entry.roles.get(role);
-      timer.active = active.has(role);
+      timer.active = role === active;
       outputDetails[role] = withElapsed(details[role], timer);
     }
-    // A task measures the union of active intervals, never a sum of parallel roles.
-    entry.task.active = active.size > 0;
+    entry.task.active = active !== null;
     const output = { ...snapshot, work_unit: withElapsed(snapshot.work_unit, entry.task), role_details: outputDetails };
     if (!acceptSnapshot(output)) return null;
     views.set(snapshot.view_id, entry);

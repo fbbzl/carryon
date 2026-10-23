@@ -7,7 +7,7 @@ const tracker = createElapsedTracker({ now: () => time });
 const sample = (view_id, state, statuses, metrics) => ({ view_id, state, work_unit: { roles: Object.keys(statuses), metrics }, role_details: Object.fromEntries(Object.entries(statuses).map(([role, status]) => [role, { status }])) });
 const elapsed = snapshot => snapshot.work_unit.metrics.elapsed_ms;
 const roleElapsed = (snapshot, role) => snapshot.role_details[role].metrics.elapsed_ms;
-const initial = sample("parallel", "planned", { req: "running", dev: "running" });
+const initial = sample("serial", "planned", { req: "running", dev: "pending" });
 const original = structuredClone(initial);
 assert.equal(elapsed(tracker.update(initial)), 0);
 assert.deepEqual(initial, original, "enhancement must not mutate the caller snapshot");
@@ -15,18 +15,18 @@ time = 1000;
 let result = tracker.update(initial);
 assert.equal(elapsed(result), 1000);
 assert.equal(roleElapsed(result, "req"), 1000);
-assert.equal(roleElapsed(result, "dev"), 1000, "parallel time must not double the task elapsed");
+assert.equal(roleElapsed(result, "dev"), 0, "pending roles must not count another role's activity");
 time = 1250;
-result = tracker.update(sample("parallel", "needs_user_confirm", { req: "running", dev: "running" }));
+result = tracker.update(sample("serial", "needs_user_confirm", { req: "running", dev: "pending" }));
 assert.equal(elapsed(result), 1250);
 time = 5250;
 assert.equal(elapsed(tracker.update(result)), 1250, "global waiting freezes stale running roles");
-result = tracker.update(sample("parallel", "planned", { req: "completed", dev: "running" }));
+result = tracker.update(sample("serial", "planned", { req: "passed", dev: "running" }));
 time = 5750;
-result = tracker.update(sample("parallel", "workflow_ready", { req: "completed", dev: "running" }));
+result = tracker.update(sample("serial", "workflow_ready", { req: "passed", dev: "running" }));
 assert.equal(elapsed(result), 1750);
 assert.equal(roleElapsed(result, "req"), 1250);
-assert.equal(roleElapsed(result, "dev"), 1750);
+assert.equal(roleElapsed(result, "dev"), 500);
 time = 9000;
 assert.equal(elapsed(tracker.update(result)), 1750, "completion freezes stale active status");
 
@@ -44,7 +44,7 @@ time += 500;
 assert.equal(elapsed(tracker.update(seeded)), 3000, "a rolled-back clock must not count a repeated interval");
 
 for (const missing of [undefined, null, ""]) {
-  const explicitQa = sample("explicit-qa:" + String(missing), "dev_in_progress", { dev: missing, qa: "running" });
+  const explicitQa = sample("explicit-qa:" + String(missing), "dev_in_progress", { dev: missing, cr: "passed", qa: "running" });
   tracker.update(explicitQa);
   time += 25;
   result = tracker.update(explicitQa);
@@ -53,7 +53,7 @@ for (const missing of [undefined, null, ""]) {
   assert.equal(elapsed(result), 25);
 }
 for (const role of ["req", "dev", "cr", "qa"]) {
-  const running = sample("running:" + role, "planned", { [role]: " RUNNING " });
+  const running = sample("running:" + role, "planned", role === "qa" ? { cr: "passed", qa: "running" } : { [role]: "running" });
   tracker.update(running);
   time += 25;
   assert.equal(roleElapsed(tracker.update(running), role), 25, "each selected running role must count");
@@ -62,7 +62,36 @@ for (const role of ["req", "dev", "cr", "qa"]) {
   time += 25;
   assert.equal(elapsed(tracker.update(running)), 25, "leaving running settles and freezes the interval");
 }
-for (const value of [undefined, null, "", "preparing", "in_progress", "working", "active", "started", "started_working"]) {
+for (const status of ["pending", "running", "blocked", "needs_user_confirm", undefined]) {
+  const gated = sample("gated-qa:" + String(status), "ready_for_qa", { cr: status, qa: "running" });
+  const original = structuredClone(gated);
+  tracker.update(gated);
+  time += 50;
+  result = tracker.update(gated);
+  assert.equal(elapsed(result), 0, "QA must not count before CR passes: " + String(status));
+  assert.equal(roleElapsed(result, "qa"), 0);
+  assert.equal(roleElapsed(result, "cr"), 0, "conflicting running roles must not count");
+  assert.deepEqual(gated, original, "gating must not rewrite the caller's role states");
+  gated.role_details.cr.status = "passed";
+  tracker.update(gated);
+  time += 25;
+  assert.equal(roleElapsed(tracker.update(gated), "qa"), 25, "CR passing opens QA timing from that observation only");
+}
+const unselectedCr = sample("qa-scalar", "ready_for_qa", { cr: "passed", qa: "running" });
+unselectedCr.work_unit.roles = " QA ";
+tracker.update(unselectedCr);
+time += 50;
+assert.equal(elapsed(tracker.update(unselectedCr)), 0, "an unselected CR must not authorize scalar QA");
+const missingCr = sample("qa-missing-cr", "ready_for_qa", { qa: "running" });
+missingCr.work_unit.roles = ["cr", "qa"];
+tracker.update(missingCr);
+time += 50;
+assert.equal(elapsed(tracker.update(missingCr)), 0, "missing CR details must not authorize QA");
+const conflict = sample("conflict", "planned", { req: "running", dev: "running" });
+tracker.update(conflict);
+time += 50;
+assert.equal(elapsed(tracker.update(conflict)), 0, "multiple active roles must not start task timing");
+for (const value of [undefined, null, "", " RUNNING ", "RUNNING", "passed", "blocked", "needs_user_confirm", "preparing", "in_progress", "working", "active", "started", "started_working"]) {
   const idle = sample("not-running:" + String(value), "dev_in_progress", { dev: value });
   tracker.update(idle);
   time += 25;

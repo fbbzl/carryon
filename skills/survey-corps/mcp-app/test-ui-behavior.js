@@ -19,7 +19,7 @@ const snapshot = {
   view_id: "sc-task-view:QA-SC-MOTION-001",
   state: "ready_for_cr",
   work_unit: { work_unit_id: "QA-SC-MOTION-001", target: "accordion rerender", reference_version: "748c46b", roles: ["req", "dev", "cr", "qa"] },
-  role_details: { req: { status: "completed", progress: "25" }, cr: { status: "running", progress: 120 }, qa: { status: "not_started", progress: -25 } },
+  role_details: { req: { status: "passed", progress: "25" }, cr: { status: "running", progress: 120 }, qa: { status: "pending", progress: -25 } },
   handoffs: [],
 };
 const harness = `<!doctype html><html><body><main id="root">${template}</main><script>
@@ -33,11 +33,20 @@ const snapshot=${JSON.stringify(snapshot)};
 const openRoles=()=>[...root.querySelectorAll("details[data-sc-role][open]")].map(node=>node.dataset.scRole);
 const hasProgress=role=>!!root.querySelector('details[data-sc-role="'+role+'"] [role="progressbar"]');
 const stateRoot=root.cloneNode(true);stateRoot.removeAttribute('id');document.body.append(stateRoot);
-const lifecycleSnapshot={view_id:'lifecycle:A',state:'dev_in_progress',work_unit:{roles:['req','dev']},role_details:{req:{status:'completed'},dev:{status:'running'}}};
+const lifecycleSnapshot={view_id:'lifecycle:A',state:'dev_in_progress',work_unit:{roles:['req','dev']},role_details:{req:{status:'passed'},dev:{status:'running'}}};
 const observeLifecycle=()=>({active:[...stateRoot.querySelectorAll('[data-sc-role].is-active')].map(n=>n.dataset.scRole),open:[...stateRoot.querySelectorAll('[data-sc-role][open]')].map(n=>n.dataset.scRole),current:[...stateRoot.querySelectorAll('[aria-current=step]')].map(n=>n.dataset.scRole)});
 const lifecycleBefore=JSON.stringify(lifecycleSnapshot),lifecycle={stops:{},repairs:{}};
 for(const state of ['needs_user_confirm','paused','waiting','blocked','qa_passed','workflow_ready','completed','complete','done','success','successful','succeeded','failed','cancelled','canceled']){window.renderSurveyCorpsTaskView(stateRoot,{...lifecycleSnapshot,state});lifecycle.stops[state]=observeLifecycle();}
 for(const state of ['cr_blocked','qa_failed','qa_conditional']){window.renderSurveyCorpsTaskView(stateRoot,{...lifecycleSnapshot,state});lifecycle.repairs[state]=observeLifecycle();}
+lifecycle.phases={};
+for(const [state,owner] of [['ready_for_cr','cr'],['ready_for_qa','qa']])for(const status of ['pending','running']){window.renderSurveyCorpsTaskView(stateRoot,{view_id:'phase:'+state, state,work_unit:{roles:['dev','cr','qa']},role_details:{dev:{status:'passed'},cr:{status:owner==='qa'?'passed':'pending'},qa:{status:'pending'},[owner]:{status}}});lifecycle.phases[state+':'+status]={...observeLifecycle(),label:stateRoot.querySelector('[data-sc-field=state]').textContent};}
+lifecycle.qaGate={};
+for(const status of ['pending','running','blocked','needs_user_confirm',undefined,'completed',' PASSED ']){
+  window.renderSurveyCorpsTaskView(stateRoot,{view_id:'qa-gate:'+String(status),state:'ready_for_qa',work_unit:{roles:['dev','cr','qa']},role_details:{dev:{status:'passed'},cr:status===undefined?{}:{status},qa:{status:'running'}}});
+  lifecycle.qaGate[String(status)]={...observeLifecycle(),animation:getComputedStyle(stateRoot.querySelector('[data-sc-role=qa]')).animationName};
+}
+window.renderSurveyCorpsTaskView(stateRoot,{view_id:'qa-gate:unselected-cr',state:'ready_for_qa',work_unit:{roles:'qa'},role_details:{cr:{status:'passed'},qa:{status:'running'}}});
+lifecycle.qaGate.unselectedCr={...observeLifecycle(),animation:getComputedStyle(stateRoot.querySelector('[data-sc-role=qa]')).animationName};
 window.renderSurveyCorpsTaskView(stateRoot,lifecycleSnapshot);
 stateRoot.querySelector('[data-sc-role=dev]').open=false;stateRoot.querySelector('[data-sc-role=req]').open=true;
 window.renderSurveyCorpsTaskView(stateRoot,lifecycleSnapshot);lifecycle.sameView=observeLifecycle();
@@ -70,7 +79,7 @@ stateRoot.remove();
 window.renderSurveyCorpsTaskView(root,snapshot);
 const initialToggleListeners=toggleAdds-toggleRemoves;
 const initial=openRoles(),progress={req:hasProgress("req"),dev:hasProgress("dev"),cr:hasProgress("cr"),qa:hasProgress("qa")};
-const waitingSnapshot=structuredClone(snapshot);waitingSnapshot.state="ready_for_qa";waitingSnapshot.role_details={req:{status:"completed"},dev:{status:"completed"},cr:{status:"pending"},qa:{status:"pending"}};window.renderSurveyCorpsTaskView(root,waitingSnapshot);const waitingActive=[...root.querySelectorAll('details[data-sc-role].is-active')].map(node=>node.dataset.scRole);window.renderSurveyCorpsTaskView(root,snapshot);
+const waitingSnapshot=structuredClone(snapshot);waitingSnapshot.state="ready_for_qa";waitingSnapshot.role_details={req:{status:"passed"},dev:{status:"passed"},cr:{status:"pending"},qa:{status:"pending"}};window.renderSurveyCorpsTaskView(root,waitingSnapshot);const waitingActive=[...root.querySelectorAll('details[data-sc-role].is-active')].map(node=>node.dataset.scRole);window.renderSurveyCorpsTaskView(root,snapshot);
 const finishedDev=structuredClone(waitingSnapshot);finishedDev.state="dev_in_progress";window.renderSurveyCorpsTaskView(root,finishedDev);const finishedDevActive=[...root.querySelectorAll('details[data-sc-role].is-active')].map(node=>node.dataset.scRole);window.renderSurveyCorpsTaskView(root,snapshot);
 const flow={roles:[...root.querySelectorAll("details[data-sc-role]")].map(node=>node.dataset.scRole),titles:[...root.querySelectorAll("details[data-sc-role] summary .sc-task-view__role-name > span:first-child")].map(node=>node.textContent),lastRole:root.querySelector("[data-sc-roles]").lastElementChild?.dataset.scRole,extraExitNodes:root.querySelectorAll("[data-sc-exit], .sc-task-view__exit").length,exitTextCount:root.querySelector("[data-sc-roles]").textContent.split("任务出口").length-1,connectorCount:root.querySelectorAll("[data-sc-connector], .sc-task-view__connector").length};
 const defaults={summary:root.querySelector('[data-sc-task-summary]').textContent,selected:root.querySelector('[data-sc-selected-roles]').textContent,contextRemoved:!root.querySelector('[data-sc-context]'),namesRemoved:!root.querySelector('[data-sc-agent-name]'),projectMcpsHidden:root.querySelector('[data-sc-project-mcps]').hidden,debugHidden:root.querySelector('[data-sc-play-animation]').hidden,autoMotion:root.querySelector('.sc-task-view').classList.contains('is-entering'),connectorGeometry:[...root.querySelectorAll('.sc-task-view__connector')].map(node=>({before:getComputedStyle(node,"::before").content,after:getComputedStyle(node,"::after").content,afterTransform:getComputedStyle(node,"::after").transform}))};
@@ -78,7 +87,7 @@ root.querySelector('details[data-sc-role="cr"]').open=false;
 root.querySelector('details[data-sc-role="req"]').open=true;
 window.renderSurveyCorpsTaskView(root,snapshot);
 const sameSnapshot=openRoles();
-const next=structuredClone(snapshot);next.state="ready_for_qa";next.role_details.cr.status="completed";next.role_details.qa.status="running";
+const next=structuredClone(snapshot);next.state="ready_for_qa";next.role_details.cr.status="passed";next.role_details.qa.status="running";
 window.renderSurveyCorpsTaskView(root,next,{debug:true});
 const changedActive=openRoles(),stateBefore=root.querySelector('[data-sc-field="state"]').textContent;
 root.querySelector("[data-sc-play-animation]").click();
@@ -112,18 +121,18 @@ const missingMetrics=[root.querySelector('[data-sc-metric=task-elapsed]').textCo
 supplied.work_unit.metrics={elapsed_ms:90061000,total_tokens:12345};supplied.role_details.dev.metrics={elapsed_ms:65000,total_tokens:2345};window.renderSurveyCorpsTaskView(root,supplied);
 delete supplied.role_details.qa.agent_name;delete supplied.work_unit.summary;delete supplied.work_unit.project_mcps;window.renderSurveyCorpsTaskView(root,supplied);
 const removed={headerText:root.querySelector('.sc-task-view__header').innerText,contextRemoved:!root.querySelector('[data-sc-context]'),namesRemoved:!root.querySelector('[data-sc-agent-name]'),projectMcpsHidden:root.querySelector('[data-sc-project-mcps]').hidden,summary:root.querySelector('[data-sc-task-summary]').textContent,summaryClass:root.querySelector('[data-sc-task-summary]').className};
-const roleCases={pending:'待开始',not_started:'待开始',running:'进行中',preparing:'进行中',in_progress:'进行中',working:'进行中',active:'进行中',started:'进行中',started_working:'进行中',completed:'已完成',complete:'已完成',done:'已完成',success:'已完成',successful:'已完成',succeeded:'已完成',passed:'已通过',qa_passed:'已通过',qa_success:'已通过',workflow_ready:'已通过',failed:'失败',blocked:'已阻断',paused:'已暂停',cancelled:'已取消',canceled:'已取消',skipped:'已跳过',waiting:'等待中',waiting_user:'等待用户确认'};
+const roleCases={pending:'待开始',running:'进行中',passed:'通过',blocked:'阻断',needs_user_confirm:'待用户确认'};
 const roleStatuses={};const roleStatusClasses={};for(const status of Object.keys(roleCases)){supplied.role_details.qa.status=status;window.renderSurveyCorpsTaskView(root,supplied);const node=root.querySelector('[data-sc-role=qa] .sc-task-view__role-state');roleStatuses[status]=node.textContent;roleStatusClasses[status]=node.className;}
-const globalCases={confirmed:'已确认',planned:'计划',dev_in_progress:'开发中',ready_for_cr:'等待审查',cr_blocked:'审查阻断',ready_for_qa:'等待测试',qa_failed:'测试失败',qa_conditional:'测试条件通过',qa_passed:'测试通过',workflow_ready:'任务完成',completed:'已完成',complete:'已完成',done:'已完成',success:'已完成',successful:'已完成',succeeded:'已完成',failed:'失败',paused:'已暂停',waiting:'等待中',cancelled:'已取消',canceled:'已取消',needs_user_confirm:'等待用户确认',needs_revalidation:'需要重新验证',needs_revision:'需要修订',blocked:'已阻断'};
+const globalCases={confirmed:'已确认',planned:'计划',dev_in_progress:'开发中',ready_for_cr:'审查阶段',cr_blocked:'审查阻断',ready_for_qa:'测试阶段',qa_failed:'测试失败',qa_conditional:'测试条件通过',qa_passed:'测试通过',workflow_ready:'任务完成',completed:'已完成',complete:'已完成',done:'已完成',success:'已完成',successful:'已完成',succeeded:'已完成',failed:'失败',paused:'已暂停',waiting:'等待中',cancelled:'已取消',canceled:'已取消',needs_user_confirm:'等待用户确认',needs_revalidation:'需要重新验证',needs_revision:'需要修订',blocked:'已阻断'};
 const globalStatuses={};const globalStatusClasses={};for(const state of Object.keys(globalCases)){supplied.state=state;window.renderSurveyCorpsTaskView(root,supplied);const node=root.querySelector('[data-sc-field=state]');globalStatuses[state]=node.textContent;globalStatusClasses[state]=node.className;}
 supplied.state=payload;supplied.role_details.qa.status=payload;window.renderSurveyCorpsTaskView(root,supplied);
 const unknown={global:root.querySelector('[data-sc-field=state]').textContent,role:root.querySelector('[data-sc-role=qa] .sc-task-view__role-state').textContent,img:root.querySelectorAll('img').length};
 const prototypeFallbacks=[];for(const status of ['constructor','__proto__','toString']){supplied.role_details.qa.status=status;window.renderSurveyCorpsTaskView(root,supplied);prototypeFallbacks.push(root.querySelector('[data-sc-role=qa] .sc-task-view__role-state').textContent);}
 const legacySubskills=root.querySelectorAll('[data-sc-subskills]').length;
 const skillSnapshot=structuredClone(next);
-skillSnapshot.role_details.req={status:'completed',subskills:[{name:'align-with-visuals',status:'completed',goal:'对齐页面',result:'对齐记录'},{name:'grill-with-docs',status:'needs_user_confirm',question:payload,options:[payload,'方案 B'],evidence:[payload]}]};
+skillSnapshot.role_details.req={status:'passed',subskills:[{name:'align-with-visuals',status:'completed',goal:'对齐页面',result:'对齐记录'},{name:'grill-with-docs',status:'needs_user_confirm',question:payload,options:[payload,'方案 B'],evidence:[payload]}]};
 skillSnapshot.role_details.dev={status:'pending',subskills:[{name:'tech-select',status:'needs_user_confirm',goal:payload,summary:payload,question:payload,options:[payload,'方案 B'],evidence:[payload],result:payload},{name:'refactor-with-goal',status:'completed',summary:'重构记录'},{name:'bug-fix',status:'completed',summary:'修复记录'},{name:'bug-cause',status:'completed',summary:'根因记录'},{name:'optimize',status:'completed',summary:'优化记录'}]};
-skillSnapshot.role_details.cr={status:'completed',subskills:[{name:'review-with-goal',status:'completed',summary:'审查记录'}]};
+skillSnapshot.role_details.cr={status:'passed',subskills:[{name:'review-with-goal',status:'completed',summary:'审查记录'}]};
 skillSnapshot.role_details.qa={status:'running',subskills:[{name:'test-with-goal',status:'running',summary:'测试记录'}]};
 const skillBefore=JSON.stringify(skillSnapshot);window.renderSurveyCorpsTaskView(root,skillSnapshot);
 const skills=[...root.querySelectorAll('[data-sc-subskill]')].map(node=>({role:node.closest('[data-sc-role]').dataset.scRole,name:node.dataset.scSubskill,open:node.open,summary:node.querySelector('summary').textContent}));
@@ -160,7 +169,10 @@ document.body.dataset.scTestResult=JSON.stringify(result);
 
 const visualHarness = `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main id="root">${template}</main><script>
 const root=document.getElementById('root'),snapshot=${JSON.stringify(snapshot)};
-const roleTones={pending:'pending',not_started:'pending',running:'active',preparing:'active',in_progress:'active',working:'active',active:'active',started:'active',started_working:'active',completed:'completed',complete:'completed',done:'completed',success:'completed',successful:'completed',succeeded:'completed',passed:'passed',qa_passed:'passed',qa_success:'passed',workflow_ready:'passed',failed:'danger',blocked:'danger',paused:'waiting',cancelled:'pending',canceled:'pending',skipped:'pending',waiting:'waiting',waiting_user:'waiting',needs_user_confirm:'waiting',needs_revision:'revision',constructor:'unknown',['__proto__']:'unknown',toString:'unknown',unrecognized:'unknown'};
+snapshot.role_details.cr.status='passed';
+const subskillTones={pending:'pending',not_started:'pending',running:'active',preparing:'active',in_progress:'active',working:'active',active:'active',started:'active',started_working:'active',completed:'completed',complete:'completed',done:'completed',success:'completed',successful:'completed',succeeded:'completed',passed:'passed',qa_passed:'passed',qa_success:'passed',workflow_ready:'passed',failed:'danger',blocked:'danger',paused:'waiting',cancelled:'pending',canceled:'pending',skipped:'pending',waiting:'waiting',waiting_user:'waiting',needs_user_confirm:'waiting',needs_revision:'revision',constructor:'unknown',['__proto__']:'unknown',toString:'unknown',unrecognized:'unknown'};
+const canonicalRoleTones={pending:'pending',running:'active',passed:'passed',blocked:'danger',needs_user_confirm:'waiting'};
+const roleTones=Object.fromEntries(Object.keys(subskillTones).map(status=>[status,Object.hasOwn(canonicalRoleTones,status)?canonicalRoleTones[status]:'unknown']));
 const globalTones={confirmed:'completed',planned:'pending',dev_in_progress:'active',ready_for_cr:'waiting',cr_blocked:'danger',ready_for_qa:'waiting',qa_failed:'danger',qa_conditional:'revision',qa_passed:'passed',workflow_ready:'passed',completed:'completed',complete:'completed',done:'completed',success:'completed',successful:'completed',succeeded:'completed',failed:'danger',paused:'waiting',waiting:'waiting',cancelled:'pending',canceled:'pending',needs_user_confirm:'waiting',needs_revalidation:'revision',needs_revision:'revision',blocked:'danger'};
 const sample=node=>({className:node.className,color:getComputedStyle(node).color});
 const roleColors=Object.create(null),globalColors=Object.create(null),subskillColors=Object.create(null),activeRoleMotion=Object.create(null);
@@ -172,7 +184,7 @@ const connectors=[...root.querySelectorAll('.sc-task-view__connector')].map(node
 const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches,view=root.querySelector('.sc-task-view'),active=root.querySelector('details.is-active');
 const header=root.querySelector('.sc-task-view__header'),status=root.querySelector('[data-sc-field=state]'),headerRect=header.getBoundingClientRect(),statusRect=status.getBoundingClientRect();
 const statusLayout={centerOffset:Math.abs((statusRect.left+statusRect.right)/2-(headerRect.left+headerRect.right)/2),fontSize:getComputedStyle(status).fontSize,eyebrowCount:root.querySelectorAll('.sc-task-view__root > .sc-task-view__muted').length,titleCount:root.querySelectorAll('h2').length};
-const idle=root.querySelector('[data-sc-role=req]');const result={roleTones,globalTones,roleColors,subskillColors,globalColors,activeRoleMotion,connectors,statusLayout,reduced,viewAnimation:getComputedStyle(view).animationName,activeAnimation:getComputedStyle(active,'::before').animationName,idleAnimation:getComputedStyle(idle,'::before').animationName,replay:active.classList.contains('is-manual-replay'),viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};parent.postMessage({scVisualResult:result},'*');
+const idle=root.querySelector('[data-sc-role=req]');const result={roleTones,subskillTones,globalTones,roleColors,subskillColors,globalColors,activeRoleMotion,connectors,statusLayout,reduced,viewAnimation:getComputedStyle(view).animationName,activeAnimation:getComputedStyle(active,'::before').animationName,idleAnimation:getComputedStyle(idle,'::before').animationName,replay:active.classList.contains('is-manual-replay'),viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};parent.postMessage({scVisualResult:result},'*');
 </script></body></html>`;
 
 function readChromeResult(pagePath, profilePath, width, reduced = false) {
@@ -199,12 +211,14 @@ try {
     assert.deepEqual(observed.current,[],state+' must remove the active accessibility marker');
   }
   for(const [state,observed] of Object.entries(result.lifecycle.repairs)) assert.deepEqual(observed.active,['dev'],state+' must retain explicit repair activity');
+  for(const [key,value] of Object.entries(result.lifecycle.phases)){const [state,status]=key.split(':');assert.equal(value.label,state==='ready_for_cr'?'审查阶段':'测试阶段');assert.deepEqual(value.active,status==='running'?[state==='ready_for_cr'?'cr':'qa']:[],key+' must expose only the actual executing owner');}
+  for(const [key,value] of Object.entries(result.lifecycle.qaGate)) assert.deepEqual(value,{active:[],open:[],current:[],animation:'none'},key+' must keep QA inert until selected CR has exactly passed');
   assert.deepEqual(result.lifecycle.sameView.open,['req'],'same task must preserve a valid manual selection');
   assert.deepEqual(result.lifecycle.manuallyClosed.open,[],'same task must preserve manually collapsed cards');
   for(const field of ['newView','removedSelection','resumed']) assert.deepEqual(result.lifecycle[field].open,['dev'],field+' must open the current active role');
   assert.deepEqual(result.lifecycle.paused,{active:[],open:[],current:[]},'pausing must clear activity and automatic expansion');
   assert.equal(result.lifecycle.unchanged,true,'rendering must not mutate the authoritative snapshot');
-  assert.deepEqual(result.boundaries.map(item=>[item.roles,item.active,item.open]), [[[],[],[]],[[],[],[]],[['dev','cr'],['dev'],['dev']],[['qa','dev'],['dev'],['dev']]], "excluded roles must not affect activity or expansion");
+  assert.deepEqual(result.boundaries.map(item=>[item.roles,item.active,item.open]), [[[],[],[]],[[],[],[]],[['dev','cr'],['dev'],['dev']],[['qa','dev'],[],[]]], "excluded roles must not affect activity or expansion");
   assert.deepEqual(result.excludedFallback.active, [], "global state cannot activate an excluded role");
   assert.ok(result.invalidStates.every(state=>state==='未知状态'), "malformed state values must render safely");
   assert.deepEqual(result.emptyView.roles, [], "empty snapshots must not invent participants");
@@ -242,10 +256,10 @@ try {
   assert.equal(result.provided.contextRemoved, true);
   assert.equal(result.provided.namesRemoved, true);
   assert.equal(result.provided.injectedElements, 0, "task summary and project MCPs must not inject HTML");
-  assert.deepEqual(result.removed, { headerText: "等待测试", contextRemoved: true, namesRemoved: true, projectMcpsHidden: true, summary: "暂无总结", summaryClass: "sc-task-view__placeholder" }, "removed metadata and absent project MCPs must stay hidden while optional values update");
+  assert.deepEqual(result.removed, { headerText: "测试阶段", contextRemoved: true, namesRemoved: true, projectMcpsHidden: true, summary: "暂无总结", summaryClass: "sc-task-view__placeholder" }, "removed metadata and absent project MCPs must stay hidden while optional values update");
   assert.deepEqual(result.roleStatuses, result.roleCases, "all supported role statuses must display Chinese");
-  assert.notEqual(result.roleStatusClasses.running, result.roleStatusClasses.completed, "running and completed roles must use different semantic color classes");
-  assert.notEqual(result.roleStatusClasses.completed, result.roleStatusClasses.failed, "completed and failed roles must use different semantic color classes");
+  assert.notEqual(result.roleStatusClasses.running, result.roleStatusClasses.passed, "running and completed roles must use different semantic color classes");
+  assert.notEqual(result.roleStatusClasses.passed, result.roleStatusClasses.blocked, "completed and failed roles must use different semantic color classes");
   assert.deepEqual(result.globalStatuses, result.globalCases, "all supported global statuses must display Chinese without codes");
   assert.notEqual(result.globalStatusClasses.qa_passed, result.globalStatusClasses.qa_failed, "passed and failed workflow states must use different semantic color classes");
   assert.deepEqual(result.unknown, { global: "未知状态", role: "未知状态", img: 0 }, "unknown statuses must use a safe Chinese fallback");
@@ -287,11 +301,12 @@ try {
     assert.equal(observed.statusLayout.titleCount,0,"the redundant task-flow title must not render");
     assert.ok(Object.hasOwn(observed.roleColors,"__proto__")&&Object.hasOwn(observed.subskillColors,"__proto__"),"prototype-name color cases must be executed and retained");
     for(const [status,tone] of Object.entries(observed.roleTones)) {
-      for(const item of [observed.roleColors[status],observed.subskillColors[status]]) {
+      for(const item of [observed.roleColors[status]]) {
         assert.ok(item.className.includes(`sc-task-view__state--${tone}`), `${status} must carry the ${tone} semantic class`);
         assert.equal(item.color,toneColors[tone],`${status} must render the ${tone} color in roles and subskills`);
       }
     }
+    for(const [status,tone] of Object.entries(observed.subskillTones)) assert.equal(observed.subskillColors[status].color,toneColors[tone],`${status} must retain the legacy subskill color`);
     for(const [state,tone] of Object.entries(observed.globalTones)) assert.equal(observed.globalColors[state].color,toneColors[tone],`${state} must render the ${tone} workflow color`);
     assert.deepEqual(observed.connectors.map(item=>item.next),["req","dev","cr","qa"],"every downward connector must lead to the next role without adding a node after QA");
     for(const item of observed.connectors) {
@@ -307,9 +322,9 @@ try {
     assert.equal(observed.replay,!mode.reduced,"manual replay must respect reduced motion");
     assert.equal(observed.viewAnimation,"none","opening a task view must not animate when no role is actively working");
     for(const [status,motion] of Object.entries(observed.activeRoleMotion)) {
-      assert.equal(motion.active,true,`${status} must retain an active role card`);
-      assert.equal(motion.borderColor,toneColors.active,`${status} must retain the active role color`);
-      assert.equal(motion.animation,mode.reduced?"none":"sc-running-pulse",`${status} must ${mode.reduced?"disable":"retain"} its persistent running animation`);
+      assert.equal(motion.active,status === "running",`${status} activity must require exact running`);
+      if(status === "running") assert.equal(motion.borderColor,toneColors.active,`${status} must retain the active role color`);
+      assert.equal(motion.animation,mode.reduced || status !== "running"?"none":"sc-running-pulse",`${status} must ${mode.reduced?"disable":"retain"} its persistent running animation`);
     }
     assert.equal(observed.activeAnimation,"none","role cards must not render a rotating geometric border");
     assert.equal(observed.idleAnimation,"none","idle role borders must remain static");
