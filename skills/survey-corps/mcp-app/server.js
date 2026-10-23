@@ -62,6 +62,13 @@ function validateSnapshot(snapshot) {
   if (typeof snapshot.view_id !== "string" || snapshot.view_id.trim() === "") return "snapshot.view_id must be a non-empty string";
   if (Object.hasOwn(snapshot, "state") && typeof snapshot.state !== "string") return "snapshot.state must be a string";
   if (Buffer.byteLength(JSON.stringify(snapshot), "utf8") > MAX_SNAPSHOT_BYTES) return "snapshot exceeds 200 KiB";
+  const selected = Array.isArray(snapshot.work_unit?.roles) ? [...new Set(snapshot.work_unit.roles.filter(role => typeof role === "string").map(role => role.trim().toLowerCase()).filter(role => ["req", "dev", "cr", "qa"].includes(role)))] : [];
+  const activeStatuses = new Set(["running", "preparing", "in_progress", "working", "active", "started", "started_working"]);
+  const activeRoles = selected.filter(role => {
+    const status = snapshot.role_details?.[role]?.status;
+    return typeof status === "string" && activeStatuses.has(status.trim().toLowerCase().replace(/[ -]+/g, "_"));
+  });
+  if (activeRoles.length > 1) return "Serial workflow permits only one active role: " + activeRoles.join(", ");
   return null;
 }
 function handle(id, method, params) {
