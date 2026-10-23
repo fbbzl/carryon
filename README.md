@@ -62,6 +62,7 @@ sc：为当前项目增加订单导出功能，先明确验收标准，再完成
 
 | 当前任务 | Skill | 主要产出 |
 |---|---|---|
+| 克隆项目并初始化 CodeGraph | [clone-project](skills/clone-project/SKILL.md) | 新仓库副本与 `codegraph init` 执行结果 |
 | 需求不清、需要定义边界 | [req](skills/req/SKILL.md) | 用户场景、业务契约与验收标准 |
 | 实现已确认的需求 | [dev](skills/dev/SKILL.md) | 实现、开发验证与恢复输入 |
 | 审查代码或设计 | [cr](skills/cr/SKILL.md) | 带证据的审查项与复审结论 |
