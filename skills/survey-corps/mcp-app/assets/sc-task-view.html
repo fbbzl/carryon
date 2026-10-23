@@ -107,18 +107,19 @@
   <script>
     "use strict";
     (() => {
-      const taskStates={confirmed:["已确认","completed"],planned:["计划","pending"],dev_in_progress:["开发中","active"],ready_for_cr:["审查阶段","waiting"],cr_blocked:["审查阻断","danger"],ready_for_qa:["测试阶段","waiting"],qa_failed:["测试失败","danger"],qa_conditional:["测试条件通过","revision"],qa_passed:["测试通过","passed"],workflow_ready:["任务完成","passed"],completed:["已完成","completed"],complete:["已完成","completed"],done:["已完成","completed"],success:["已完成","completed"],successful:["已完成","completed"],succeeded:["已完成","completed"],failed:["失败","danger"],paused:["已暂停","waiting"],waiting:["等待中","waiting"],cancelled:["已取消","pending"],canceled:["已取消","pending"],needs_user_confirm:["等待用户确认","waiting"],needs_revalidation:["需要重新验证","revision"],needs_revision:["需要修订","revision"],blocked:["已阻断","danger"]};
+      const commonStates={completed:["已完成","completed"],complete:["已完成","completed"],done:["已完成","completed"],success:["已完成","completed"],successful:["已完成","completed"],succeeded:["已完成","completed"],failed:["失败","danger"],paused:["已暂停","waiting"],waiting:["等待中","waiting"],cancelled:["已取消","pending"],canceled:["已取消","pending"],needs_user_confirm:["等待用户确认","waiting"],needs_revision:["需要修订","revision"],blocked:["已阻断","danger"]};
+      const taskStates={...commonStates,confirmed:["已确认","completed"],planned:["计划","pending"],dev_in_progress:["开发中","active"],ready_for_cr:["审查阶段","waiting"],cr_blocked:["审查阻断","danger"],ready_for_qa:["测试阶段","waiting"],qa_failed:["测试失败","danger"],qa_conditional:["测试条件通过","revision"],qa_passed:["测试通过","passed"],workflow_ready:["任务完成","passed"],needs_revalidation:["需要重新验证","revision"]};
       const roles=["req","dev","cr","qa"],roleLabels={req:"REQ",dev:"DEV",cr:"CR",qa:"QA"};
       const stoppedStates=new Set(["needs_user_confirm","paused","waiting","blocked","qa_passed","workflow_ready","completed","complete","done","success","successful","succeeded","failed","cancelled","canceled"]);
       const asObject=value=>value&&typeof value==="object"&&!Array.isArray(value)?value:{};
-      const asList=value=>Array.isArray(value)?value:value===undefined||value===null||value===""?[]:[value];
-      const safeText=value=>value===undefined||value===null||value===""?"未提供":typeof value==="object"?JSON.stringify(value):String(value);
       const missing=value=>value===undefined||value===null||value==="";
+      const asList=value=>Array.isArray(value)?value:missing(value)?[]:[value];
+      const safeText=value=>missing(value)?"未提供":typeof value==="object"?JSON.stringify(value):String(value);
       const stateText=value=>typeof value==="string"&&Object.hasOwn(taskStates,value)?taskStates[value][0]:"未知状态";
       const toneClass=(states,value)=>`sc-task-view__state--${typeof value==="string"&&Object.hasOwn(states,value)?states[value][1]:"unknown"}`;
       const stateClass=value=>toneClass(taskStates,value);
       const normalizedStatus=value=>safeText(value).trim().toLowerCase().replace(/[ -]+/g,"_");
-      const subskillStates={pending:["待开始","pending"],not_started:["待开始","pending"],running:["进行中","active"],preparing:["进行中","active"],in_progress:["进行中","active"],working:["进行中","active"],active:["进行中","active"],started:["进行中","active"],started_working:["进行中","active"],completed:["已完成","completed"],complete:["已完成","completed"],done:["已完成","completed"],success:["已完成","completed"],successful:["已完成","completed"],succeeded:["已完成","completed"],passed:["已通过","passed"],qa_passed:["已通过","passed"],qa_success:["已通过","passed"],workflow_ready:["已通过","passed"],failed:["失败","danger"],blocked:["已阻断","danger"],paused:["已暂停","waiting"],cancelled:["已取消","pending"],canceled:["已取消","pending"],skipped:["已跳过","pending"],waiting:["等待中","waiting"],waiting_user:["等待用户确认","waiting"],needs_user_confirm:["等待用户确认","waiting"],needs_revision:["需要修订","revision"]};
+      const subskillStates={...commonStates,pending:["待开始","pending"],not_started:["待开始","pending"],running:["进行中","active"],preparing:["进行中","active"],in_progress:["进行中","active"],working:["进行中","active"],active:["进行中","active"],started:["进行中","active"],started_working:["进行中","active"],passed:["已通过","passed"],qa_passed:["已通过","passed"],qa_success:["已通过","passed"],workflow_ready:["已通过","passed"],skipped:["已跳过","pending"],waiting_user:["等待用户确认","waiting"]};
       const roleStates={pending:{label:"待开始",tone:"pending"},running:{label:"进行中",tone:"active"},passed:{label:"通过",tone:"passed"},blocked:{label:"阻断",tone:"danger"},needs_user_confirm:{label:"待用户确认",tone:"waiting"}};
       const roleStatus=value=>typeof value==="string"&&Object.hasOwn(roleStates,value)?roleStates[value]:{label:missing(value)?"状态未提供":"未知状态",tone:"unknown"};
       const subskillStatusText=value=>missing(value)?"状态未提供":Object.hasOwn(subskillStates,normalizedStatus(value))?subskillStates[normalizedStatus(value)][0]:"未知状态";
@@ -132,9 +133,10 @@
         const days=Math.floor(seconds/86400); seconds%=86400;
         const hours=Math.floor(seconds/3600); seconds%=3600;
         const minutes=Math.floor(seconds/60); seconds%=60;
-        if (days) return `${days}天 ${String(hours).padStart(2,"0")}小时 ${String(minutes).padStart(2,"0")}分 ${String(seconds).padStart(2,"0")}秒`;
-        if (hours) return `${hours}小时 ${String(minutes).padStart(2,"0")}分 ${String(seconds).padStart(2,"0")}秒`;
-        if (minutes) return `${minutes}分 ${String(seconds).padStart(2,"0")}秒`;
+        const pad=value=>String(value).padStart(2,"0");
+        if (days) return `${days}天 ${pad(hours)}小时 ${pad(minutes)}分 ${pad(seconds)}秒`;
+        if (hours) return `${hours}小时 ${pad(minutes)}分 ${pad(seconds)}秒`;
+        if (minutes) return `${minutes}分 ${pad(seconds)}秒`;
         return `${seconds}秒`;
       }
       function setMetric(node,value,format) {
